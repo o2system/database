@@ -12,11 +12,21 @@
 
 namespace O2System\Database\Datastructures;
 
+// ------------------------------------------------------------------------
+
 use Countable;
 use SeekableIterator;
+use O2System\Spl\Datastructures\Traits\ArrayConversionTrait;
 
+/**
+ * Class Result
+ *
+ * @package O2System\Database\Datastructures
+ */
 class Result implements SeekableIterator, Countable
 {
+    use ArrayConversionTrait;
+    
     /**
      * SeekableIterator Position
      *
@@ -35,19 +45,37 @@ class Result implements SeekableIterator, Countable
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Result::__construct
+     *
+     * @param array $rows
+     */
     public function __construct ( array $rows )
     {
         $this->rows = $rows;
     }
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * Result::first
+     * 
+     * Gets first result row data.
+     * 
+     * @return \O2System\Database\Datastructures\Result\Row
+     */
     public function first ()
     {
         $this->seek( 0 );
 
-        return new Row( $this->rows[ $this->position ] );
+        return new Result\Row( $this->rows[ $this->position ] );
     }
 
+    // ------------------------------------------------------------------------
+
     /**
+     * Result::seek
+     * 
      * Seeks to a position
      *
      * @link  http://php.net/manual/en/seekableiterator.seek.php
@@ -72,7 +100,11 @@ class Result implements SeekableIterator, Countable
         }
     }
 
+    // ------------------------------------------------------------------------
+
     /**
+     * Result::count
+     * 
      * Count elements of an object
      *
      * @link  http://php.net/manual/en/countable.count.php
@@ -89,33 +121,44 @@ class Result implements SeekableIterator, Countable
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Result::last
+     * 
+     * Gets last result row data.
+     * 
+     * @return \O2System\Database\Datastructures\Result\Row
+     */
     public function last ()
     {
         $this->seek( $this->count() - 1 );
 
-        return new Row( $this->rows[ $this->position ] );
+        return new Result\Row( $this->rows[ $this->position ] );
     }
 
     // ------------------------------------------------------------------------
 
     /**
+     * Result::current
+     * 
      * Return the current element
      *
      * @link  http://php.net/manual/en/iterator.current.php
-     * @return Row
+     * @return \O2System\Database\Datastructures\Result\Row
      * @since 5.0.0
      */
     public function current ()
     {
         $this->seek( $this->position );
 
-        return new Row( $this->rows[ $this->position ] );
+        return new Result\Row( $this->rows[ $this->position ] );
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * Move forward to next element
+     * Result::next
+     * 
+     * Move forward to next element.
      *
      * @link  http://php.net/manual/en/iterator.next.php
      * @return void Any returned value is ignored.
@@ -130,7 +173,9 @@ class Result implements SeekableIterator, Countable
     // ------------------------------------------------------------------------
 
     /**
-     * Move backward to previous element
+     * Result::previous
+     * 
+     * Move backward to previous element.
      *
      * @return void Any returned value is ignored.
      * @since 5.0.0
@@ -144,7 +189,9 @@ class Result implements SeekableIterator, Countable
     // ------------------------------------------------------------------------
 
     /**
-     * Return the key of the current element
+     * Result::key
+     * 
+     * Return the key of the current element.
      *
      * @link  http://php.net/manual/en/iterator.key.php
      * @return mixed scalar on success, or null on failure.
@@ -158,7 +205,9 @@ class Result implements SeekableIterator, Countable
     // ------------------------------------------------------------------------
 
     /**
-     * Checks if current position is valid
+     * Result::valid
+     * 
+     * Checks if current position is valid.
      *
      * @link  http://php.net/manual/en/iterator.valid.php
      * @return boolean The return value will be casted to boolean and then evaluated.
@@ -173,7 +222,9 @@ class Result implements SeekableIterator, Countable
     // ------------------------------------------------------------------------
 
     /**
-     * Rewind the Iterator to the first element
+     * Result::rewind
+     * 
+     * Rewind the Iterator to the first element.
      *
      * @link  http://php.net/manual/en/iterator.rewind.php
      * @return void Any returned value is ignored.
@@ -187,7 +238,7 @@ class Result implements SeekableIterator, Countable
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractResult::isEmpty
+     * Result::isEmpty
      *
      * Checks if the array storage is empty.
      *
@@ -201,7 +252,7 @@ class Result implements SeekableIterator, Countable
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractResult::getArrayCopy
+     * Result::getArrayCopy
      *
      * Creates a copy of result rows.
      *
@@ -210,57 +261,5 @@ class Result implements SeekableIterator, Countable
     public function getArrayCopy ()
     {
         return $this->rows;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractResult::__toSerialize
-     *
-     * Convert rows into PHP serialize array
-     *
-     * @see http://php.net/manual/en/function.serialize.php
-     *
-     * @param int $options JSON encode options, default JSON_PRETTY_PRINT
-     * @param int $depth   Maximum depth of JSON encode. Must be greater than zero.
-     *
-     * @return string
-     */
-    public function __toSerialize ()
-    {
-        return serialize( $this->rows );
-    }
-
-    // --------------------------------------------------------------------
-
-    /**
-     * AbstractResult::__toJSON
-     *
-     * @see http://php.net/manual/en/function.json-encode.php
-     *
-     * @param int $options JSON encode options, default JSON_PRETTY_PRINT
-     * @param int $depth   Maximum depth of JSON encode. Must be greater than zero.
-     *
-     * @return string
-     */
-    public function __toJSON ( $options = JSON_PRETTY_PRINT, $depth = 512 )
-    {
-        $depth = $depth == 0 ? 512 : $depth;
-
-        return call_user_func_array( 'json_encode', [ $this->rows, $options, $depth ] );
-    }
-
-    // --------------------------------------------------------------------
-
-    /**
-     * AbstractResult::__toString
-     *
-     * Convert result rows into JSON String
-     *
-     * @return string
-     */
-    public function __toString ()
-    {
-        return (string) json_encode( $this->rows );
     }
 }

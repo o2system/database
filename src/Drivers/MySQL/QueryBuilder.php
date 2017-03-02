@@ -14,19 +14,14 @@ namespace O2System\Database\Drivers\MySQL;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\Interfaces\QueryBuilderInterface;
+use O2System\Database\Abstracts\AbstractQueryBuilder;
 
 /**
  * Class QueryBuilder
  *
  * @package O2System\Database\Drivers\MySQL
  */
-class QueryBuilder extends Driver implements QueryBuilderInterface
+class QueryBuilder extends AbstractQueryBuilder
 {
-    /**
-     * Identifier escape character
-     *
-     * @var    string
-     */
-    protected $escapeCharacter = '`';
+    
 }

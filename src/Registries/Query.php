@@ -14,6 +14,7 @@ namespace O2System\Database\Registries;
 
 // ------------------------------------------------------------------------
 
+use O2System\Database\Abstracts\AbstractConnection;
 use O2System\Database\Abstracts\AbstractDriver;
 
 /**
@@ -89,6 +90,15 @@ class Query
     private $endExecutionTime;
 
     /**
+     * Query::$affectedRows
+     *
+     * Numbers of affected rows.
+     *
+     * @var int
+     */
+    private $affectedRows = 0;
+
+    /**
      * Query::$error
      *
      * The query execution error info.
@@ -102,9 +112,9 @@ class Query
     /**
      * Query::__construct
      *
-     * @param AbstractDriver $conn
+     * @param AbstractConnection $conn
      */
-    public function __construct ( AbstractDriver &$conn )
+    public function __construct ( AbstractConnection &$conn )
     {
         $this->conn = $conn;
     }
@@ -284,6 +294,17 @@ class Query
     //--------------------------------------------------------------------
 
     /**
+     * Query::setAffectedRows
+     *
+     * Sets numbers of affected rows.
+     *
+     * @param int $affectedRows Numbers of affected rows,
+     */
+    public function setAffectedRows( $affectedRows ) {
+
+    }
+
+    /**
      * Query::isWriteSyntax
      *
      * Determines if the SQL statement is a write-syntax query or not.
@@ -310,7 +331,7 @@ class Query
      *
      * @return mixed
      */
-    public function replacePrefix ( $search, $replace )
+    public function swapTablePrefix ( $search, $replace )
     {
         $sql = empty( $this->sqlFinalStatement ) ? $this->sqlStatement : $this->sqlFinalStatement;
 
