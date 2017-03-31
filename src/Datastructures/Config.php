@@ -10,7 +10,7 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\Registries;
+namespace O2System\Database\Datastructures;
 
 // ------------------------------------------------------------------------
 
@@ -19,14 +19,14 @@ namespace O2System\Database\Registries;
  *
  * @package O2System\Cache\Metadata
  */
-class Config extends \O2System\Kernel\Registries\Config
+class Config extends \O2System\Kernel\Datastructures\Config
 {
     /**
      * Config::__construct
      *
      * @param array $config
      */
-    public function __construct ( array $config )
+    public function __construct( array $config )
     {
         if ( isset( $config[ 'default' ] ) ) {
             foreach ( $config as $poolOffset => $poolConfig ) {

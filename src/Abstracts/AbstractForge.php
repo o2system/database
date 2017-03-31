@@ -75,9 +75,9 @@ abstract class AbstractForge
     protected $builderCache
         = [
             'table'       => null,
-            'fields'      => [ ],
-            'keys'        => [ ],
-            'primaryKeys' => [ ],
+            'fields'      => [],
+            'keys'        => [],
+            'primaryKeys' => [],
         ];
 
     // ------------------------------------------------------------------------
@@ -87,7 +87,7 @@ abstract class AbstractForge
      *
      * @param \O2System\Database\Abstracts\AbstractConnection $conn
      */
-    public function __construct ( AbstractConnection $conn )
+    public function __construct( AbstractConnection $conn )
     {
         $this->conn = $conn;
     }
@@ -104,7 +104,7 @@ abstract class AbstractForge
      * @return bool
      * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
      */
-    public function createDatabase ( $database, array $options = [ ] )
+    public function createDatabase( $database, array $options = [] )
     {
         if ( false !== ( $sqlStatement = $this->platformCreateDatabaseStatement( $database, $options ) ) ) {
 
@@ -133,7 +133,7 @@ abstract class AbstractForge
      *
      * @return string|bool
      */
-    abstract protected function platformCreateDatabaseStatement ( $database, array $options = [ ] );
+    abstract protected function platformCreateDatabaseStatement( $database, array $options = [] );
 
     // ------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ abstract class AbstractForge
      * @return bool
      * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
      */
-    public function dropDatabase ( $database )
+    public function dropDatabase( $database )
     {
         if ( false !== ( $sqlStatement = $this->platformDropDatabaseStatement( $database ) ) ) {
 
@@ -177,7 +177,7 @@ abstract class AbstractForge
      *
      * @return string|bool
      */
-    abstract protected function platformDropDatabaseStatement ( $database );
+    abstract protected function platformDropDatabaseStatement( $database );
 
     // ------------------------------------------------------------------------
 
@@ -190,10 +190,82 @@ abstract class AbstractForge
      *
      * @return static
      */
-    public function addFields ( array $fields )
+    public function addFields( array $fields )
     {
         foreach ( $fields as $field ) {
             $this->addField( $field );
+        }
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractForge::addField
+     *
+     * Add database table field.
+     *
+     * @param string $field Database table field name.
+     *
+     * @return static
+     */
+    public function addField( $field )
+    {
+        if ( is_string( $field ) ) {
+            if ( $field === 'id' ) {
+                $this->addField(
+                    [
+                        'id' => [
+                            'type'           => 'INT',
+                            'constraint'     => 9,
+                            'auto_increment' => true,
+                        ],
+                    ]
+                );
+                $this->addKey( 'id', true );
+            } else {
+                if ( strpos( $field, ' ' ) === false ) {
+                    throw new \InvalidArgumentException( 'Field information is required for that operation.' );
+                }
+
+                $this->builderCache[ 'fields' ][] = $field;
+            }
+        }
+
+        if ( is_array( $field ) ) {
+            $this->builderCache[ 'fields' ] = array_merge( $this->builderCache[ 'fields' ], $field );
+        }
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractForge::addKey
+     *
+     * Add database table key column.
+     *
+     * @param string $key       Database table key name.
+     * @param bool   $isPrimary Whether is table primary key or not.
+     *
+     * @return static
+     */
+    public function addKey( $key, $isPrimary = false )
+    {
+        if ( is_array( $key ) ) {
+            foreach ( $key as $one ) {
+                $this->addKey( $one, $isPrimary );
+            }
+
+            return $this;
+        }
+
+        if ( $isPrimary === true ) {
+            $this->builderCache[ 'primaryKeys' ][] = $key;
+        } else {
+            $this->builderCache[ 'keys' ][] = $key;
         }
 
         return $this;
@@ -213,7 +285,7 @@ abstract class AbstractForge
      * @throws \O2System\Spl\Exceptions\RuntimeException
      * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
      */
-    public function createTable ( $table, array $attributes = [ ] )
+    public function createTable( $table, array $attributes = [] )
     {
         $table = $this->conn->prefixTable( $table );
 
@@ -248,13 +320,28 @@ abstract class AbstractForge
     // ------------------------------------------------------------------------
 
     /**
+     * AbstractForge::platformCreateTableStatement
+     *
+     * Generates a platform-specific CREATE TABLE statement.
+     *
+     * @param string $table      Database table name.
+     * @param string $columns    Database table columns SQL statement portion.
+     * @param string $attributes Database table attributes SQL statement portion.
+     *
+     * @return string|bool
+     */
+    abstract protected function platformCreateTableStatement( $table, $columns, $attributes );
+
+    // ------------------------------------------------------------------------
+
+    /**
      * AbstractForge::compileCreateTableColumnsStatement
      *
      * @param string $table Database table name.
      *
      * @return string
      */
-    protected function compileCreateTableColumnsStatement ( $table )
+    protected function compileCreateTableColumnsStatement( $table )
     {
         $columns = $this->processFields( true );
 
@@ -265,7 +352,7 @@ abstract class AbstractForge
         }
 
         $sqlColumnsStatement = implode( ',', $columns )
-                               . $this->processPrimaryKeys( $table );
+            . $this->processPrimaryKeys( $table );
 
         // Are indexes created from within the CREATE TABLE statement? (e.g. in MySQL)
         if ( $this->isCreateTableKeys === true ) {
@@ -277,442 +364,9 @@ abstract class AbstractForge
 
     // ------------------------------------------------------------------------
 
-    /**
-     * AbstractForge::compileCreateTableAttributesStatement
-     *
-     * @param array $attributes Lists of database table attributes.
-     *
-     * @return string
-     */
-    protected function compileCreateTableAttributesStatement ( $attributes )
+    protected function processFields( $isCreateTable = false )
     {
-        $sqlAttributesStatement = '';
-
-        foreach ( array_keys( $attributes ) as $key ) {
-            if ( is_string( $key ) ) {
-                $sqlAttributesStatement .= ' ' . strtoupper( $key ) . ' ' . $attributes[ $key ];
-            }
-        }
-
-        return $sqlAttributesStatement;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractForge::platformCreateTableStatement
-     *
-     * Generates a platform-specific CREATE TABLE statement.
-     *
-     * @param string $table      Database table name.
-     * @param string $columns    Database table columns SQL statement portion.
-     * @param string $attributes Database table attributes SQL statement portion.
-     *
-     * @return string|bool
-     */
-    abstract protected function platformCreateTableStatement ( $table, $columns, $attributes );
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractForge::dropTable
-     *
-     * @param string $table Database table name.
-     *
-     * @return bool
-     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
-     * @throws \O2System\Spl\Exceptions\RuntimeException
-     */
-    public function dropTable ( $table )
-    {
-        $table = $this->conn->prefixTable( $table );
-
-        if ( $this->conn->isTableExists( $table ) ) {
-            if ( $this->conn->isDebugEnabled ) {
-                throw new RuntimeException( 'E_DATABASE_TABLE_NOT_EXISTS' );
-            }
-
-            return false;
-        }
-
-        if ( false !== ( $sqlStatement = $this->platformDropTableStatement( $table ) )
-        ) {
-            if ( $this->conn->execute( $sqlStatement ) ) {
-                if ( $key = array_search(
-                    $table,
-                    $this->conn->queriesResultCache[ 'tableNames' ]
-                )
-                ) {
-                    unset( $this->conn->queriesResultCache[ 'tableNames' ][ $key ] );
-                }
-
-                if ( isset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ] ) ) {
-                    unset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ] );
-                }
-            }
-        }
-
-        if ( $this->conn->isDebugEnabled ) {
-            // This feature is not available for the database you are using.'
-            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
-        }
-
-        return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractForge::platformDropTableStatement
-     *
-     * Generates a platform-specific CREATE TABLE statement.
-     *
-     * @param string $table Database table name.
-     *
-     * @return string|bool
-     */
-    abstract protected function platformDropTableStatement ( $table );
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractForge::renameTable
-     *
-     * @param string $oldTableName Old database table name.
-     * @param string $newTableName New database table name.
-     *
-     * @return bool
-     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
-     */
-    public function renameTable ( $oldTableName, $newTableName )
-    {
-        if ( $this->conn->isTableExists( $oldTableName ) === false OR
-             $this->conn->isTableExists( $newTableName ) === true
-        ) {
-            return false;
-        }
-
-        $oldTableName = $this->conn->prefixTable( $oldTableName );
-        $newTableName = $this->conn->prefixTable( $newTableName );
-
-        if ( false !== ( $sqlStatement = $this->platformRenameTableStatement(
-                $oldTableName,
-                $newTableName
-            ) )
-        ) {
-
-            if ( $this->conn->execute( $sqlStatement ) ) {
-                if ( $key = array_search(
-                    $oldTableName,
-                    $this->conn->queriesResultCache[ 'tableNames' ]
-                )
-                ) {
-                    unset( $this->conn->queriesResultCache[ 'tableNames' ][ $key ] );
-                }
-
-                if ( isset( $this->conn->queriesResultCache[ 'tableFields' ][ $oldTableName ] ) ) {
-                    unset( $this->conn->queriesResultCache[ 'tableFields' ][ $oldTableName ] );
-                }
-
-                $this->conn->queriesResultCache[ 'tableNames' ][] = $newTableName;
-            }
-        }
-
-        if ( $this->conn->isDebugEnabled ) {
-            // This feature is not available for the database you are using.'
-            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
-        }
-
-        return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractForge::platformRenameTableStatement
-     *
-     * Generates a platform-specific RENAME TABLE statement.
-     *
-     * @param string $oldTableName Old database table name.
-     * @param string $newTableName New database table name.
-     *
-     * @return string|bool
-     */
-    abstract protected function platformRenameTableStatement ( $oldTableName, $newTableName );
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractForge::protectedAlterTableStatement
-     *
-     * Generates a platform-specific ALTER TABLE statement.
-     *
-     * @param string $table  Database table name.
-     * @param mixed  $column Database table column definition.
-     * @param string $type   ALTER type.
-     *
-     * @return string
-     */
-    protected function platformAlterTableStatement ( $table, $column, $type )
-    {
-        $sqlStatement = 'ALTER TABLE ' . $this->conn->escapeIdentifiers( $table ) . ' ';
-
-        // DROP has everything it needs now.
-        if ( $type === 'DROP' ) {
-            return $sqlStatement . 'DROP COLUMN ' . $this->conn->escapeIdentifiers( $column );
-        }
-
-        $sqlStatement .= ( $type === 'ADD' )
-            ? 'ADD '
-            : $type . ' COLUMN ';
-
-        $sqlStatements = [ ];
-        for ( $i = 0, $c = count( $column ); $i < $c; $i++ ) {
-            $sqlStatements[] = $sqlStatement
-                               . ( $column[ $i ][ '_literal' ] !== false
-                    ? $column[ $i ][ '_literal' ]
-                    : $this->processColumn( $column[ $i ] ) );
-        }
-
-        return $sqlStatements;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractForge::addField
-     *
-     * Add database table field.
-     *
-     * @param string $field Database table field name.
-     *
-     * @return static
-     */
-    public function addField ( $field )
-    {
-        if ( is_string( $field ) ) {
-            if ( $field === 'id' ) {
-                $this->addField(
-                    [
-                        'id' => [
-                            'type'           => 'INT',
-                            'constraint'     => 9,
-                            'auto_increment' => true,
-                        ],
-                    ]
-                );
-                $this->addKey( 'id', true );
-            } else {
-                if ( strpos( $field, ' ' ) === false ) {
-                    throw new \InvalidArgumentException( 'Field information is required for that operation.' );
-                }
-
-                $this->builderCache[ 'fields' ][] = $field;
-            }
-        }
-
-        if ( is_array( $field ) ) {
-            $this->builderCache[ 'fields' ] = array_merge( $this->builderCache[ 'fields' ], $field );
-        }
-
-        return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractForge::addKey
-     *
-     * Add database table key column.
-     *
-     * @param string $key       Database table key name.
-     * @param bool   $isPrimary Whether is table primary key or not.
-     *
-     * @return static
-     */
-    public function addKey ( $key, $isPrimary = false )
-    {
-        if ( is_array( $key ) ) {
-            foreach ( $key as $one ) {
-                $this->addKey( $one, $isPrimary );
-            }
-
-            return $this;
-        }
-
-        if ( $isPrimary === true ) {
-            $this->builderCache[ 'primaryKeys' ][] = $key;
-        } else {
-            $this->builderCache[ 'keys' ][] = $key;
-        }
-
-        return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractForge::addColumn
-     *
-     * Add database table column.
-     *
-     * @param string $column Database column table name.
-     * @param string $table  Database table name.
-     *
-     * @return bool
-     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
-     */
-    public function addColumn ( $column, $table = null )
-    {
-        // Work-around for literal column definitions
-        is_array( $column ) OR $column = [ $column ];
-
-        foreach ( array_keys( $column ) as $columnKey ) {
-            $this->addField( [ $columnKey => $column[ $columnKey ] ] );
-        };
-
-        if ( false !== ( $sqlStatements = $this->platformAlterTableStatement(
-                $this->conn->prefixTable( $table ),
-                $this->processFields(),
-                'ADD'
-            ) )
-        ) {
-            for ( $i = 0, $totalSqlStatements = count( $sqlStatements ); $i < $totalSqlStatements; $i++ ) {
-                if ( $this->conn->execute( $sqlStatements[ $i ] ) === false ) {
-                    return false;
-                    break;
-                }
-            }
-
-            return true;
-        }
-
-        if ( $this->conn->isDebugEnabled ) {
-            // This feature is not available for the database you are using.'
-            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
-        }
-
-        return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractForge::dropColumn
-     *
-     * Drop database table column.
-     *
-     * @param string $column Database table column name.
-     * @param string $table  Database table name.
-     *
-     * @return bool
-     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
-     */
-    public function dropColumn ( $column, $table )
-    {
-        $table = $this->conn->prefixTable( $table );
-
-        if ( false !== ( $sqlStatement = $this->platformAlterTableStatement(
-                $table,
-                $column,
-                'DROP'
-            ) )
-        ) {
-
-            if ( $this->conn->execute( $sqlStatement ) ) {
-                if ( isset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ] ) ) {
-                    unset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ][ $column ] );
-                }
-            }
-        }
-
-        if ( $this->conn->isDebugEnabled ) {
-            // This feature is not available for the database you are using.'
-            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
-        }
-
-        return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractForge::modifyColumn
-     *
-     * Modify database table column.
-     *
-     * @param string $column Database table column definitions.
-     * @param string $table  Database table name.
-     *
-     * @return bool
-     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
-     */
-    public function modifyColumn ( $column, $table )
-    {
-        $table = $this->conn->prefixTable( $table );
-
-        // Work-around for literal column definitions
-        is_array( $column ) OR $column = [ $column ];
-
-        foreach ( array_keys( $column ) as $columnKey ) {
-            $this->addField( [ $columnKey => $column[ $columnKey ] ] );
-        }
-
-        if ( count( $this->builderCache[ 'fields' ] ) === 0 ) {
-            throw new \RuntimeException( 'Field information is required' );
-        }
-
-        if ( false !== ( $sqlStatement = $this->platformAlterTableStatement(
-                $table,
-                $this->processFields(),
-                'CHANGE'
-            ) )
-        ) {
-
-            if ( $this->conn->execute( $sqlStatement ) ) {
-                if ( isset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ] ) ) {
-                    unset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ][ $column ] );
-                }
-            }
-
-            $this->reset();
-        }
-
-        if ( $this->conn->isDebugEnabled ) {
-            // This feature is not available for the database you are using.'
-            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
-        }
-
-        return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractForge::processColumn
-     *
-     * Process database table column definitions.
-     *
-     * @param array $column Field definitions.
-     *
-     * @return string
-     */
-    protected function processColumn ( $column )
-    {
-        return $this->conn->escapeIdentifiers( $column[ 'name' ] )
-               . ' ' . $column[ 'type' ] . $column[ 'length' ]
-               . $column[ 'unsigned' ]
-               . $column[ 'default' ]
-               . $column[ 'null' ]
-               . $column[ 'auto_increment' ]
-               . $column[ 'unique' ];
-    }
-
-    //--------------------------------------------------------------------
-
-    protected function processFields ( $isCreateTable = false )
-    {
-        $fields = [ ];
+        $fields = [];
 
         foreach ( $this->builderCache[ 'fields' ] as $key => $attributes ) {
             if ( is_int( $key ) && ! is_array( $attributes ) ) {
@@ -751,7 +405,7 @@ abstract class AbstractForge
                 if ( isset( $attributes[ 'AFTER' ] ) ) {
                     $field[ 'after' ] = $attributes[ 'AFTER' ];
                 } elseif ( isset( $attributes[ 'FIRST' ] ) ) {
-                    $field[ 'first' ] = (bool) $attributes[ 'FIRST' ];
+                    $field[ 'first' ] = (bool)$attributes[ 'FIRST' ];
                 }
             }
 
@@ -799,7 +453,7 @@ abstract class AbstractForge
         return $fields;
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * Field attribute TYPE
@@ -810,12 +464,12 @@ abstract class AbstractForge
      *
      * @return    void
      */
-    protected function setAttributeType ( &$attributes )
+    protected function setAttributeType( &$attributes )
     {
         // Usually overridden by drivers
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * Field attribute UNSIGNED
@@ -834,7 +488,7 @@ abstract class AbstractForge
      *
      * @return    void
      */
-    protected function setAttributeUnsigned ( &$attributes, &$field )
+    protected function setAttributeUnsigned( &$attributes, &$field )
     {
         if ( empty( $attributes[ 'UNSIGNED' ] ) OR $attributes[ 'UNSIGNED' ] !== true ) {
             return;
@@ -864,7 +518,7 @@ abstract class AbstractForge
             : '';
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * Field attribute DEFAULT
@@ -874,7 +528,7 @@ abstract class AbstractForge
      *
      * @return    void
      */
-    protected function setAttributeDefault ( &$attributes, &$field )
+    protected function setAttributeDefault( &$attributes, &$field )
     {
         if ( $this->default === false ) {
             return;
@@ -897,6 +551,25 @@ abstract class AbstractForge
         }
     }
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * Field attribute AUTO_INCREMENT
+     *
+     * @param    array &$attributes
+     * @param    array &$field
+     *
+     * @return    void
+     */
+    protected function setAttributeAutoIncrement( &$attributes, &$field )
+    {
+        if ( ! empty( $attributes[ 'AUTO_INCREMENT' ] ) && $attributes[ 'AUTO_INCREMENT' ] === true
+            && stripos( $field[ 'type' ], 'int' ) !== false
+        ) {
+            $field[ 'auto_increment' ] = ' AUTO_INCREMENT';
+        }
+    }
+
     //--------------------------------------------------------------------
 
     /**
@@ -907,7 +580,7 @@ abstract class AbstractForge
      *
      * @return    void
      */
-    protected function setAttributeUnique ( &$attributes, &$field )
+    protected function setAttributeUnique( &$attributes, &$field )
     {
         if ( ! empty( $attributes[ 'UNIQUE' ] ) && $attributes[ 'UNIQUE' ] === true ) {
             $field[ 'unique' ] = ' UNIQUE';
@@ -917,23 +590,26 @@ abstract class AbstractForge
     //--------------------------------------------------------------------
 
     /**
-     * Field attribute AUTO_INCREMENT
+     * AbstractForge::processColumn
      *
-     * @param    array &$attributes
-     * @param    array &$field
+     * Process database table column definitions.
      *
-     * @return    void
+     * @param array $column Field definitions.
+     *
+     * @return string
      */
-    protected function setAttributeAutoIncrement ( &$attributes, &$field )
+    protected function processColumn( $column )
     {
-        if ( ! empty( $attributes[ 'AUTO_INCREMENT' ] ) && $attributes[ 'AUTO_INCREMENT' ] === true
-             && stripos( $field[ 'type' ], 'int' ) !== false
-        ) {
-            $field[ 'auto_increment' ] = ' AUTO_INCREMENT';
-        }
+        return $this->conn->escapeIdentifiers( $column[ 'name' ] )
+            . ' ' . $column[ 'type' ] . $column[ 'length' ]
+            . $column[ 'unsigned' ]
+            . $column[ 'default' ]
+            . $column[ 'null' ]
+            . $column[ 'auto_increment' ]
+            . $column[ 'unique' ];
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * Process primary keys
@@ -942,7 +618,7 @@ abstract class AbstractForge
      *
      * @return    string
      */
-    protected function processPrimaryKeys ( $table )
+    protected function processPrimaryKeys( $table )
     {
         $sqlStatement = '';
 
@@ -954,16 +630,16 @@ abstract class AbstractForge
 
         if ( count( $this->builderCache[ 'primaryKeys' ] ) > 0 ) {
             $sqlStatement .= ",\n\tCONSTRAINT " . $this->conn->escapeIdentifiers( 'pk_' . $table )
-                    . ' PRIMARY KEY(' . implode(
-                        ', ',
-                        $this->conn->escapeIdentifiers( $this->builderCache[ 'primaryKeys' ] )
-                    ) . ')';
+                . ' PRIMARY KEY(' . implode(
+                    ', ',
+                    $this->conn->escapeIdentifiers( $this->builderCache[ 'primaryKeys' ] )
+                ) . ')';
         }
 
         return $sqlStatement;
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractForge::processIndexes
@@ -974,9 +650,9 @@ abstract class AbstractForge
      *
      * @return  string
      */
-    protected function processIndexes ( $table )
+    protected function processIndexes( $table )
     {
-        $sqlStatements = [ ];
+        $sqlStatements = [];
 
         for ( $i = 0, $c = count( $this->builderCache[ 'keys' ] ); $i < $c; $i++ ) {
             if ( is_array( $this->builderCache[ 'keys' ][ $i ] ) ) {
@@ -995,17 +671,341 @@ abstract class AbstractForge
             $this->builderCache[ 'keys' ][ $i ] = [ $this->builderCache[ 'keys' ][ $i ] ];
 
             $sqlStatements[] = 'CREATE INDEX '
-                      . $this->conn->escapeIdentifiers(
+                . $this->conn->escapeIdentifiers(
                     $table . '_' . implode( '_', $this->builderCache[ 'keys' ][ $i ] )
                 )
-                      . ' ON '
-                      . $this->conn->escapeIdentifiers( $table )
-                      . ' ('
-                      . implode( ', ', $this->conn->escapeIdentifiers( $this->builderCache[ 'keys' ][ $i ] ) )
-                      . ');';
+                . ' ON '
+                . $this->conn->escapeIdentifiers( $table )
+                . ' ('
+                . implode( ', ', $this->conn->escapeIdentifiers( $this->builderCache[ 'keys' ][ $i ] ) )
+                . ');';
         }
 
         return $sqlStatements;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractForge::compileCreateTableAttributesStatement
+     *
+     * @param array $attributes Lists of database table attributes.
+     *
+     * @return string
+     */
+    protected function compileCreateTableAttributesStatement( $attributes )
+    {
+        $sqlAttributesStatement = '';
+
+        foreach ( array_keys( $attributes ) as $key ) {
+            if ( is_string( $key ) ) {
+                $sqlAttributesStatement .= ' ' . strtoupper( $key ) . ' ' . $attributes[ $key ];
+            }
+        }
+
+        return $sqlAttributesStatement;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractForge::dropTable
+     *
+     * @param string $table Database table name.
+     *
+     * @return bool
+     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
+     */
+    public function dropTable( $table )
+    {
+        $table = $this->conn->prefixTable( $table );
+
+        if ( $this->conn->isTableExists( $table ) ) {
+            if ( $this->conn->isDebugEnabled ) {
+                throw new RuntimeException( 'E_DATABASE_TABLE_NOT_EXISTS' );
+            }
+
+            return false;
+        }
+
+        if ( false !== ( $sqlStatement = $this->platformDropTableStatement( $table ) )
+        ) {
+            if ( $this->conn->execute( $sqlStatement ) ) {
+                if ( $key = array_search(
+                    $table,
+                    $this->conn->queriesResultCache[ 'tableNames' ]
+                )
+                ) {
+                    unset( $this->conn->queriesResultCache[ 'tableNames' ][ $key ] );
+                }
+
+                if ( isset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ] ) ) {
+                    unset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ] );
+                }
+            }
+        }
+
+        if ( $this->conn->isDebugEnabled ) {
+            // This feature is not available for the database you are using.'
+            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
+        }
+
+        return false;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractForge::platformDropTableStatement
+     *
+     * Generates a platform-specific CREATE TABLE statement.
+     *
+     * @param string $table Database table name.
+     *
+     * @return string|bool
+     */
+    abstract protected function platformDropTableStatement( $table );
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractForge::renameTable
+     *
+     * @param string $oldTableName Old database table name.
+     * @param string $newTableName New database table name.
+     *
+     * @return bool
+     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
+     */
+    public function renameTable( $oldTableName, $newTableName )
+    {
+        if ( $this->conn->isTableExists( $oldTableName ) === false OR
+            $this->conn->isTableExists( $newTableName ) === true
+        ) {
+            return false;
+        }
+
+        $oldTableName = $this->conn->prefixTable( $oldTableName );
+        $newTableName = $this->conn->prefixTable( $newTableName );
+
+        if ( false !== ( $sqlStatement = $this->platformRenameTableStatement(
+                $oldTableName,
+                $newTableName
+            ) )
+        ) {
+
+            if ( $this->conn->execute( $sqlStatement ) ) {
+                if ( $key = array_search(
+                    $oldTableName,
+                    $this->conn->queriesResultCache[ 'tableNames' ]
+                )
+                ) {
+                    unset( $this->conn->queriesResultCache[ 'tableNames' ][ $key ] );
+                }
+
+                if ( isset( $this->conn->queriesResultCache[ 'tableFields' ][ $oldTableName ] ) ) {
+                    unset( $this->conn->queriesResultCache[ 'tableFields' ][ $oldTableName ] );
+                }
+
+                $this->conn->queriesResultCache[ 'tableNames' ][] = $newTableName;
+            }
+        }
+
+        if ( $this->conn->isDebugEnabled ) {
+            // This feature is not available for the database you are using.'
+            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
+        }
+
+        return false;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractForge::platformRenameTableStatement
+     *
+     * Generates a platform-specific RENAME TABLE statement.
+     *
+     * @param string $oldTableName Old database table name.
+     * @param string $newTableName New database table name.
+     *
+     * @return string|bool
+     */
+    abstract protected function platformRenameTableStatement( $oldTableName, $newTableName );
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractForge::addColumn
+     *
+     * Add database table column.
+     *
+     * @param string $column Database column table name.
+     * @param string $table  Database table name.
+     *
+     * @return bool
+     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
+     */
+    public function addColumn( $column, $table = null )
+    {
+        // Work-around for literal column definitions
+        is_array( $column ) OR $column = [ $column ];
+
+        foreach ( array_keys( $column ) as $columnKey ) {
+            $this->addField( [ $columnKey => $column[ $columnKey ] ] );
+        };
+
+        if ( false !== ( $sqlStatements = $this->platformAlterTableStatement(
+                $this->conn->prefixTable( $table ),
+                $this->processFields(),
+                'ADD'
+            ) )
+        ) {
+            for ( $i = 0, $totalSqlStatements = count( $sqlStatements ); $i < $totalSqlStatements; $i++ ) {
+                if ( $this->conn->execute( $sqlStatements[ $i ] ) === false ) {
+                    return false;
+                    break;
+                }
+            }
+
+            return true;
+        }
+
+        if ( $this->conn->isDebugEnabled ) {
+            // This feature is not available for the database you are using.'
+            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
+        }
+
+        return false;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractForge::protectedAlterTableStatement
+     *
+     * Generates a platform-specific ALTER TABLE statement.
+     *
+     * @param string $table  Database table name.
+     * @param mixed  $column Database table column definition.
+     * @param string $type   ALTER type.
+     *
+     * @return string
+     */
+    protected function platformAlterTableStatement( $table, $column, $type )
+    {
+        $sqlStatement = 'ALTER TABLE ' . $this->conn->escapeIdentifiers( $table ) . ' ';
+
+        // DROP has everything it needs now.
+        if ( $type === 'DROP' ) {
+            return $sqlStatement . 'DROP COLUMN ' . $this->conn->escapeIdentifiers( $column );
+        }
+
+        $sqlStatement .= ( $type === 'ADD' )
+            ? 'ADD '
+            : $type . ' COLUMN ';
+
+        $sqlStatements = [];
+        for ( $i = 0, $c = count( $column ); $i < $c; $i++ ) {
+            $sqlStatements[] = $sqlStatement
+                . ( $column[ $i ][ '_literal' ] !== false
+                    ? $column[ $i ][ '_literal' ]
+                    : $this->processColumn( $column[ $i ] ) );
+        }
+
+        return $sqlStatements;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractForge::dropColumn
+     *
+     * Drop database table column.
+     *
+     * @param string $column Database table column name.
+     * @param string $table  Database table name.
+     *
+     * @return bool
+     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
+     */
+    public function dropColumn( $column, $table )
+    {
+        $table = $this->conn->prefixTable( $table );
+
+        if ( false !== ( $sqlStatement = $this->platformAlterTableStatement(
+                $table,
+                $column,
+                'DROP'
+            ) )
+        ) {
+
+            if ( $this->conn->execute( $sqlStatement ) ) {
+                if ( isset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ] ) ) {
+                    unset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ][ $column ] );
+                }
+            }
+        }
+
+        if ( $this->conn->isDebugEnabled ) {
+            // This feature is not available for the database you are using.'
+            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
+        }
+
+        return false;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractForge::modifyColumn
+     *
+     * Modify database table column.
+     *
+     * @param string $column Database table column definitions.
+     * @param string $table  Database table name.
+     *
+     * @return bool
+     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
+     */
+    public function modifyColumn( $column, $table )
+    {
+        $table = $this->conn->prefixTable( $table );
+
+        // Work-around for literal column definitions
+        is_array( $column ) OR $column = [ $column ];
+
+        foreach ( array_keys( $column ) as $columnKey ) {
+            $this->addField( [ $columnKey => $column[ $columnKey ] ] );
+        }
+
+        if ( count( $this->builderCache[ 'fields' ] ) === 0 ) {
+            throw new \RuntimeException( 'Field information is required' );
+        }
+
+        if ( false !== ( $sqlStatement = $this->platformAlterTableStatement(
+                $table,
+                $this->processFields(),
+                'CHANGE'
+            ) )
+        ) {
+
+            if ( $this->conn->execute( $sqlStatement ) ) {
+                if ( isset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ] ) ) {
+                    unset( $this->conn->queriesResultCache[ 'tableFields' ][ $table ][ $column ] );
+                }
+            }
+
+            $this->reset();
+        }
+
+        if ( $this->conn->isDebugEnabled ) {
+            // This feature is not available for the database you are using.'
+            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
+        }
+
+        return false;
     }
 
     //--------------------------------------------------------------------
@@ -1017,13 +1017,13 @@ abstract class AbstractForge
      *
      * @return static
      */
-    public function reset ()
+    public function reset()
     {
         $this->builderCache = [
             'table'       => null,
-            'fields'      => [ ],
-            'keys'        => [ ],
-            'primaryKeys' => [ ],
+            'fields'      => [],
+            'keys'        => [],
+            'primaryKeys' => [],
         ];
 
         return $this;

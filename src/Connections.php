@@ -27,25 +27,25 @@ class Connections extends AbstractObjectRegistryPattern
     /**
      * Connections::$config
      *
-     * @var Registries\Config
+     * @var Datastructures\Config
      */
     private $config;
 
     /**
      * Connections::__construct
      *
-     * @param Registries\Config $config
+     * @param Datastructures\Config $config
      *
      * @return Connections
      */
-    public function __construct ( Registries\Config $config )
+    public function __construct( Datastructures\Config $config )
     {
         $this->config = $config;
     }
 
     // ------------------------------------------------------------------------
 
-    public function &loadConnection ( $connectionOffset )
+    public function &loadConnection( $connectionOffset )
     {
         $loadConnection[ $connectionOffset ] = false;
 
@@ -54,7 +54,7 @@ class Connections extends AbstractObjectRegistryPattern
             $connectionConfig = $this->config[ $connectionOffset ];
 
             if ( is_array( $connectionConfig ) ) {
-                new Registries\Config( $this->config[ $connectionOffset ] );
+                new Datastructures\Config( $this->config[ $connectionOffset ] );
             }
 
             $this->createConnection( $connectionOffset, $connectionConfig );
@@ -76,11 +76,11 @@ class Connections extends AbstractObjectRegistryPattern
      * Create Item Pool
      *
      * @param string            $connectionOffset
-     * @param Registries\Config $connectionConfig
-     * 
+     * @param Datastructures\Config $connectionConfig
+     *
      * @return \O2System\Database\Abstracts\AbstractConnection
      */
-    public function &createConnection ( $connectionOffset, Registries\Config $connectionConfig )
+    public function &createConnection( $connectionOffset, Datastructures\Config $connectionConfig )
     {
         $driverClassName = '\O2System\Database\Drivers\\' . ucfirst(
                 str_replace(
@@ -95,7 +95,7 @@ class Connections extends AbstractObjectRegistryPattern
 
             $this->register( $connectionOffset, $driverInstance );
         }
-        
+
         return $this->get( $connectionOffset );
     }
 
@@ -110,7 +110,7 @@ class Connections extends AbstractObjectRegistryPattern
      *
      * @return bool
      */
-    public function isValid ( $value )
+    public function isValid( $value )
     {
         if ( $value instanceof AbstractConnection ) {
             return true;

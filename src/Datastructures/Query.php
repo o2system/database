@@ -10,7 +10,7 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\Registries;
+namespace O2System\Database\Datastructures;
 
 // ------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ class Query
      *
      * @var array
      */
-    private $sqlBinds = [ ];
+    private $sqlBinds = [];
 
     /**
      * Query::$sqlBindMarker
@@ -114,7 +114,7 @@ class Query
      *
      * @param AbstractConnection $conn
      */
-    public function __construct ( AbstractConnection &$conn )
+    public function __construct( AbstractConnection &$conn )
     {
         $this->conn = $conn;
     }
@@ -131,7 +131,7 @@ class Query
      *
      * @return Query
      */
-    public function setStatement ( $sqlStatement, array $sqlBinds = [ ] )
+    public function setStatement( $sqlStatement, array $sqlBinds = [] )
     {
         $this->sqlStatement = $sqlStatement;
         $this->sqlBinds = $sqlBinds;
@@ -150,7 +150,7 @@ class Query
      *
      * @return Query
      */
-    public function setBinds ( array $sqlBinds )
+    public function setBinds( array $sqlBinds )
     {
         $this->sqlBinds = $sqlBinds;
 
@@ -171,7 +171,7 @@ class Query
      *
      * @return Query
      */
-    public function setDuration ( $start, $end = null )
+    public function setDuration( $start, $end = null )
     {
         $this->startExecutionTime = $start;
 
@@ -196,7 +196,7 @@ class Query
      *
      * @return mixed
      */
-    public function getStartExecutionTime ( $numberFormat = false, $decimals = 6 )
+    public function getStartExecutionTime( $numberFormat = false, $decimals = 6 )
     {
         if ( ! $numberFormat ) {
             return $this->startExecutionTime;
@@ -217,7 +217,7 @@ class Query
      *
      * @return mixed
      */
-    public function getExecutionDuration ( $decimals = 6 )
+    public function getExecutionDuration( $decimals = 6 )
     {
         return number_format( ( $this->endExecutionTime - $this->startExecutionTime ), $decimals );
     }
@@ -234,7 +234,7 @@ class Query
      *
      * @return $this
      */
-    public function setError ( $errorCode, $errorMessage )
+    public function setError( $errorCode, $errorMessage )
     {
         $this->error[ $errorCode ] = $errorMessage;
 
@@ -250,7 +250,7 @@ class Query
      *
      * @return bool|int Returns FALSE when there is no error.
      */
-    public function getErrorCode ()
+    public function getErrorCode()
     {
         if ( $this->hasError() ) {
             return key( $this->error );
@@ -268,7 +268,7 @@ class Query
      *
      * @return bool
      */
-    public function hasError ()
+    public function hasError()
     {
         return ! empty( $this->error );
     }
@@ -282,10 +282,10 @@ class Query
      *
      * @return bool|string Returns FALSE when there is no error.
      */
-    public function getErrorMessage ()
+    public function getErrorMessage()
     {
         if ( $this->hasError() ) {
-            return (string) reset( $this->error );
+            return (string)reset( $this->error );
         }
 
         return false;
@@ -300,7 +300,8 @@ class Query
      *
      * @param int $affectedRows Numbers of affected rows,
      */
-    public function setAffectedRows( $affectedRows ) {
+    public function setAffectedRows( $affectedRows )
+    {
 
     }
 
@@ -311,9 +312,9 @@ class Query
      *
      * @return bool
      */
-    public function isWriteSyntax ()
+    public function isWriteSyntax()
     {
-        return (bool) preg_match(
+        return (bool)preg_match(
             '/^\s*"?(SET|INSERT|UPDATE|DELETE|REPLACE|CREATE|DROP|TRUNCATE|LOAD|COPY|ALTER|RENAME|GRANT|REVOKE|LOCK|UNLOCK|REINDEX)\s/i',
             $this->sqlStatement
         );
@@ -331,7 +332,7 @@ class Query
      *
      * @return mixed
      */
-    public function swapTablePrefix ( $search, $replace )
+    public function swapTablePrefix( $search, $replace )
     {
         $sql = empty( $this->sqlFinalStatement ) ? $this->sqlStatement : $this->sqlFinalStatement;
 
@@ -349,7 +350,7 @@ class Query
      *
      * @return string   The SQL statement string.
      */
-    public function getSqlStatement ()
+    public function getSqlStatement()
     {
         return $this->sqlStatement;
     }
@@ -363,9 +364,9 @@ class Query
      *
      * @return string
      */
-    public function __toString ()
+    public function __toString()
     {
-        return (string) $this->getFinalStatement();
+        return (string)$this->getFinalStatement();
     }
 
     //--------------------------------------------------------------------
@@ -378,7 +379,7 @@ class Query
      *
      * @return string
      */
-    public function getFinalStatement ()
+    public function getFinalStatement()
     {
         if ( empty( $this->sqlFinalStatement ) ) {
             $this->sqlFinalStatement = $this->sqlStatement;
@@ -398,15 +399,15 @@ class Query
      *
      * @return void
      */
-    protected function compileSqlBinds ()
+    protected function compileSqlBinds()
     {
         $sqlStatement = $this->sqlFinalStatement;
 
         $hasSqlBinders = strpos( $sqlStatement, ':' ) !== false;
 
         if ( empty( $this->sqlBinds ) || empty( $this->sqlBindMarker ) ||
-             ( strpos( $sqlStatement, $this->sqlBindMarker ) === false &&
-               $hasSqlBinders === false )
+            ( strpos( $sqlStatement, $this->sqlBindMarker ) === false &&
+                $hasSqlBinders === false )
         ) {
             return;
         }
@@ -449,7 +450,7 @@ class Query
      *
      * @return string
      */
-    protected function replaceNamedBinds ( $sqlStatement, array $sqlBinds )
+    protected function replaceNamedBinds( $sqlStatement, array $sqlBinds )
     {
         foreach ( $sqlBinds as $bindSearch => $bindReplace ) {
             $escapedValue = $this->conn->escape( $bindReplace );
@@ -491,7 +492,7 @@ class Query
      *
      * @return string
      */
-    protected function replaceSimpleBinds ( $sqlStatement, array $sqlBinds, $bindCount, $markerLength )
+    protected function replaceSimpleBinds( $sqlStatement, array $sqlBinds, $bindCount, $markerLength )
     {
         // Make sure not to replace a chunk inside a string that happens to match the bind marker
         if ( $chunk = preg_match_all( "/'[^']*'/i", $sqlStatement, $matches ) ) {
@@ -512,14 +513,16 @@ class Query
                 return $sqlStatement;
             }
         } // Number of binds must match bindMarkers in the string.
-        else if ( ( $chunk = preg_match_all(
-                '/' . preg_quote( $this->sqlBindMarker, '/' ) . '/i',
-                $sqlStatement,
-                $matches,
-                PREG_OFFSET_CAPTURE
-            ) ) !== $bindCount
-        ) {
-            return $sqlStatement;
+        else {
+            if ( ( $chunk = preg_match_all(
+                    '/' . preg_quote( $this->sqlBindMarker, '/' ) . '/i',
+                    $sqlStatement,
+                    $matches,
+                    PREG_OFFSET_CAPTURE
+                ) ) !== $bindCount
+            ) {
+                return $sqlStatement;
+            }
         }
 
         do {
@@ -529,8 +532,7 @@ class Query
                 $escapedValue = '(' . implode( ',', $escapedValue ) . ')';
             }
             $sqlStatement = substr_replace( $sqlStatement, $escapedValue, $matches[ 0 ][ $chunk ][ 1 ], $markerLength );
-        }
-        while ( $chunk !== 0 );
+        } while ( $chunk !== 0 );
 
         return $sqlStatement;
     }

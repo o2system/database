@@ -32,7 +32,7 @@ class Utility extends AbstractUtility
      *
      * @return string|bool Returns FALSE if not supported and string of SQL statement if supported.
      */
-    protected function platformOptimizeTableStatement ( $table )
+    protected function platformOptimizeTableStatement( $table )
     {
         return "OPTIMIZE TABLE " . $table;
     }
@@ -48,7 +48,7 @@ class Utility extends AbstractUtility
      *
      * @return string|bool Returns FALSE if not supported and string of SQL statement if supported.
      */
-    protected function platformRepairTableStatement ( $table )
+    protected function platformRepairTableStatement( $table )
     {
         return "REPAIR TABLE " . $table;
     }
@@ -64,7 +64,7 @@ class Utility extends AbstractUtility
      *
      * @return string|bool Returns FALSE if not supported and string of SQL statement if supported.
      */
-    protected function platformAnalyzeTableStatement ( $table )
+    protected function platformAnalyzeTableStatement( $table )
     {
         return "ANALYZE TABLE " . $table;
     }
@@ -80,7 +80,7 @@ class Utility extends AbstractUtility
      *
      * @return string|bool Returns FALSE if not supported and string of SQL statement if supported.
      */
-    protected function platformBackupHandler ( array $options )
+    protected function platformBackupHandler( array $options )
     {
         // TODO: Implement platformBackupHandler() method.
     }

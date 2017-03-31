@@ -79,7 +79,7 @@ class Forge extends AbstractForge
      *
      * @return string|bool
      */
-    protected function platformCreateDatabaseStatement ( $database, array $options = [ ] )
+    protected function platformCreateDatabaseStatement( $database, array $options = [] )
     {
         array_unshift( $options, $database );
         array_unshift( $options, 'CREATE DATABASE %s CHARACTER SET %s COLLATE %s' );
@@ -98,7 +98,7 @@ class Forge extends AbstractForge
      *
      * @return string|bool
      */
-    protected function platformDropDatabaseStatement ( $database )
+    protected function platformDropDatabaseStatement( $database )
     {
         return 'DROP DATABASE ' . $database;
     }
@@ -112,7 +112,7 @@ class Forge extends AbstractForge
      *
      * @return string
      */
-    protected function compileCreateTableAttributesStatement ( $attributes )
+    protected function compileCreateTableAttributesStatement( $attributes )
     {
         $sqlAttributesStatement = '';
 
@@ -123,7 +123,7 @@ class Forge extends AbstractForge
         }
 
         if ( ! empty( $this->db->charset ) && ! strpos( $sqlAttributesStatement, 'CHARACTER SET' )
-             && ! strpos(
+            && ! strpos(
                 $sqlAttributesStatement,
                 'CHARSET'
             )
@@ -151,7 +151,7 @@ class Forge extends AbstractForge
      *
      * @return string|bool
      */
-    protected function platformCreateTableStatement ( $table, $columns, $attributes )
+    protected function platformCreateTableStatement( $table, $columns, $attributes )
     {
         return sprintf( "CREATE TABLE %s %s (%s\n)", $table, $columns, $attributes );
     }
@@ -167,7 +167,7 @@ class Forge extends AbstractForge
      *
      * @return string|bool
      */
-    protected function platformDropTableStatement ( $table )
+    protected function platformDropTableStatement( $table )
     {
         return "DROP TABLE " . $table;
     }
@@ -184,7 +184,7 @@ class Forge extends AbstractForge
      *
      * @return string|bool
      */
-    protected function platformRenameTableStatement ( $oldTableName, $newTableName )
+    protected function platformRenameTableStatement( $oldTableName, $newTableName )
     {
         return sprintf( "ALTER TABLE %s RENAME TO %s;", $oldTableName, $newTableName );
     }
@@ -202,7 +202,7 @@ class Forge extends AbstractForge
      *
      * @return string
      */
-    protected function platformAlterTableStatement ( $table, $column, $type )
+    protected function platformAlterTableStatement( $table, $column, $type )
     {
         if ( $type === 'DROP' ) {
             return parent::platformAlterTableStatement( $table, $column, $type );
@@ -241,7 +241,7 @@ class Forge extends AbstractForge
      *
      * @return string
      */
-    protected function processColumn ( $column )
+    protected function processColumn( $column )
     {
         $extraClause = isset( $field[ 'after' ] )
             ? ' AFTER ' . $this->conn->escapeIdentifiers( $field[ 'after' ] )
@@ -252,19 +252,19 @@ class Forge extends AbstractForge
         }
 
         return $this->conn->escapeIdentifiers( $field[ 'name' ] )
-               . ( empty( $field[ 'new_name' ] )
-            ? ''
-            : ' ' . $this->conn->escapeIdentifiers( $field[ 'new_name' ] ) )
-               . ' ' . $field[ 'type' ] . $field[ 'length' ]
-               . $field[ 'unsigned' ]
-               . $field[ 'null' ]
-               . $field[ 'default' ]
-               . $field[ 'auto_increment' ]
-               . $field[ 'unique' ]
-               . ( empty( $field[ 'comment' ] )
-            ? ''
-            : ' COMMENT ' . $field[ 'comment' ] )
-               . $extraClause;
+            . ( empty( $field[ 'new_name' ] )
+                ? ''
+                : ' ' . $this->conn->escapeIdentifiers( $field[ 'new_name' ] ) )
+            . ' ' . $field[ 'type' ] . $field[ 'length' ]
+            . $field[ 'unsigned' ]
+            . $field[ 'null' ]
+            . $field[ 'default' ]
+            . $field[ 'auto_increment' ]
+            . $field[ 'unique' ]
+            . ( empty( $field[ 'comment' ] )
+                ? ''
+                : ' COMMENT ' . $field[ 'comment' ] )
+            . $extraClause;
     }
 
     //--------------------------------------------------------------------
@@ -278,7 +278,7 @@ class Forge extends AbstractForge
      *
      * @return  string
      */
-    protected function processIndexes ( $table )
+    protected function processIndexes( $table )
     {
         $sqlStatement = '';
 
@@ -301,13 +301,13 @@ class Forge extends AbstractForge
             $sqlStatement .= ",\n\tKEY " . $this->conn->escapeIdentifiers(
                     implode( '_', $this->builderCache[ 'keys' ][ $i ] )
                 )
-                             . ' (' . implode(
-                                 ', ',
-                                 $this->conn->escapeIdentifiers( $this->builderCache[ 'keys' ][ $i ] )
-                             ) . ')';
+                . ' (' . implode(
+                    ', ',
+                    $this->conn->escapeIdentifiers( $this->builderCache[ 'keys' ][ $i ] )
+                ) . ')';
         }
 
-        $this->builderCache[ 'keys' ] = [ ];
+        $this->builderCache[ 'keys' ] = [];
 
         return $sqlStatement;
     }

@@ -28,9 +28,9 @@ class DataSerialize extends SplArrayObject
      *
      * @param array $data
      */
-    public function __construct ( $data = [ ] )
+    public function __construct( $data = [] )
     {
-        parent::__construct( [ ] );
+        parent::__construct( [] );
 
         if ( ! empty( $data ) ) {
             foreach ( $data as $key => $value ) {
@@ -48,7 +48,7 @@ class DataSerialize extends SplArrayObject
      *
      * @param $value
      */
-    public function __set ( $index, $value )
+    public function __set( $index, $value )
     {
         $this->offsetSet( $index, $value );
     }
@@ -60,7 +60,7 @@ class DataSerialize extends SplArrayObject
      *
      * @return array
      */
-    public function __toArray ()
+    public function __toArray()
     {
         return $this->getArrayCopy();
     }

@@ -15,8 +15,8 @@ namespace O2System\Database\Drivers\MySQL;
 // ------------------------------------------------------------------------
 
 use O2System\Database\Abstracts\AbstractConnection;
-use O2System\Database\Registries\Config;
-use O2System\Database\Registries\Query;
+use O2System\Database\Datastructures\Config;
+use O2System\Database\Datastructures\Query;
 use O2System\Spl\Exceptions\RuntimeException;
 
 /**
@@ -27,6 +27,18 @@ use O2System\Spl\Exceptions\RuntimeException;
 class Connection extends AbstractConnection
 {
     /**
+     * Connection::$isDeleteHack
+     *
+     * DELETE hack flag
+     *
+     * Whether to use the MySQL "delete hack" which allows the number
+     * of affected rows to be shown. Uses a preg_replace when enabled,
+     * adding a bit more processing to all queries.
+     *
+     * @var    bool
+     */
+    public $isDeleteHack = true;
+    /**
      * Connection::$platform
      *
      * Database driver platform name.
@@ -34,7 +46,6 @@ class Connection extends AbstractConnection
      * @var string
      */
     protected $platform = 'MySQL';
-
     /**
      * Connection::$config
      *
@@ -49,7 +60,6 @@ class Connection extends AbstractConnection
             'likeEscapeStatement' => ' ESCAPE \'%s\' ',
             'likeEscapeCharacter' => '!',
         ];
-
     /**
      * Connection::$handle
      *
@@ -58,19 +68,6 @@ class Connection extends AbstractConnection
      * @var \mysqli
      */
     protected $handle;
-
-    /**
-     * Connection::$isDeleteHack
-     *
-     * DELETE hack flag
-     *
-     * Whether to use the MySQL "delete hack" which allows the number
-     * of affected rows to be shown. Uses a preg_replace when enabled,
-     * adding a bit more processing to all queries.
-     *
-     * @var    bool
-     */
-    public $isDeleteHack = true;
 
     // ------------------------------------------------------------------------
 
@@ -81,9 +78,78 @@ class Connection extends AbstractConnection
      *
      * @return bool
      */
-    public function isSupported ()
+    public function isSupported()
     {
         return extension_loaded( 'mysqli' );
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::reconnect
+     *
+     * Keep or establish the connection if no queries have been sent for
+     * a length of time exceeding the server's idle timeout.
+     *
+     * @return void
+     */
+    public function reconnect()
+    {
+        if ( $this->handle !== false && $this->handle->ping() === false ) {
+            $this->handle = false;
+        }
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * Connection::getAffectedRows
+     *
+     * Get the total number of affected rows from the last query execution.
+     *
+     * @return int  Returns total number of affected rows
+     */
+    public function getAffectedRows()
+    {
+        return $this->handle->affected_rows;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::getLastInsertId
+     *
+     * Get last insert id from the last insert query execution.
+     *
+     * @return int  Returns total number of affected rows
+     */
+    public function getLastInsertId()
+    {
+        return $this->handle->insert_id;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::setDatabase
+     *
+     * Set a specific database table to use.
+     *
+     * @param string $database Database name.
+     *
+     * @return static
+     */
+    public function setDatabase( $database )
+    {
+        $database = empty( $database )
+            ? $this->database
+            : $database;
+
+        if ( $this->handle->select_db( $database ) ) {
+            $this->database = $database;
+        }
+
+        return $this;
     }
 
     // ------------------------------------------------------------------------
@@ -95,12 +161,12 @@ class Connection extends AbstractConnection
      *
      * @return mixed
      */
-    protected function platformGetPlatformVersionHandler ()
+    protected function platformGetPlatformVersionHandler()
     {
         return $this->handle->server_info;
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * Connection::platformConnectHandler
@@ -112,7 +178,7 @@ class Connection extends AbstractConnection
      * @return void
      * @throws RuntimeException
      */
-    protected function platformConnectHandler ( Config $config )
+    protected function platformConnectHandler( Config $config )
     {
         // Do we have a socket path?
         if ( $config->hostname[ 0 ] === '/' ) {
@@ -159,7 +225,7 @@ class Connection extends AbstractConnection
         }
 
         if ( is_array( $config->encrypt ) ) {
-            $ssl = [ ];
+            $ssl = [];
             empty( $config->encrypt[ 'ssl_key' ] ) OR $ssl[ 'key' ] = $config->encrypt[ 'ssl_key' ];
             empty( $config->encrypt[ 'ssl_cert' ] ) OR $ssl[ 'cert' ] = $config->encrypt[ 'ssl_cert' ];
             empty( $config->encrypt[ 'ssl_ca' ] ) OR $ssl[ 'ca' ] = $config->encrypt[ 'ssl_ca' ];
@@ -218,8 +284,8 @@ class Connection extends AbstractConnection
             if (
                 ( $flags & MYSQLI_CLIENT_SSL )
                 AND version_compare( $this->handle->client_info, '5.7.3', '<=' )
-                    AND empty( $this->handle->query( "SHOW STATUS LIKE 'ssl_cipher'" )
-                                            ->fetch_object()->Value )
+                AND empty( $this->handle->query( "SHOW STATUS LIKE 'ssl_cipher'" )
+                    ->fetch_object()->Value )
             ) {
                 $this->handle->close();
                 // 'MySQLi was configured for an SSL connection, but got an unencrypted connection instead!';
@@ -245,24 +311,7 @@ class Connection extends AbstractConnection
         }
     }
 
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::reconnect
-     *
-     * Keep or establish the connection if no queries have been sent for
-     * a length of time exceeding the server's idle timeout.
-     *
-     * @return void
-     */
-    public function reconnect ()
-    {
-        if ( $this->handle !== false && $this->handle->ping() === false ) {
-            $this->handle = false;
-        }
-    }
-
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * Connection::disconnectHandler
@@ -271,7 +320,7 @@ class Connection extends AbstractConnection
      *
      * @return mixed
      */
-    protected function platformDisconnectHandler ()
+    protected function platformDisconnectHandler()
     {
         $this->handle->close();
     }
@@ -285,7 +334,7 @@ class Connection extends AbstractConnection
      *
      * @return bool
      */
-    protected function platformTransactionBeginHandler ()
+    protected function platformTransactionBeginHandler()
     {
         $this->handle->autocommit( false );
 
@@ -307,7 +356,7 @@ class Connection extends AbstractConnection
      *
      * @return bool
      */
-    protected function platformTransactionCommitHandler ()
+    protected function platformTransactionCommitHandler()
     {
         if ( $this->handle->commit() ) {
             $this->handle->autocommit( true );
@@ -318,7 +367,7 @@ class Connection extends AbstractConnection
         return false;
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * Connection::platformTransactionRollBackHandler
@@ -327,7 +376,7 @@ class Connection extends AbstractConnection
      *
      * @return bool
      */
-    protected function platformTransactionRollBackHandler ()
+    protected function platformTransactionRollBackHandler()
     {
         if ( $this->handle->rollback() ) {
             $this->handle->autocommit( true );
@@ -336,58 +385,6 @@ class Connection extends AbstractConnection
         }
 
         return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::getAffectedRows
-     *
-     * Get the total number of affected rows from the last query execution.
-     *
-     * @return int  Returns total number of affected rows
-     */
-    public function getAffectedRows ()
-    {
-        return $this->handle->affected_rows;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::getLastInsertId
-     *
-     * Get last insert id from the last insert query execution.
-     *
-     * @return int  Returns total number of affected rows
-     */
-    public function getLastInsertId ()
-    {
-        return $this->handle->insert_id;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::setDatabase
-     *
-     * Set a specific database table to use.
-     *
-     * @param string $database Database name.
-     *
-     * @return static
-     */
-    public function setDatabase ( $database )
-    {
-        $database = empty( $database )
-            ? $this->database
-            : $database;
-
-        if ( $this->handle->select_db( $database ) ) {
-            $this->database = $database;
-        }
-
-        return $this;
     }
 
     // ------------------------------------------------------------------------
@@ -402,7 +399,7 @@ class Connection extends AbstractConnection
      *
      * @return string
      */
-    protected function platformPrepareSqlStatement ( $sqlStatement, array $options = [ ] )
+    protected function platformPrepareSqlStatement( $sqlStatement, array $options = [] )
     {
         // mysqli_affected_rows() returns 0 for "DELETE FROM TABLE" queries. This hack
         // modifies the query so that it a proper number of affected rows is returned.
@@ -424,9 +421,9 @@ class Connection extends AbstractConnection
      *
      * @return array
      */
-    protected function platformQueryHandler ( Query &$query )
+    protected function platformQueryHandler( Query &$query )
     {
-        $rows = [ ];
+        $rows = [];
 
         if ( false !== ( $result = $this->handle->query( $query->getFinalStatement() ) ) ) {
             $rows = $result->fetch_all( MYSQLI_ASSOC );
@@ -448,7 +445,7 @@ class Connection extends AbstractConnection
      *
      * @return bool
      */
-    protected function platformExecuteHandler ( Query &$query )
+    protected function platformExecuteHandler( Query &$query )
     {
         if ( false !== $this->handle->query( $query->getFinalStatement() ) ) {
             return true;
@@ -472,7 +469,7 @@ class Connection extends AbstractConnection
      *
      * @return string
      */
-    protected function platformEscapeStringHandler ( $string )
+    protected function platformEscapeStringHandler( $string )
     {
         return $this->handle->real_escape_string( $string );
     }

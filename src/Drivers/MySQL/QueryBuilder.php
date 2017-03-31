@@ -23,5 +23,5 @@ use O2System\Database\Abstracts\AbstractQueryBuilder;
  */
 class QueryBuilder extends AbstractQueryBuilder
 {
-    
+
 }

@@ -37,7 +37,7 @@ abstract class AbstractSchemaBuilder
      *
      * @param \O2System\Database\Abstracts\AbstractConnection $conn
      */
-    public function __construct ( AbstractConnection $conn )
+    public function __construct( AbstractConnection $conn )
     {
         $this->conn = $conn;
     }

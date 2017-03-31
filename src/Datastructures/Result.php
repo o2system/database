@@ -15,8 +15,8 @@ namespace O2System\Database\Datastructures;
 // ------------------------------------------------------------------------
 
 use Countable;
-use SeekableIterator;
 use O2System\Spl\Datastructures\Traits\ArrayConversionTrait;
+use SeekableIterator;
 
 /**
  * Class Result
@@ -26,7 +26,7 @@ use O2System\Spl\Datastructures\Traits\ArrayConversionTrait;
 class Result implements SeekableIterator, Countable
 {
     use ArrayConversionTrait;
-    
+
     /**
      * SeekableIterator Position
      *
@@ -41,7 +41,7 @@ class Result implements SeekableIterator, Countable
      * @access  protected
      * @type    array
      */
-    private $rows = [ ];
+    private $rows = [];
 
     // ------------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ class Result implements SeekableIterator, Countable
      *
      * @param array $rows
      */
-    public function __construct ( array $rows )
+    public function __construct( array $rows )
     {
         $this->rows = $rows;
     }
@@ -59,12 +59,12 @@ class Result implements SeekableIterator, Countable
 
     /**
      * Result::first
-     * 
+     *
      * Gets first result row data.
-     * 
+     *
      * @return \O2System\Database\Datastructures\Result\Row
      */
-    public function first ()
+    public function first()
     {
         $this->seek( 0 );
 
@@ -75,7 +75,7 @@ class Result implements SeekableIterator, Countable
 
     /**
      * Result::seek
-     * 
+     *
      * Seeks to a position
      *
      * @link  http://php.net/manual/en/seekableiterator.seek.php
@@ -87,7 +87,7 @@ class Result implements SeekableIterator, Countable
      * @return void
      * @since 5.1.0
      */
-    public function seek ( $position )
+    public function seek( $position )
     {
         if ( $position < 0 ) {
             $position = 0;
@@ -104,7 +104,7 @@ class Result implements SeekableIterator, Countable
 
     /**
      * Result::count
-     * 
+     *
      * Count elements of an object
      *
      * @link  http://php.net/manual/en/countable.count.php
@@ -114,7 +114,7 @@ class Result implements SeekableIterator, Countable
      *        The return value is cast to an integer.
      * @since 5.1.0
      */
-    public function count ()
+    public function count()
     {
         return count( $this->rows );
     }
@@ -123,12 +123,12 @@ class Result implements SeekableIterator, Countable
 
     /**
      * Result::last
-     * 
+     *
      * Gets last result row data.
-     * 
+     *
      * @return \O2System\Database\Datastructures\Result\Row
      */
-    public function last ()
+    public function last()
     {
         $this->seek( $this->count() - 1 );
 
@@ -139,14 +139,14 @@ class Result implements SeekableIterator, Countable
 
     /**
      * Result::current
-     * 
+     *
      * Return the current element
      *
      * @link  http://php.net/manual/en/iterator.current.php
      * @return \O2System\Database\Datastructures\Result\Row
      * @since 5.0.0
      */
-    public function current ()
+    public function current()
     {
         $this->seek( $this->position );
 
@@ -157,14 +157,14 @@ class Result implements SeekableIterator, Countable
 
     /**
      * Result::next
-     * 
+     *
      * Move forward to next element.
      *
      * @link  http://php.net/manual/en/iterator.next.php
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function next ()
+    public function next()
     {
         ++$this->position;
         $this->seek( $this->position );
@@ -174,13 +174,13 @@ class Result implements SeekableIterator, Countable
 
     /**
      * Result::previous
-     * 
+     *
      * Move backward to previous element.
      *
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function previous ()
+    public function previous()
     {
         --$this->position;
         $this->seek( $this->position );
@@ -190,23 +190,23 @@ class Result implements SeekableIterator, Countable
 
     /**
      * Result::key
-     * 
+     *
      * Return the key of the current element.
      *
      * @link  http://php.net/manual/en/iterator.key.php
      * @return mixed scalar on success, or null on failure.
      * @since 5.0.0
      */
-    public function key ()
+    public function key()
     {
-        return (int) $this->position;
+        return (int)$this->position;
     }
 
     // ------------------------------------------------------------------------
 
     /**
      * Result::valid
-     * 
+     *
      * Checks if current position is valid.
      *
      * @link  http://php.net/manual/en/iterator.valid.php
@@ -214,7 +214,7 @@ class Result implements SeekableIterator, Countable
      *        Returns true on success or false on failure.
      * @since 5.0.0
      */
-    public function valid ()
+    public function valid()
     {
         return isset( $this->rows[ $this->position ] );
     }
@@ -223,14 +223,14 @@ class Result implements SeekableIterator, Countable
 
     /**
      * Result::rewind
-     * 
+     *
      * Rewind the Iterator to the first element.
      *
      * @link  http://php.net/manual/en/iterator.rewind.php
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function rewind ()
+    public function rewind()
     {
         $this->seek( 0 );
     }
@@ -244,7 +244,7 @@ class Result implements SeekableIterator, Countable
      *
      * @return bool
      */
-    public function isEmpty ()
+    public function isEmpty()
     {
         return ( $this->count() == 0 ? true : false );
     }
@@ -258,7 +258,7 @@ class Result implements SeekableIterator, Countable
      *
      * @return array A copy of the result rows.
      */
-    public function getArrayCopy ()
+    public function getArrayCopy()
     {
         return $this->rows;
     }

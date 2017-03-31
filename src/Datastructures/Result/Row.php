@@ -15,11 +15,11 @@ namespace O2System\Database\Datastructures\Result;
 // ------------------------------------------------------------------------
 
 use ArrayAccess;
-use Traversable;
 use Countable;
 use IteratorAggregate;
 use O2System\Spl\Datastructures\Traits\ArrayConversionTrait;
 use O2System\Spl\Exceptions\Logic\InvalidArgumentException;
+use Traversable;
 
 /**
  * Class Row
@@ -29,14 +29,14 @@ use O2System\Spl\Exceptions\Logic\InvalidArgumentException;
 class Row implements IteratorAggregate, ArrayAccess, Countable
 {
     use ArrayConversionTrait;
-    
+
     /**
      * List of result row fields
      *
      * @access  protected
      * @type    array
      */
-    protected $fields = [ ];
+    protected $fields = [];
 
     // ------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      *
      * @param array $fields
      */
-    public function __construct ( array $fields = [ ] )
+    public function __construct( array $fields = [] )
     {
         $this->fields = $fields;
     }
@@ -59,7 +59,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      *
      * @return int
      */
-    public function count ()
+    public function count()
     {
         return count( $this->fields );
     }
@@ -73,7 +73,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      *
      * @return array
      */
-    public function getFields ()
+    public function getFields()
     {
         return array_keys( $this->fields );
     }
@@ -89,7 +89,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      * @return object
      * @throws \O2System\Spl\Exceptions\Logic\InvalidArgumentException
      */
-    public function fetchFieldsInto ( $className, array $classArgs = [ ] )
+    public function fetchFieldsInto( $className, array $classArgs = [] )
     {
         if ( is_string( $className ) ) {
             if ( ! class_exists( $className ) ) {
@@ -112,7 +112,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
         }
 
         foreach ( $this->fields as $fieldName => $fieldValue ) {
-            if ( method_exists( $classObject, $setFieldMethod = 'set' . studlycapcase( $fieldName ) ) ) {
+            if ( method_exists( $classObject, $setFieldMethod = 'set' . studlycase( $fieldName ) ) ) {
                 call_user_func_array( [ &$classObject, $setFieldMethod ], [ $fieldValue ] );
             } elseif ( method_exists( $classObject, '__set' ) ) {
                 $classObject->__set( $fieldName, $fieldValue );
@@ -133,7 +133,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      *
      * @return array
      */
-    public function getArrayCopy ()
+    public function getArrayCopy()
     {
         return $this->fields;
     }
@@ -147,7 +147,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      *
      * @return array
      */
-    public function getValues ()
+    public function getValues()
     {
         return array_values( $this->fields );
     }
@@ -163,7 +163,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      *
      * @return mixed|null
      */
-    public function __get ( $field )
+    public function __get( $field )
     {
         return $this->offsetGet( $field );
     }
@@ -178,7 +178,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      * @param string $field Field name
      * @param mixed  $value Field value
      */
-    public function __set ( $field, $value )
+    public function __set( $field, $value )
     {
         $this->offsetSet( $field, $value );
     }
@@ -187,16 +187,19 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
 
     /**
      * Row::offsetGet
-     * 
+     *
      * Offset to retrieve
-     * @link http://php.net/manual/en/arrayaccess.offsetget.php
+     *
+     * @link  http://php.net/manual/en/arrayaccess.offsetget.php
+     *
      * @param mixed $offset <p>
-     * The offset to retrieve.
-     * </p>
+     *                      The offset to retrieve.
+     *                      </p>
+     *
      * @return mixed Can return all value types.
      * @since 5.0.0
      */
-    public function offsetGet ( $offset )
+    public function offsetGet( $offset )
     {
         if ( isset( $this->fields[ $offset ] ) ) {
 
@@ -217,82 +220,6 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
     // ------------------------------------------------------------------------
 
     /**
-     * Row::offsetSet
-     * 
-     * Offset to set
-     * @link http://php.net/manual/en/arrayaccess.offsetset.php
-     * @param mixed $offset <p>
-     * The offset to assign the value to.
-     * </p>
-     * @param mixed $value <p>
-     * The value to set.
-     * </p>
-     * @return void
-     * @since 5.0.0
-     */
-    public function offsetSet ( $offset, $value )
-    {
-        $this->fields[ $offset ] = $value;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Row::getIterator
-     * 
-     * Retrieve an external iterator
-     * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
-     * @return Traversable An instance of an object implementing <b>Iterator</b> or
-     * <b>Traversable</b>
-     * @since 5.0.0
-     */
-    public function getIterator ()
-    {
-        return new \ArrayIterator( $this->fields );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Row::offsetExists
-     * 
-     * Whether a offset exists
-     * @link http://php.net/manual/en/arrayaccess.offsetexists.php
-     * @param mixed $offset <p>
-     * An offset to check for.
-     * </p>
-     * @return boolean true on success or false on failure.
-     * </p>
-     * <p>
-     * The return value will be casted to boolean if non-boolean was returned.
-     * @since 5.0.0
-     */
-    public function offsetExists ( $offset )
-    {
-        return isset( $this->fields[ $offset ] );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Row::offsetUnset
-     * 
-     * Offset to unset
-     * @link http://php.net/manual/en/arrayaccess.offsetunset.php
-     * @param mixed $offset <p>
-     * The offset to unset.
-     * </p>
-     * @return void
-     * @since 5.0.0
-     */
-    public function offsetUnset ( $field )
-    {
-        unset( $this->fields[ $field ] );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * Row::isJSON
      *
      * Checks if field value is JSON format.
@@ -301,7 +228,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      *
      * @return bool
      */
-    protected function isJSON ( $string )
+    protected function isJSON( $string )
     {
         // make sure provided input is of type string
         if ( ! is_string( $string ) ) {
@@ -355,7 +282,7 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      *
      * @return bool
      */
-    protected function isSerialized ( $string )
+    protected function isSerialized( $string )
     {
         // if it isn't a string, it isn't serialized
         if ( ! is_string( $string ) ) {
@@ -386,5 +313,91 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
         }
 
         return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Row::offsetSet
+     *
+     * Offset to set
+     *
+     * @link  http://php.net/manual/en/arrayaccess.offsetset.php
+     *
+     * @param mixed $offset <p>
+     *                      The offset to assign the value to.
+     *                      </p>
+     * @param mixed $value  <p>
+     *                      The value to set.
+     *                      </p>
+     *
+     * @return void
+     * @since 5.0.0
+     */
+    public function offsetSet( $offset, $value )
+    {
+        $this->fields[ $offset ] = $value;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Row::getIterator
+     *
+     * Retrieve an external iterator
+     *
+     * @link  http://php.net/manual/en/iteratoraggregate.getiterator.php
+     * @return Traversable An instance of an object implementing <b>Iterator</b> or
+     *        <b>Traversable</b>
+     * @since 5.0.0
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator( $this->fields );
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Row::offsetExists
+     *
+     * Whether a offset exists
+     *
+     * @link  http://php.net/manual/en/arrayaccess.offsetexists.php
+     *
+     * @param mixed $offset <p>
+     *                      An offset to check for.
+     *                      </p>
+     *
+     * @return boolean true on success or false on failure.
+     * </p>
+     * <p>
+     * The return value will be casted to boolean if non-boolean was returned.
+     * @since 5.0.0
+     */
+    public function offsetExists( $offset )
+    {
+        return isset( $this->fields[ $offset ] );
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Row::offsetUnset
+     *
+     * Offset to unset
+     *
+     * @link  http://php.net/manual/en/arrayaccess.offsetunset.php
+     *
+     * @param mixed $offset <p>
+     *                      The offset to unset.
+     *                      </p>
+     *
+     * @return void
+     * @since 5.0.0
+     */
+    public function offsetUnset( $field )
+    {
+        unset( $this->fields[ $field ] );
     }
 }

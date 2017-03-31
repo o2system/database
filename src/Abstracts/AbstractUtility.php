@@ -38,7 +38,7 @@ abstract class AbstractUtility
      *
      * @param \O2System\Database\Abstracts\AbstractConnection $conn
      */
-    public function __construct ( AbstractConnection $conn )
+    public function __construct( AbstractConnection $conn )
     {
         $this->conn = $conn;
     }
@@ -55,11 +55,11 @@ abstract class AbstractUtility
      * @return array
      * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
      */
-    public function optimizeDatabase ( $database )
+    public function optimizeDatabase( $database )
     {
         $this->conn->setDatabase( $database );
 
-        $result = [ ];
+        $result = [];
         foreach ( $this->conn->getTables() as $tableName ) {
             $result[ $tableName ] = $this->optimizeTable( $tableName );
         }
@@ -80,7 +80,7 @@ abstract class AbstractUtility
      * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function optimizeTable ( $table )
+    public function optimizeTable( $table )
     {
         $table = $this->conn->prefixTable( $table );
 
@@ -111,7 +111,7 @@ abstract class AbstractUtility
      *
      * @return string|bool Returns FALSE if not supported and string of SQL statement if supported.
      */
-    abstract protected function platformOptimizeTableStatement ( $table );
+    abstract protected function platformOptimizeTableStatement( $table );
 
     //--------------------------------------------------------------------
 
@@ -126,7 +126,7 @@ abstract class AbstractUtility
      * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function repairTable ( $table )
+    public function repairTable( $table )
     {
         $table = $this->conn->prefixTable( $table );
 
@@ -157,7 +157,7 @@ abstract class AbstractUtility
      *
      * @return string|bool Returns FALSE if not supported and string of SQL statement if supported.
      */
-    abstract protected function platformRepairTableStatement ( $table );
+    abstract protected function platformRepairTableStatement( $table );
 
     //--------------------------------------------------------------------
 
@@ -172,7 +172,7 @@ abstract class AbstractUtility
      * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function analyzeTable ( $table )
+    public function analyzeTable( $table )
     {
         $table = $this->conn->prefixTable( $table );
 
@@ -195,19 +195,6 @@ abstract class AbstractUtility
     //--------------------------------------------------------------------
 
     /**
-     * AbstractUtility::platformAnalyzeTableStatement
-     *
-     * Generates a platform-specific ANALYZE TABLE statement.
-     *
-     * @param string $table Database table name.
-     *
-     * @return string|bool Returns FALSE if not supported and string of SQL statement if supported.
-     */
-    abstract protected function platformAnalyzeTableStatement ( $table );
-
-    //--------------------------------------------------------------------
-
-    /**
      * AbstractUtility::backup
      *
      * Backup database tables into SQL statement.
@@ -216,7 +203,7 @@ abstract class AbstractUtility
      *
      * @return bool|string
      */
-    public function backup ( $options = [ ] )
+    public function backup( $options = [] )
     {
         // If the parameters have not been submitted as an
         // array then we know that it is simply the table
@@ -227,8 +214,8 @@ abstract class AbstractUtility
 
         // Set up our default preferences
         $defaultOptions = [
-            'tables'             => [ ],
-            'ignore'             => [ ],
+            'tables'             => [],
+            'ignore'             => [],
             'add_drop'           => true,
             'add_insert'         => true,
             'newline'            => "\n",
@@ -264,5 +251,18 @@ abstract class AbstractUtility
      *
      * @return string|bool Returns FALSE if not supported and string of SQL statement if supported.
      */
-    abstract protected function platformBackupHandler ( array $options );
+    abstract protected function platformBackupHandler( array $options );
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractUtility::platformAnalyzeTableStatement
+     *
+     * Generates a platform-specific ANALYZE TABLE statement.
+     *
+     * @param string $table Database table name.
+     *
+     * @return string|bool Returns FALSE if not supported and string of SQL statement if supported.
+     */
+    abstract protected function platformAnalyzeTableStatement( $table );
 }
