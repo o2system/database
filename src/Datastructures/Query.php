@@ -20,7 +20,7 @@ use O2System\Database\Abstracts\AbstractDriver;
 /**
  * Class Query
  *
- * @package O2System\DB\Registries
+ * @package O2System\DB\Datastructures
  */
 class Query
 {
