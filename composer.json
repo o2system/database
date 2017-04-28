@@ -2,7 +2,7 @@
   "name": "o2system/database",
   "description": "PHP Database Management Library",
   "license": "MIT",
-  "type": "php-libraries",
+  "type": "package",
   "keywords": [
     "utilities",
     "php",
@@ -31,11 +31,12 @@
   },
   "require": {
     "php": ">=5.6.0",
-    "o2system/kernel": "dev-master"
+    "o2system/kernel": "1.*"
   },
   "autoload": {
     "psr-4": {
       "O2System\\Database\\": "src"
     }
-  }
+  },
+  "minimum-stability": "dev"
 }
