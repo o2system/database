@@ -113,7 +113,7 @@ abstract class AbstractForge
             }
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }
@@ -158,7 +158,7 @@ abstract class AbstractForge
             }
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }
@@ -226,7 +226,7 @@ abstract class AbstractForge
                 $this->addKey( 'id', true );
             } else {
                 if ( strpos( $field, ' ' ) === false ) {
-                    throw new \InvalidArgumentException( 'Field information is required for that operation.' );
+                    throw new \InvalidArgumentException( 'Input information is required for that operation.' );
                 }
 
                 $this->builderCache[ 'fields' ][] = $field;
@@ -290,7 +290,7 @@ abstract class AbstractForge
         $table = $this->conn->prefixTable( $table );
 
         if ( $this->conn->isTableExists( $table ) ) {
-            if ( $this->conn->isDebugEnabled ) {
+            if ( $this->conn->debugEnabled ) {
                 throw new RuntimeException( 'E_DATABASE_TABLE_ALREADY_EXISTS' );
             }
 
@@ -309,7 +309,7 @@ abstract class AbstractForge
             }
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }
@@ -456,7 +456,7 @@ abstract class AbstractForge
     // ------------------------------------------------------------------------
 
     /**
-     * Field attribute TYPE
+     * Input attribute TYPE
      *
      * Performs a data type mapping between different databases.
      *
@@ -472,7 +472,7 @@ abstract class AbstractForge
     // ------------------------------------------------------------------------
 
     /**
-     * Field attribute UNSIGNED
+     * Input attribute UNSIGNED
      *
      * Depending on the unsigned property value:
      *
@@ -521,7 +521,7 @@ abstract class AbstractForge
     // ------------------------------------------------------------------------
 
     /**
-     * Field attribute DEFAULT
+     * Input attribute DEFAULT
      *
      * @param    array &$attributes
      * @param    array &$field
@@ -554,7 +554,7 @@ abstract class AbstractForge
     // ------------------------------------------------------------------------
 
     /**
-     * Field attribute AUTO_INCREMENT
+     * Input attribute AUTO_INCREMENT
      *
      * @param    array &$attributes
      * @param    array &$field
@@ -573,7 +573,7 @@ abstract class AbstractForge
     //--------------------------------------------------------------------
 
     /**
-     * Field attribute UNIQUE
+     * Input attribute UNIQUE
      *
      * @param    array &$attributes
      * @param    array &$field
@@ -594,7 +594,7 @@ abstract class AbstractForge
      *
      * Process database table column definitions.
      *
-     * @param array $column Field definitions.
+     * @param array $column Input definitions.
      *
      * @return string
      */
@@ -722,7 +722,7 @@ abstract class AbstractForge
         $table = $this->conn->prefixTable( $table );
 
         if ( $this->conn->isTableExists( $table ) ) {
-            if ( $this->conn->isDebugEnabled ) {
+            if ( $this->conn->debugEnabled ) {
                 throw new RuntimeException( 'E_DATABASE_TABLE_NOT_EXISTS' );
             }
 
@@ -746,7 +746,7 @@ abstract class AbstractForge
             }
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }
@@ -812,7 +812,7 @@ abstract class AbstractForge
             }
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }
@@ -872,7 +872,7 @@ abstract class AbstractForge
             return true;
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }
@@ -948,7 +948,7 @@ abstract class AbstractForge
             }
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }
@@ -981,7 +981,7 @@ abstract class AbstractForge
         }
 
         if ( count( $this->builderCache[ 'fields' ] ) === 0 ) {
-            throw new \RuntimeException( 'Field information is required' );
+            throw new \RuntimeException( 'Input information is required' );
         }
 
         if ( false !== ( $sqlStatement = $this->platformAlterTableStatement(
@@ -1000,7 +1000,7 @@ abstract class AbstractForge
             $this->reset();
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }

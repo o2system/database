@@ -49,9 +49,9 @@ class Connections extends AbstractObjectRegistryPattern
     {
         $loadConnection[ $connectionOffset ] = false;
 
-        if ( isset( $this->config[ $connectionOffset ] ) AND $this->has( $connectionOffset ) === false ) {
+        if ( ! $this->exists( $connectionOffset ) and $this->config->offsetExists( $connectionOffset ) ) {
 
-            $connectionConfig = $this->config[ $connectionOffset ];
+            $connectionConfig = $this->config->offsetGet( $connectionOffset );
 
             if ( is_array( $connectionConfig ) ) {
                 new Datastructures\Config( $this->config[ $connectionOffset ] );
@@ -59,10 +59,10 @@ class Connections extends AbstractObjectRegistryPattern
 
             $this->createConnection( $connectionOffset, $connectionConfig );
 
-            return $this->get( $connectionOffset );
+            return $this->getObject( $connectionOffset );
 
-        } elseif ( $this->has( $connectionOffset ) ) {
-            return $this->get( $connectionOffset );
+        } elseif ( $this->exists( $connectionOffset ) ) {
+            return $this->getObject( $connectionOffset );
         }
 
         return $loadConnection;
@@ -93,10 +93,10 @@ class Connections extends AbstractObjectRegistryPattern
         if ( class_exists( $driverClassName ) ) {
             $driverInstance = new $driverClassName( $connectionConfig );
 
-            $this->register( $connectionOffset, $driverInstance );
+            $this->register( $driverInstance, $connectionOffset );
         }
 
-        return $this->get( $connectionOffset );
+        return $this->getObject( $connectionOffset );
     }
 
     // ------------------------------------------------------------------------

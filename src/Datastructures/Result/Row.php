@@ -117,7 +117,13 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
             } elseif ( method_exists( $classObject, '__set' ) ) {
                 $classObject->__set( $fieldName, $fieldValue );
             } else {
-                $classObject->{camelcase( $fieldName )} = $fieldValue;
+                if ( $this->isJSON( $fieldValue ) ) {
+                    $classObject->{camelcase( $fieldName )} = new Fields\DataJSON( json_decode( $fieldValue, true ) );
+                } elseif ( $this->isSerialized( $fieldValue ) ) {
+                    $classObject->{camelcase( $fieldName )} = new Fields\DataSerialize( unserialize( $fieldValue ) );
+                } else {
+                    $classObject->{camelcase( $fieldName )} = $fieldValue;
+                }
             }
         }
 
@@ -135,7 +141,19 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      */
     public function getArrayCopy()
     {
-        return $this->fields;
+        $fields = $this->fields;
+
+        foreach ( $fields as $fieldName => $fieldValue ) {
+            if ( $this->isJSON( $fieldValue ) ) {
+                $fields[ $fieldName ] = new Fields\DataJSON( json_decode( $fieldValue, true ) );
+            } elseif ( $this->isSerialized( $fieldValue ) ) {
+                $fields[ $fieldName ] = new Fields\DataSerialize( unserialize( $fieldValue ) );
+            } else {
+                $fields[ $fieldName ] = $fieldValue;
+            }
+        }
+
+        return $fields;
     }
 
     // ------------------------------------------------------------------------
@@ -175,8 +193,8 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
      *
      * Route magic method __set into offsetSet method.
      *
-     * @param string $field Field name
-     * @param mixed  $value Field value
+     * @param string $field Input name
+     * @param mixed  $value Input value
      */
     public function __set( $field, $value )
     {

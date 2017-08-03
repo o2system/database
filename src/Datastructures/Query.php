@@ -15,7 +15,6 @@ namespace O2System\Database\Datastructures;
 // ------------------------------------------------------------------------
 
 use O2System\Database\Abstracts\AbstractConnection;
-use O2System\Database\Abstracts\AbstractDriver;
 
 /**
  * Class Query
@@ -129,7 +128,7 @@ class Query
      * @param string $sqlStatement The SQL Statement.
      * @param array  $sqlBinds     The SQL Statement bindings.
      *
-     * @return Query
+     * @return static
      */
     public function setStatement( $sqlStatement, array $sqlBinds = [] )
     {
@@ -148,7 +147,7 @@ class Query
      *
      * @param array $sqlBinds
      *
-     * @return Query
+     * @return static
      */
     public function setBinds( array $sqlBinds )
     {
@@ -169,7 +168,7 @@ class Query
      * @param int      $start
      * @param int|null $end
      *
-     * @return Query
+     * @return static
      */
     public function setDuration( $start, $end = null )
     {
@@ -232,7 +231,7 @@ class Query
      * @param int    $errorCode
      * @param string $errorMessage
      *
-     * @return $this
+     * @return static
      */
     public function setError( $errorCode, $errorMessage )
     {
@@ -306,13 +305,13 @@ class Query
     }
 
     /**
-     * Query::isWriteSyntax
+     * Query::isWriteStatement
      *
      * Determines if the SQL statement is a write-syntax query or not.
      *
      * @return bool
      */
-    public function isWriteSyntax()
+    public function isWriteStatement()
     {
         return (bool)preg_match(
             '/^\s*"?(SET|INSERT|UPDATE|DELETE|REPLACE|CREATE|DROP|TRUNCATE|LOAD|COPY|ALTER|RENAME|GRANT|REVOKE|LOCK|UNLOCK|REINDEX)\s/i',
@@ -465,7 +464,7 @@ class Query
 
                 $escapedValue = '(' . implode( ',', $escapedValue ) . ')';
             } else {
-                $escapedValue = preg_quote( trim( $escapedValue, $this->conn->getEscapeCharacter() ) );
+                $escapedValue = preg_quote( trim( $escapedValue, $this->conn->getConfig( 'escapeCharacter' ) ) );
             }
 
             if ( preg_match( "/\(.+?\)/", $bindSearch ) ) {

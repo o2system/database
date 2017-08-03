@@ -13,6 +13,7 @@
 namespace O2System\Database\Abstracts;
 
 // ------------------------------------------------------------------------
+
 use O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException;
 
 /**
@@ -92,7 +93,7 @@ abstract class AbstractUtility
             return $this->conn->query( $sqlStatement );
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }
@@ -138,7 +139,7 @@ abstract class AbstractUtility
             return $this->conn->query( $sqlStatement );
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }
@@ -184,7 +185,7 @@ abstract class AbstractUtility
             return $this->conn->query( $sqlStatement );
         }
 
-        if ( $this->conn->isDebugEnabled ) {
+        if ( $this->conn->debugEnabled ) {
             // This feature is not available for the database you are using.'
             throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
         }

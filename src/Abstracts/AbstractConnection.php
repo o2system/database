@@ -14,9 +14,9 @@ namespace O2System\Database\Abstracts;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\Datastructures\Result;
 use O2System\Database\Datastructures\Config;
 use O2System\Database\Datastructures\Query;
+use O2System\Database\Datastructures\Result;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Spl\Traits\Collectors\ConfigCollectorTrait;
 
@@ -30,13 +30,14 @@ abstract class AbstractConnection
     use ConfigCollectorTrait;
 
     /**
-     * AbstractConnection::$isDebugEnabled
+     * AbstractConnection::$debugEnabled
      *
      * Connection debug mode flag.
      *
      * @var bool
      */
-    public $isDebugEnabled = true;
+    public $debugEnabled = true;
+
     /**
      * AbstractConnection::$database
      *
@@ -45,6 +46,7 @@ abstract class AbstractConnection
      * @var string
      */
     public $database;
+
     /**
      * AbstractConnection::$swapTablePrefix
      *
@@ -53,6 +55,7 @@ abstract class AbstractConnection
      * @var string
      */
     public $swapTablePrefix;
+
     /**
      * AbstractConnection::$isProtectIdentifiers
      *
@@ -61,14 +64,16 @@ abstract class AbstractConnection
      * @var bool
      */
     public $isProtectIdentifiers = true;
+
     /**
-     * AbstractConnection::$isQueryExecuteDisabled
+     * AbstractConnection::$disableQueryExecution
      *
      * Query execution mode flag.
      *
      * @var bool
      */
-    public $isQueryExecuteDisabled = false;
+    public $disableQueryExecution = false;
+
     /**
      * AbstractConnection::$queriesResultCache
      *
@@ -78,6 +83,7 @@ abstract class AbstractConnection
      * @var array
      */
     public $queriesResultCache = [];
+
     /**
      * AbstractConnection::$platform
      *
@@ -86,6 +92,7 @@ abstract class AbstractConnection
      * @var string
      */
     protected $platform;
+
     /**
      * AbstractConnection::$handle
      *
@@ -94,6 +101,7 @@ abstract class AbstractConnection
      * @var mixed
      */
     protected $handle;
+
     /**
      * AbstractConnection::$persistent
      *
@@ -101,7 +109,8 @@ abstract class AbstractConnection
      *
      * @var bool
      */
-    protected $isPersistent = true;
+    protected $persistent = true;
+
     /**
      * AbstractConnection::$connectTimeStart
      *
@@ -110,6 +119,7 @@ abstract class AbstractConnection
      * @var float
      */
     protected $connectTimeStart;
+
     /**
      * AbstractConnection::$connectTimeDuration
      *
@@ -118,30 +128,16 @@ abstract class AbstractConnection
      * @var float
      */
     protected $connectTimeDuration;
+
     /**
-     * AbstractConnection::$isTransactionStrict
+     * AbstractConnection::$transactionInProgress
      *
-     * Transaction strict mode enabled flag.
+     * Transaction is in progress.
      *
      * @var bool
      */
-    protected $isTransactionStrict = false;
-    /**
-     * AbstractConnection::$isTransactionEnabled
-     *
-     * Transaction mode enabled flag.
-     *
-     * @var bool
-     */
-    protected $isTransactionEnabled = false;
-    /**
-     * AbstractConnection::$isTransactionFailed
-     *
-     * Transaction mode failure flag.
-     *
-     * @var bool
-     */
-    protected $isTransactionFailed = false;
+    protected $transactionInProgress = false;
+
     /**
      * AbstractConnection::$transactionStatus
      *
@@ -150,6 +146,7 @@ abstract class AbstractConnection
      * @var bool
      */
     protected $transactionStatus = false;
+
     /**
      * AbstractConnection::$transactionDepth
      *
@@ -158,6 +155,7 @@ abstract class AbstractConnection
      * @var int
      */
     protected $transactionDepth = 0;
+
     /**
      * AbstractConnection::$queriesCache
      *
@@ -167,6 +165,7 @@ abstract class AbstractConnection
      * @var array
      */
     protected $queriesCache = [];
+
     /**
      * AbstractConnection::$queryBuilder
      *
@@ -201,12 +200,13 @@ abstract class AbstractConnection
 
         $this->config = $config;
 
-        $this->isDebugEnabled = $config->offsetGet( 'debugEnabled' );
+        $this->debugEnabled = $config->offsetGet( 'debugEnable' );
+        $this->transactionEnabled = $config->offsetGet( 'transEnable' );
         $this->database = $config->offsetGet( 'database' );
 
         $this->connect(
             ( $config->offsetExists( 'persistent' )
-                ? $this->isPersistent = $config->persistent
+                ? $this->persistent = $config->persistent
                 : true
             )
         );
@@ -238,7 +238,7 @@ abstract class AbstractConnection
 
         //--------------------------------------------------------------------
 
-        $this->isPersistent = $persistent;
+        $this->persistent = $persistent;
         $this->connectTimeStart = microtime( true );
 
         // Connect to the database and set the connection ID
@@ -351,7 +351,7 @@ abstract class AbstractConnection
     public function reconnect()
     {
         if ( $this->isConnected() === false ) {
-            $this->connect( $this->isPersistent );
+            $this->connect( $this->persistent );
         }
     }
 
@@ -481,111 +481,6 @@ abstract class AbstractConnection
     //--------------------------------------------------------------------
 
     /**
-     * AbstractConnection::transactionStrict
-     *
-     * Enable/disable Transaction Strict Mode
-     *
-     * When strict mode is enabled, if you are running multiple groups of
-     * transactions, if one group fails all subsequent groups will be
-     * rolled back.
-     *
-     * If strict mode is disabled, each group is treated autonomously,
-     * meaning a failure of one group will not affect any others
-     *
-     * @param    bool $mode = true
-     *
-     * @return static
-     */
-    public function transactionStrict( $mode = true )
-    {
-        $this->isTransactionStrict = $mode;
-
-        return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::transactionStart
-     *
-     * Starting a transaction.
-     *
-     * @param bool $testMode Testing mode flag.
-     *
-     * @return bool
-     */
-    public function transactionStart( $testMode = false )
-    {
-        if ( ! $this->isTransactionEnabled ) {
-            return false;
-        }
-
-        return $this->transactionBegin( $testMode );
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::transactionBegin
-     *
-     * Begin a transaction.
-     *
-     * @param bool $testMode Testing mode flag.
-     *
-     * @return bool
-     */
-    public function transactionBegin( $testMode = false )
-    {
-        if ( ! $this->isTransactionEnabled ) {
-            return false;
-        } // When transactions are nested we only begin/commit/rollback the outermost ones
-        elseif ( $this->transactionDepth > 0 ) {
-            $this->transactionDepth++;
-
-            return true;
-        }
-
-        // Reset the transaction failure flag.
-        // If the $test_mode flag is set to TRUE transactions will be rolled back
-        // even if the queries produce a successful result.
-        $this->isTransactionFailed = ( $testMode === true );
-        if ( $this->platformTransactionBeginHandler() ) {
-            $this->transactionDepth++;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::platformTransactionBeginHandler
-     *
-     * Platform beginning a transaction handler.
-     *
-     * @return bool
-     */
-    abstract protected function platformTransactionBeginHandler();
-
-    /**
-     * AbstractConnection::transactionDisabled
-     *
-     * This permits transactions to be disabled at run-time.
-     *
-     * @return static
-     */
-    public function transactionDisabled()
-    {
-        $this->transactionDisabled();
-
-        return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
      * AbstractConnection::getTransactionStatus
      *
      * Get transaction status.
@@ -594,7 +489,7 @@ abstract class AbstractConnection
      */
     public function getTransactionStatus()
     {
-        return (bool)$this->isTransactionFailed;
+        return (bool)$this->transactionStatus;
     }
 
     //--------------------------------------------------------------------
@@ -673,7 +568,7 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::isDatabaseExists
+     * AbstractConnection::databaseExists
      *
      * Check if the database exists or not.
      *
@@ -681,7 +576,7 @@ abstract class AbstractConnection
      *
      * @return bool Returns false if database doesn't exists.
      */
-    final public function isDatabaseExists( $databaseName )
+    final public function databaseExists( $databaseName )
     {
         $databases = empty( $this->queriesResultCache[ 'databaseNames' ] )
             ? $this->getDatabases()
@@ -704,8 +599,6 @@ abstract class AbstractConnection
     {
         if ( empty( $this->queriesResultCache[ 'databaseNames' ] ) ) {
             $result = $this->query( 'SHOW DATABASES' );
-
-            print_out( $result );
 
             if ( $result->count() ) {
                 foreach ( $result as $row ) {
@@ -750,9 +643,10 @@ abstract class AbstractConnection
     public function query( $sqlStatement, array $binds = [] )
     {
         if ( empty( $this->handle ) ) {
-            $this->connect( $this->isPersistent );
+            $this->connect( $this->persistent );
         }
 
+        $result = false;
         $query = new Query( $this );
 
         $query->setStatement( $sqlStatement, $binds );
@@ -764,60 +658,42 @@ abstract class AbstractConnection
         $startTime = microtime( true );
 
         // Run the query for real
-        if ( $this->isQueryExecuteDisabled === false ) {
-
-            if ( $query->isWriteSyntax() ) {
-
+        if ( $this->disableQueryExecution === false ) {
+            if ( $query->isWriteStatement() ) {
                 $result = $this->platformExecuteHandler( $query );
                 $query->setAffectedRows( $this->getAffectedRows() );
-                $query->setDuration( $startTime );
 
-                $this->queriesCache[] = $query;
-            } else {
-
-                $rows = $this->platformQueryHandler( $query );
-                $query->setDuration( $startTime );
-
-                $this->queriesCache[] = $query;
-
-                $result = new Result( $rows );
-            }
-
-            // This will trigger a rollback if transactions are being used
-            if ( $this->transactionDepth !== 0 ) {
-                $this->transactionStatus = false;
-            }
-
-            if ( $this->isDebugEnabled ) {
-                // We call this function in order to roll-back queries
-                // if transactions are enabled. If we don't call this here
-                // the error message will trigger an exit, causing the
-                // transactions to remain in limbo.
-                while ( $this->transactionDepth !== 0 ) {
-                    $transactionDepth = $this->transactionDepth;
-
-                    $this->transactionComplete();
-
-                    if ( $transactionDepth === $this->transactionDepth ) {
-                        // 'Database: Failure during an automated transaction commit/rollback!'
-                        throw new RuntimeException( 'E_DATABASE_TRANSACTION', $query->getErrorCode() );
-
-                        break;
-                    }
+                if( $this->transactionInProgress ) {
+                    $this->transactionStatus = $result;
                 }
+            } else {
+                $rows = $this->platformQueryHandler( $query );
+                $result = new Result( $rows );
 
+                if( $this->transactionInProgress ) {
+                    $this->transactionStatus = ( $query->hasError() ? false : true );
+                }
+            }
+        }
+
+        $query->setDuration( $startTime );
+        $this->queriesCache[] = $query;
+
+        if ( $query->hasError() ) {
+            if ( $this->debugEnabled ) {
                 throw new RuntimeException( $query->getErrorMessage(), $query->getErrorCode() );
             }
 
-            return $result;
+            if( $this->transactionInProgress ) {
+                $this->transactionStatus = false;
+                $this->transactionRollBack();
+                $this->transactionInProgress = false;
+            }
+
+            return false;
         }
 
-        // If $this->isQueryExecuteDisabled is true, then we just want to return
-        // the actual query object here. There won't be
-        // any results to return.
-        $query->setDuration( $startTime );
-
-        return $query;
+        return $result;
     }
 
     // ------------------------------------------------------------------------
@@ -860,36 +736,46 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::transactionComplete
+     * AbstractConnection::transactionBegin
      *
-     * Completing a transaction.
+     * Starting a transaction.
+     *
+     * @param bool $testMode Testing mode flag.
      *
      * @return bool
      */
-    public function transactionComplete()
+    public function transactionBegin()
     {
-        if ( ! $this->isTransactionEnabled ) {
-            return false;
+        /**
+         * checks if the transaction already started
+         * then we only increment the transaction depth.
+         */
+        if( $this->transactionDepth > 0 ) {
+            $this->transactionDepth++;
+
+            return true;
         }
 
-        // The query() function will set this flag to FALSE in the event that a query failed
-        if ( $this->transactionStatus === false OR $this->isTransactionFailed === true ) {
-            $this->transactionRollBack();
-            // If we are NOT running in strict mode, we will reset
-            // the _trans_status flag so that subsequent groups of
-            // transactions will be permitted.
-            if ( $this->isTransactionStrict === false ) {
-                $this->transactionStatus = true;
-            }
+        if ( $this->platformTransactionBeginHandler() ) {
+            $this->transactionInProgress = true;
+            $this->transactionDepth++;
 
-            // log_message('debug', 'DB Transaction Failure');
-            return false;
+            return true;
         }
 
-        return $this->transactionCommit();
+        return false;
     }
 
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::platformTransactionBeginHandler
+     *
+     * Platform beginning a transaction handler.
+     *
+     * @return bool
+     */
+    abstract protected function platformTransactionBeginHandler();
 
     /**
      * AbstractConnection::transactionRollBack
@@ -900,13 +786,8 @@ abstract class AbstractConnection
      */
     public function transactionRollBack()
     {
-        if ( ! $this->isTransactionEnabled OR $this->transactionDepth === 0 ) {
-            return false;
-        } // When transactions are nested we only begin/commit/rollback the outermost ones
-        elseif ( $this->transactionDepth > 1 OR $this->platformTransactionRollBackHandler() ) {
-            $this->transactionDepth--;
-
-            return true;
+        if( $this->transactionInProgress ) {
+            return $this->platformTransactionRollBackHandler();
         }
 
         return false;
@@ -934,16 +815,15 @@ abstract class AbstractConnection
      */
     public function transactionCommit()
     {
-        if ( ! $this->isTransactionEnabled OR $this->transactionDepth === 0 ) {
-            return false;
-        } // When transactions are nested we only begin/commit/rollback the outermost ones
-        elseif ( $this->transactionDepth > 1 OR $this->platformTransactionCommitHandler() ) {
-            $this->transactionDepth--;
+        if( $this->transactionInProgress ) {
+            if( $this->transactionStatus ) {
+                $this->platformTransactionCommitHandler();
 
-            return true;
+                return true;
+            }
         }
 
-        return false;
+        return $this->transactionRollBack();
     }
 
     //--------------------------------------------------------------------
@@ -1018,7 +898,7 @@ abstract class AbstractConnection
             $sqlStatement = 'SHOW TABLES FROM ' . $this->escapeIdentifiers( $this->config[ 'database' ] );
 
             if ( $prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '' ) {
-                return $sqlStatement . " LIKE '" . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%'";
+                $sqlStatement .= " LIKE '" . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%'";
             }
 
             $result = $this->query( $sqlStatement );
@@ -1527,7 +1407,7 @@ abstract class AbstractConnection
      *
      * Get connection query builder.
      *
-     * @return bool
+     * @return AbstractQueryBuilder
      */
     public function getQueryBuilder()
     {

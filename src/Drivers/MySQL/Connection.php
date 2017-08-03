@@ -199,6 +199,7 @@ class Connection extends AbstractConnection
             ? MYSQLI_CLIENT_COMPRESS
             : 0;
         $this->handle = mysqli_init();
+        //$this->handle->autocommit( ( $this->transactionEnabled ? true : false ) );
 
         $this->handle->options( MYSQLI_OPT_CONNECT_TIMEOUT, 10 );
 
@@ -337,14 +338,9 @@ class Connection extends AbstractConnection
     protected function platformTransactionBeginHandler()
     {
         $this->handle->autocommit( false );
+        $this->transactionInProgress = true;
 
-        if ( $this->handle->commit() ) {
-            $this->handle->autocommit( true );
-
-            return true;
-        }
-
-        return false;
+        return $this->handle->begin_transaction( MYSQLI_TRANS_START_READ_WRITE );
     }
 
     // ------------------------------------------------------------------------
@@ -359,7 +355,7 @@ class Connection extends AbstractConnection
     protected function platformTransactionCommitHandler()
     {
         if ( $this->handle->commit() ) {
-            $this->handle->autocommit( true );
+            $this->handle->autocommit( ( $this->transactionInProgress ? false : true ) );
 
             return true;
         }
@@ -379,6 +375,7 @@ class Connection extends AbstractConnection
     protected function platformTransactionRollBackHandler()
     {
         if ( $this->handle->rollback() ) {
+            $this->transactionInProgress = false;
             $this->handle->autocommit( true );
 
             return true;
