@@ -1425,11 +1425,24 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
+     * AbstractConnection::table
+     *
+     * Get connection query builder.
+     *
+     * @return AbstractQueryBuilder
+     */
+    public function table( $tableName )
+    {
+        return $this->getQueryBuilder()->from( $tableName );
+    }
+
+
+    /**
      * AbstractConnection::getQueryBuilder
      *
      * Get connection forge.
      *
-     * @return bool
+     * @return \O2System\Database\Abstracts\AbstractForge|bool
      */
     public function getForge()
     {
@@ -1438,6 +1451,8 @@ abstract class AbstractConnection
         if ( class_exists( $className ) ) {
             return new $className( $this );
         }
+
+        return false;
     }
 
     // ------------------------------------------------------------------------

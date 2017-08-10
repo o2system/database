@@ -81,10 +81,14 @@ class Forge extends AbstractForge
      */
     protected function platformCreateDatabaseStatement( $database, array $options = [] )
     {
-        array_unshift( $options, $database );
-        array_unshift( $options, 'CREATE DATABASE %s CHARACTER SET %s COLLATE %s' );
+        if ( count( $options ) ) {
+            array_unshift( $options, $database );
+            array_unshift( $options, 'CREATE DATABASE %s CHARACTER SET %s COLLATE %s;' );
 
-        return call_user_func_array( 'sprintf', $options );
+            return call_user_func_array( 'sprintf', $options );
+        }
+
+        return call_user_func_array( 'sprintf', [ 'CREATE DATABASE %s;', $database ] );
     }
 
     // ------------------------------------------------------------------------
@@ -100,7 +104,7 @@ class Forge extends AbstractForge
      */
     protected function platformDropDatabaseStatement( $database )
     {
-        return 'DROP DATABASE ' . $database;
+        return call_user_func_array( 'sprintf', [ 'DROP DATABASE %s;', $database ] );
     }
 
     // ------------------------------------------------------------------------

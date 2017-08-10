@@ -13,6 +13,7 @@
 namespace O2System\Database\Abstracts;
 
 // ------------------------------------------------------------------------
+use O2System\Database\Drivers\MySQL\Schema\Table;
 use O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException;
 use O2System\Spl\Exceptions\RuntimeException;
 
@@ -107,9 +108,10 @@ abstract class AbstractForge
     public function createDatabase( $database, array $options = [] )
     {
         if ( false !== ( $sqlStatement = $this->platformCreateDatabaseStatement( $database, $options ) ) ) {
-
             if ( $this->conn->execute( $sqlStatement ) ) {
                 $this->conn->queriesResultCache[ 'databaseNames' ][] = $database;
+
+                return true;
             }
         }
 
@@ -150,11 +152,12 @@ abstract class AbstractForge
     public function dropDatabase( $database )
     {
         if ( false !== ( $sqlStatement = $this->platformDropDatabaseStatement( $database ) ) ) {
-
             if ( $this->conn->execute( $sqlStatement ) ) {
                 if ( $key = array_search( $database, $this->conn->queriesResultCache[ 'databaseNames' ] ) ) {
                     unset( $this->conn->queriesResultCache[ 'databaseNames' ][ $key ] );
                 }
+
+                return true;
             }
         }
 
@@ -278,43 +281,23 @@ abstract class AbstractForge
      *
      * Create database table.
      *
-     * @param string $table      Database table name.
-     * @param array  $attributes Associative array of table attributes.
+     * @param string $tableName Database table name.
      *
-     * @return bool
+     * @return \O2System\Database\Drivers\MySQL\Schema\Table
      * @throws \O2System\Spl\Exceptions\RuntimeException
      * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadMethodCallException
      */
-    public function createTable( $table, array $attributes = [] )
+    public function createTable( $tableName )
     {
-        $table = $this->conn->prefixTable( $table );
+        $tableName = $this->conn->prefixTable( $tableName );
 
-        if ( $this->conn->isTableExists( $table ) ) {
-            if ( $this->conn->debugEnabled ) {
-                throw new RuntimeException( 'E_DATABASE_TABLE_ALREADY_EXISTS' );
-            }
+        $table = new Table( $tableName );
 
-            return false;
+        if ( $this->conn->isTableExists( $tableName ) ) {
+            $table->exists = true;
         }
 
-        if ( false !== ( $sqlStatement = $this->platformCreateTableStatement(
-                $this->conn->escapeIdentifiers( $table ),
-                $this->compileCreateTableColumnsStatement( $table ),
-                $this->compileCreateTableAttributesStatement( $attributes )
-            ) )
-        ) {
-
-            if ( $this->conn->execute( $sqlStatement ) ) {
-                $this->conn->queriesResultCache[ 'tableNames' ][] = $table;
-            }
-        }
-
-        if ( $this->conn->debugEnabled ) {
-            // This feature is not available for the database you are using.'
-            throw new BadMethodCallException( 'E_DATABASE_FEATURE_UNAVAILABLE' );
-        }
-
-        return false;
+        return $table;
     }
 
     // ------------------------------------------------------------------------
