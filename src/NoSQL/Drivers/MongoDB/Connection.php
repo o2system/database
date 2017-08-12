@@ -302,60 +302,58 @@ class Connection extends AbstractConnection
             $queryStatement->addOption( 'projection', $projection );
         }
 
-        // Filter Where
-        if ( count( $queryBuilderCache->where ) ) {
-
-            $where = [];
-
-            foreach ( $queryBuilderCache->where as $field => $clause ) {
-                $where[] = [ $field => $clause ];
-            }
-
-            $queryStatement->addFilter( '$match', $where );
-        }
-
-        // Filter Or Where
-        if ( count( $queryBuilderCache->orWhere ) ) {
-
-            $orWhere = [];
-
-            if ( count( $queryBuilderCache->where ) ) {
-                foreach ( $queryBuilderCache->where as $field => $clause ) {
-                    $orWhere[] = [ $field => $clause ];
-                }
-            }
-
-            foreach ( $queryBuilderCache->orWhere as $field => $clause ) {
-                $orWhere[] = [ $field => $clause ];
-            }
-
-            $queryStatement->addFilter( '$or', $orWhere );
-        }
-
         // Filter Where In
         if ( count( $queryBuilderCache->whereIn ) ) {
             foreach ( $queryBuilderCache->whereIn as $field => $clause ) {
-                $queryStatement->addFilter( $field, [ '$in' => $clause ] );
+                if ( count( $queryBuilderCache->orWhereIn ) ) {
+                    $queryBuilderCache->orWhere[ $field ] = [ '$in' => $clause ];
+                } else {
+                    $queryBuilderCache->where[ $field ] = [ '$in' => $clause ];
+                }
             }
-        }
-
-        if ( count( $queryBuilderCache->orWhereIn ) ) {
-
-            $orWhereIn = [];
-
-            foreach ( $queryBuilderCache->orWhereIn as $field => $clause ) {
-                $orWhereIn[][ $field ] = [ '$in' => $clause ];
-            }
-
-            $queryStatement->addFilter( '$or', $orWhereIn );
         }
 
         // Filter Where Not In
         if ( count( $queryBuilderCache->whereNotIn ) ) {
             foreach ( $queryBuilderCache->whereNotIn as $field => $clause ) {
-                $queryStatement->addFilter( $field, [ '$nin' => $clause ] );
+                $queryBuilderCache->where[ $field ] = [ '$nin' => $clause ];
             }
         }
+
+        // Filter Or Where In
+        if ( count( $queryBuilderCache->orWhereIn ) ) {
+            foreach ( $queryBuilderCache->orWhereIn as $field => $clause ) {
+                $queryBuilderCache->orWhere[ $field ] = [ '$in' => $clause ];
+            }
+        }
+
+        // Filter Or Where Not In
+        if ( count( $queryBuilderCache->orWhereNotIn ) ) {
+            foreach ( $queryBuilderCache->orWhereNotIn as $field => $clause ) {
+                $queryBuilderCache->orWhere[ $field ] = [ '$nin' => $clause ];
+            }
+        }
+
+        // Filter Where
+        if ( count( $queryBuilderCache->where ) ) {
+            foreach ( $queryBuilderCache->where as $field => $clause ) {
+                //$filters[ '$and' ][][ $field ] = $clause;
+                $queryStatement->addFilter( $field, $clause );
+            }
+
+            //$queryStatement->addFilter( '$and', $filters[ '$and' ] );
+        }
+
+        // Filter Or Where
+        if ( count( $queryBuilderCache->orWhere ) ) {
+            foreach ( $queryBuilderCache->orWhere as $field => $clause ) {
+                $filters[ '$or' ][][ $field ] = $clause;
+            }
+
+            $queryStatement->addFilter( '$or', $filters[ '$or' ] );
+        }
+
+        //print_out( json_encode( $queryStatement->getFilter(), JSON_PRETTY_PRINT ) );
 
         // Limit Option
         if ( $queryBuilderCache->limit > 0 ) {
@@ -373,8 +371,6 @@ class Connection extends AbstractConnection
 
             $queryStatement->addOption( 'sort', $sort );
         }
-
-        print_out($queryStatement);
 
         $cursor = $this->server->executeQuery( $this->database . '.' . $queryStatement->getCollection(),
             new \MongoDB\Driver\Query( $queryStatement->getFilter(), $queryStatement->getOptions() ) );

@@ -289,6 +289,10 @@ abstract class AbstractQueryBuilder
      */
     public function whereNotIn( $field, array $values = [] )
     {
+        if( count( $values ) ) {
+            $this->builderCache->store( 'whereNotIn', [ $field => $values ] );
+        }
+
         return $this;
     }
 
@@ -306,6 +310,10 @@ abstract class AbstractQueryBuilder
      */
     public function orWhereNotIn( $field, array $values = [] )
     {
+        if( count( $values ) ) {
+            $this->builderCache->store( 'orWhereNotIn', [ $field => $values ] );
+        }
+
         return $this;
     }
 
