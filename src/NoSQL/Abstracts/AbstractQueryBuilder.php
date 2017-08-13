@@ -161,13 +161,7 @@ abstract class AbstractQueryBuilder
      */
     public function where( $field, $value = null )
     {
-        if ( is_array( $field ) ) {
-            foreach ( $field as $key => $value ) {
-                $this->builderCache->store( 'where', [ $key => $value ] );
-            }
-        } else {
-            $this->builderCache->store( 'where', [ $field => $value ] );
-        }
+        $this->prepareWhere( $field, $value, 'where' );
 
         return $this;
     }
@@ -186,49 +180,29 @@ abstract class AbstractQueryBuilder
      */
     public function orWhere( $field, $value = null )
     {
+        $this->prepareWhere( $field, $value, 'orWhere' );
+
+        return $this;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::prepareWhereIn
+     *
+     * @param string|array $field
+     * @param null|mixed   $value
+     * @param string       $cacheKey
+     */
+    protected function prepareWhere( $field, $value = null, $cacheKey )
+    {
         if ( is_array( $field ) ) {
-            foreach ( $field as $key => $value ) {
-                $this->builderCache->store( 'orWhere', [ $key => $value ] );
+            foreach ( $field as $name => $value ) {
+                $this->prepareWhere( $name, $value, $cacheKey );
             }
-        } else {
-            $this->builderCache->store( 'orWhere', [ $field => $value ] );
+        } elseif ( isset( $value ) ) {
+            $this->builderCache->store( $cacheKey, [ $field => $value ] );
         }
-
-        return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractQueryBuilder::having
-     *
-     * Separates multiple calls with 'AND'.
-     *
-     * @param    string $field
-     * @param    string $value
-     *
-     * @return    static
-     */
-    public function having( $field, $value = null )
-    {
-        return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractQueryBuilder::orHaving
-     *
-     * Separates multiple calls with 'OR'.
-     *
-     * @param    string $field
-     * @param    string $value
-     *
-     * @return    static
-     */
-    public function orHaving( $field, $value = null )
-    {
-        return $this;
     }
 
     //--------------------------------------------------------------------
@@ -246,9 +220,7 @@ abstract class AbstractQueryBuilder
      */
     public function whereIn( $field, array $values = [] )
     {
-        if( count( $values ) ) {
-            $this->builderCache->store( 'whereIn', [ $field => $values ] );
-        }
+        $this->prepareWhereIn( $field, $values, 'whereIn' );
 
         return $this;
     }
@@ -268,9 +240,7 @@ abstract class AbstractQueryBuilder
      */
     public function orWhereIn( $field, array $values = [] )
     {
-        if( count( $values ) ) {
-            $this->builderCache->store( 'orWhereIn', [ $field => $values ] );
-        }
+        $this->prepareWhereIn( $field, $values, 'orWhereIn' );
 
         return $this;
     }
@@ -289,9 +259,7 @@ abstract class AbstractQueryBuilder
      */
     public function whereNotIn( $field, array $values = [] )
     {
-        if( count( $values ) ) {
-            $this->builderCache->store( 'whereNotIn', [ $field => $values ] );
-        }
+        $this->prepareWhereIn( $field, $values, 'whereNotIn' );
 
         return $this;
     }
@@ -310,11 +278,29 @@ abstract class AbstractQueryBuilder
      */
     public function orWhereNotIn( $field, array $values = [] )
     {
-        if( count( $values ) ) {
-            $this->builderCache->store( 'orWhereNotIn', [ $field => $values ] );
-        }
+        $this->prepareWhereIn( $field, $values, 'orWhereNotIn' );
 
         return $this;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::prepareWhereIn
+     *
+     * @param       $field
+     * @param array $values
+     * @param       $cacheKey
+     */
+    protected function prepareWhereIn( $field, array $values = [], $cacheKey )
+    {
+        if ( is_array( $field ) ) {
+            foreach ( $field as $name => $values ) {
+                $this->prepareWhereIn( $name, $values, $cacheKey );
+            }
+        } elseif ( count( $values ) ) {
+            $this->builderCache->store( $cacheKey, [ $field => $values ] );
+        }
     }
 
     //--------------------------------------------------------------------
@@ -324,13 +310,16 @@ abstract class AbstractQueryBuilder
      *
      * Add WHERE BETWEEN SQL statement portions into Query Builder
      *
-     * @param string $field  Input name
-     * @param array  $values Array of between values
+     * @param string $field
+     * @param int    $start
+     * @param int    $end
      *
      * @return static
      */
-    public function whereBetween( $field, array $values = [] )
+    public function whereBetween( $field, $start, $end )
     {
+        $this->prepareWhereBetween( $field, $start, $end, 'between' );
+
         return $this;
     }
 
@@ -341,13 +330,16 @@ abstract class AbstractQueryBuilder
      *
      * Add OR WHERE BETWEEN SQL statement portions into Query Builder
      *
-     * @param string $field  Input name
-     * @param array  $values Array of between values
+     * @param string $field
+     * @param int    $start
+     * @param int    $end
      *
      * @return static
      */
-    public function orWhereBetween( $field, array $values = [] )
+    public function orWhereBetween( $field, $start, $end )
     {
+        $this->prepareWhereBetween( $field, $start, $end, 'orBetween' );
+
         return $this;
     }
 
@@ -358,13 +350,16 @@ abstract class AbstractQueryBuilder
      *
      * Add WHERE NOT BETWEEN SQL statement portions into Query Builder
      *
-     * @param string $field  Input name
-     * @param array  $values Array of between values
+     * @param string $field
+     * @param int    $start
+     * @param int    $end
      *
      * @return static
      */
-    public function whereNotBetween( $field, array $values = [] )
+    public function whereNotBetween( $field, $start, $end )
     {
+        $this->prepareWhereBetween( $field, $start, $end, 'notBetween' );
+
         return $this;
     }
 
@@ -375,14 +370,37 @@ abstract class AbstractQueryBuilder
      *
      * Add OR WHERE NOT BETWEEN SQL statement portions into Query Builder
      *
-     * @param string $field  Input name
-     * @param array  $values Array of between values
+     * @param string $field
+     * @param int    $start
+     * @param int    $end
      *
      * @return static
      */
-    public function orWhereNotBetween( $field, array $values = [] )
+    public function orWhereNotBetween( $field, $start, $end )
     {
+        $this->prepareWhereBetween( $field, $start, $end, 'orNotBetween' );
+
         return $this;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::prepareWhereBetween
+     *
+     * @param $field
+     * @param $start
+     * @param $end
+     * @param $cacheKey
+     */
+    protected function prepareWhereBetween( $field, $start, $end, $cacheKey )
+    {
+        $this->builderCache->store( $cacheKey, [
+            $field => [
+                'start' => $start,
+                'end'   => $end,
+            ],
+        ] );
     }
 
     //--------------------------------------------------------------------
@@ -395,13 +413,15 @@ abstract class AbstractQueryBuilder
      *
      * @param string $field         Input name
      * @param string $match         Input criteria match
-     * @param string $wildcard      UPPERCASE positions of wildcard character BOTH|LEFT|RIGHT
+     * @param string $wildcard      UPPERCASE positions of wildcard character BOTH|BEFORE|AFTER
      * @param bool   $caseSensitive Whether perform case sensitive LIKE or not
      *
      * @return static
      */
     public function like( $field, $match = '', $wildcard = 'BOTH', $caseSensitive = true )
     {
+        $this->prepareLike( $field, $match, $wildcard, $caseSensitive, 'like' );
+
         return $this;
     }
 
@@ -414,13 +434,15 @@ abstract class AbstractQueryBuilder
      *
      * @param string $field         Input name
      * @param string $match         Input criteria match
-     * @param string $wildcard      UPPERCASE positions of wildcard character BOTH|LEFT|RIGHT
+     * @param string $wildcard      UPPERCASE positions of wildcard character BOTH|BEFORE|AFTER
      * @param bool   $caseSensitive Whether perform case sensitive LIKE or not
      *
      * @return static
      */
     public function orLike( $field, $match = '', $wildcard = 'BOTH', $caseSensitive = true )
     {
+        $this->prepareLike( $field, $match, $wildcard, $caseSensitive, 'orLike' );
+
         return $this;
     }
 
@@ -433,13 +455,15 @@ abstract class AbstractQueryBuilder
      *
      * @param string $field         Input name
      * @param string $match         Input criteria match
-     * @param string $wildcard      UPPERCASE positions of wildcard character BOTH|LEFT|RIGHT
+     * @param string $wildcard      UPPERCASE positions of wildcard character BOTH|BEFORE|AFTER
      * @param bool   $caseSensitive Whether perform case sensitive LIKE or not
      *
      * @return static
      */
     public function notLike( $field, $match = '', $wildcard = 'BOTH', $caseSensitive = true )
     {
+        $this->prepareLike( $field, $match, $wildcard, $caseSensitive, 'notLike' );
+
         return $this;
     }
 
@@ -452,14 +476,52 @@ abstract class AbstractQueryBuilder
      *
      * @param string $field         Input name
      * @param string $match         Input criteria match
-     * @param string $wildcard      UPPERCASE positions of wildcard character BOTH|LEFT|RIGHT
+     * @param string $wildcard      UPPERCASE positions of wildcard character BOTH|BEFORE|AFTER
      * @param bool   $caseSensitive Whether perform case sensitive LIKE or not
      *
      * @return static
      */
     public function orNotLike( $field, $match = '', $wildcard = 'BOTH', $caseSensitive = true )
     {
+        $this->prepareLike( $field, $match, $wildcard, $caseSensitive, 'orNotLike' );
+
         return $this;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::prepareLike
+     *
+     * @param $field
+     * @param $match
+     * @param $wildcard
+     * @param $caseSensitive
+     * @param $cacheKey
+     */
+    protected function prepareLike( $field, $match, $wildcard, $caseSensitive, $cacheKey )
+    {
+        $match = quotemeta( trim( $match ) );
+
+        switch ( $wildcard ) {
+            default:
+            case 'BOTH':
+                $match = '^' . $match . '$';
+                break;
+            case 'BEFORE':
+                $match = '^' . $match;
+                break;
+            case 'AFTER':
+                $match = '^' . $match;
+                break;
+        }
+
+        $flags = 'm|x|s';
+        if ( $caseSensitive === false ) {
+            $flags .= '|i';
+        }
+
+        $this->builderCache->store( $cacheKey, [ $field => new \MongoDB\BSON\Regex( $match, $flags ) ] );
     }
 
     //--------------------------------------------------------------------
@@ -469,8 +531,7 @@ abstract class AbstractQueryBuilder
      *
      * Add GROUP BY SQL statement into Query Builder.
      *
-     * @param string    $field
-     * @param null|bool $escape Whether not to try to escape identifiers
+     * @param string $field
      *
      * @return static
      */
@@ -512,6 +573,20 @@ abstract class AbstractQueryBuilder
      */
     public function page( $page = 1, $entries = null )
     {
+        $page = (int)intval( $page );
+
+        $entries = (int)( isset( $entries )
+            ? $entries
+            : ( $this->builderCache->limit === false
+                ? 5
+                : $this->builderCache->limit
+            )
+        );
+
+        $offset = ( $page - 1 ) * $entries;
+
+        $this->limit( $entries, $offset );
+
         return $this;
     }
 
@@ -572,11 +647,11 @@ abstract class AbstractQueryBuilder
             $this->limit( $limit, $offset );
         }
 
-        $result = $this->conn->query( $this->builderCache );
-
-        if ( $result ) {
+        if ( false !== (  $result = $this->conn->query( $this->builderCache ) ) ) {
             $result->setTotalRows( $this->countAllResults( true ) );
         }
+
+        $this->builderCache->reset();
 
         return $result;
     }
@@ -603,11 +678,11 @@ abstract class AbstractQueryBuilder
             $this->limit( $limit, $offset );
         }
 
-        $result = $this->conn->query( $this->builderCache );
-
-        if ( $result ) {
+        if ( false !== (  $result = $this->conn->query( $this->builderCache ) ) ) {
             $result->setTotalRows( $this->countAllResults( true ) );
         }
+
+        $this->builderCache->reset();
 
         return $result;
     }
@@ -642,15 +717,89 @@ abstract class AbstractQueryBuilder
 
     //--------------------------------------------------------------------
 
-    public function push( array $sets )
+    /**
+     * AbstractQueryBuilder::insert
+     *
+     * @param array $sets
+     *
+     * @return bool
+     */
+    public function insert( array $sets )
     {
+        $this->builderCache->store( 'sets', $sets );
 
+        return $this->platformInsertHandler( $this->builderCache );
     }
 
     //--------------------------------------------------------------------
 
-    public function pull()
-    {
+    /**
+     * AbstractQueryBuilder::platformInsertHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    abstract protected function platformInsertHandler( QueryBuilderCache $queryBuilderCache );
 
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::update
+     *
+     * @param array $sets
+     * @param array $where
+     *
+     * @return bool
+     */
+    public function update( array $sets, array $where = [] )
+    {
+        $this->where( $where );
+        $this->builderCache->store( 'sets', $sets );
+
+        return $this->platformUpdateHandler( $this->builderCache );
     }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::platformUpdateHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    abstract protected function platformUpdateHandler( QueryBuilderCache $queryBuilderCache );
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::update
+     *
+     * @param array $where Where clause.
+     * @param int   $limit Limit clause.
+     *
+     * @return bool
+     */
+    public function delete( $where = [], $limit = null )
+    {
+        $this->where( $where );
+
+        if ( isset( $limit ) ) {
+            $this->limit( $limit );
+        }
+
+        return $this->platformDeleteHandler( $this->builderCache );
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::platformDeleteHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    abstract protected function platformDeleteHandler( QueryBuilderCache $queryBuilderCache );
 }

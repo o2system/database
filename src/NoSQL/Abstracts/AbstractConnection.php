@@ -160,6 +160,7 @@ abstract class AbstractConnection
 
     protected $affectedDocuments;
     protected $lastInsertId;
+    protected $lastUpsertedIds = [];
 
     // ------------------------------------------------------------------------
 
@@ -186,8 +187,8 @@ abstract class AbstractConnection
 
         $this->config = $config;
 
-        $this->debugEnabled = $config->offsetGet( 'debugEnable' );
-        $this->transactionEnabled = $config->offsetGet( 'transEnable' );
+        $this->debugEnabled = $config->offsetGet( 'debugEnabled' );
+        $this->transactionEnabled = $config->offsetGet( 'transEnabled' );
         $this->database = $config->offsetGet( 'database' );
 
         $this->connect();
@@ -617,23 +618,33 @@ abstract class AbstractConnection
      * @return mixed
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function execute( QueryBuilderCache $queryBuilderCache )
+    public function execute( QueryBuilderCache $queryBuilderCache, array $options = [] )
     {
         // Reconnect the connection in case isn't connected yet.
         $this->reconnect();
 
         $queryStatement = new QueryStatement( $queryBuilderCache );
 
-        $startTime = microtime( true );
-        $result = $this->platformExecuteHandler( $queryStatement );
+        if( $queryStatement->getCollection() ) {
+            $startTime = microtime( true );
+            $result = $this->platformExecuteHandler( $queryStatement, $options );
 
-        $queryStatement->setDuration( $startTime );
-        $queryStatement->setAffectedDocuments( $this->getAffectedDocuments() );
-        $queryStatement->setLastInsertId( $this->getLastInsertId() );
+            $queryStatement->setDuration( $startTime );
+            $queryStatement->setAffectedDocuments( $this->getAffectedDocuments() );
+            $queryStatement->setLastInsertId( $this->getLastInsertId() );
 
-        $this->queriesCache[] = $queryStatement;
+            $this->queriesCache[] = $queryStatement;
 
-        return (bool)$result;
+            if( $queryStatement->hasError() ) {
+                if ( $this->debugEnabled ) {
+                    throw new RuntimeException( $queryStatement->getErrorMessage(), $queryStatement->getErrorCode() );
+                }
+            }
+
+            return (bool)$result;
+        }
+
+        return false;
     }
 
     // ------------------------------------------------------------------------
@@ -647,7 +658,7 @@ abstract class AbstractConnection
      *
      * @return bool
      */
-    abstract protected function platformExecuteHandler( QueryStatement &$queryStatement );
+    abstract protected function platformExecuteHandler( QueryStatement &$queryStatement, array $options = [] );
 
     // ------------------------------------------------------------------------
 

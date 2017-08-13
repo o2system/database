@@ -42,22 +42,21 @@ class QueryBuilderCache
             'whereNotIn'   => [],
             'orWhereNotIn' => [],
             'having'       => [],
+            'orHaving'     => [],
             'between'      => [],
+            'orBetween'    => [],
             'notBetween'   => [],
+            'orNotBetween' => [],
+            'like'         => [],
+            'notLike'      => [],
+            'orLike'       => [],
+            'orNotLike'    => [],
             'limit'        => 0,
             'offset'       => 0,
             'groupBy'      => [],
             'orderBy'      => [],
+            'sets'         => [],
         ];
-
-    /**
-     * QueryBuilderCache::$statement
-     *
-     * Query statement.
-     *
-     * @var string
-     */
-    protected $statement;
 
     // ------------------------------------------------------------------------
 
@@ -141,8 +140,15 @@ class QueryBuilderCache
                 'whereNotIn'   => [],
                 'orWhereNotIn' => [],
                 'having'       => [],
+                'orHaving'     => [],
                 'between'      => [],
+                'orBetween'    => [],
                 'notBetween'   => [],
+                'orNotBetween' => [],
+                'like'         => [],
+                'notLike'      => [],
+                'orLike'       => [],
+                'orNotLike'    => [],
                 'limit'        => 0,
                 'offset'       => 0,
                 'groupBy'      => [],
@@ -177,8 +183,17 @@ class QueryBuilderCache
                 'whereNotIn'   => [],
                 'orWhereNotIn' => [],
                 'having'       => [],
+                'orHaving'     => [],
                 'between'      => [],
+                'orBetween'    => [],
                 'notBetween'   => [],
+                'orNotBetween' => [],
+                'like'         => [],
+                'notLike'      => [],
+                'orLike'       => [],
+                'orNotLike'    => [],
+                'limit'        => 0,
+                'sets'         => [],
             ]
         );
     }

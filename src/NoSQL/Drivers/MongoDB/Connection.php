@@ -267,12 +267,76 @@ class Connection extends AbstractConnection
      *
      * @return bool
      */
-    protected function platformExecuteHandler( QueryStatement &$queryStatement )
+    protected function platformExecuteHandler( QueryStatement &$queryStatement, array $options = [] )
     {
+        $this->parseQueryStatement( $queryStatement );
 
+        if ( isset( $options[ 'method' ] ) ) {
+
+            $method = $options[ 'method' ];
+            unset( $options[ 'method' ] );
+
+            $options = array_merge( [ 'safe' => true, 'ordered' => true ], $options );
+            $bulk = new \MongoDB\Driver\BulkWrite( $options );
+            $documents = $queryStatement->getDocument();
+
+            if ( is_numeric( key( $documents ) ) ) { // batch process
+                foreach ( $documents as $document ) {
+                    switch ( $method ) {
+                        case 'insert':
+                            $this->lastInsertId = $bulk->insert( $document );
+                            break;
+                        case 'update':
+                            $this->lastInsertId = $bulk->update( $queryStatement->getFilter(),
+                                $document, $queryStatement->getOptions() );
+                            break;
+                        case 'delete':
+                            $this->lastInsertId = $bulk->delete( $queryStatement->getFilter(),
+                                $queryStatement->getOptions() );
+                            break;
+                    }
+                }
+            } else {
+                switch ( $method ) {
+                    case 'insert':
+                        $this->lastInsertId = $bulk->insert( $documents );
+                        break;
+                    case 'update':
+                        $this->lastInsertId = $bulk->update( $queryStatement->getFilter(),
+                            $documents, $queryStatement->getOptions() );
+                        break;
+                    case 'delete':
+                        $this->lastInsertId = $bulk->delete( $queryStatement->getFilter(),
+                            $queryStatement->getOptions() );
+                        break;
+                }
+            }
+
+            try {
+                $result = $this->handle->executeBulkWrite( $this->database . '.' . $queryStatement->getCollection(),
+                    $bulk );
+
+                $this->lastUpsertedIds = $result->getUpsertedIds();
+
+                switch ( $method ) {
+                    case 'insert':
+                        $this->affectedDocuments = $result->getInsertedCount();
+                        break;
+                    case 'update':
+                        $this->affectedDocuments = $result->getModifiedCount();
+                        break;
+                    case 'delete':
+                        $this->affectedDocuments = $result->getDeletedCount();
+                        break;
+                }
+
+                return true;
+            } catch ( \MongoDB\Driver\Exception\BulkWriteException $e ) {
+                $queryStatement->setError( $e->getCode(), $e->getMessage() );
+            }
+        }
 
         return false;
-
     }
 
     // ------------------------------------------------------------------------
@@ -287,6 +351,18 @@ class Connection extends AbstractConnection
      * @return array
      */
     protected function platformQueryHandler( QueryStatement &$queryStatement )
+    {
+        $this->parseQueryStatement( $queryStatement );
+
+        $cursor = $this->server->executeQuery( $this->database . '.' . $queryStatement->getCollection(),
+            new \MongoDB\Driver\Query( $queryStatement->getFilter(), $queryStatement->getOptions() ) );
+
+        return $cursor->toArray();
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected function parseQueryStatement( QueryStatement &$queryStatement )
     {
         $queryBuilderCache = $queryStatement->getBuilderCache();
 
@@ -334,23 +410,55 @@ class Connection extends AbstractConnection
             }
         }
 
+        // Filter Where Between
+        if ( count( $queryBuilderCache->between ) ) {
+            foreach ( $queryBuilderCache->between as $field => $clause ) {
+                $queryBuilderCache->where[ $field ] = [ '$gte' => $clause[ 'start' ], '$lte' => $clause[ 'end' ] ];
+            }
+        }
+
+        // Filter Or Where Between
+        if ( count( $queryBuilderCache->orBetween ) ) {
+            foreach ( $queryBuilderCache->orBetween as $field => $clause ) {
+                $queryBuilderCache->orWhere[ $field ] = [ '$gte' => $clause[ 'start' ], '$lte' => $clause[ 'end' ] ];
+            }
+        }
+
+        // Filter Where Not Between
+        if ( count( $queryBuilderCache->notBetween ) ) {
+            foreach ( $queryBuilderCache->notBetween as $field => $clause ) {
+                $queryBuilderCache->where[ $field ][ '$not' ] = [
+                    '$gte' => $clause[ 'start' ],
+                    '$lte' => $clause[ 'end' ],
+                ];
+            }
+        }
+
+        // Filter Or Where Not Between
+        if ( count( $queryBuilderCache->orNotBetween ) ) {
+            foreach ( $queryBuilderCache->orNotBetween as $field => $clause ) {
+                $queryBuilderCache->orWhere[ $field ][ '$not' ] = [
+                    '$gte' => $clause[ 'start' ],
+                    '$lte' => $clause[ 'end' ],
+                ];
+            }
+        }
+
         // Filter Where
         if ( count( $queryBuilderCache->where ) ) {
             foreach ( $queryBuilderCache->where as $field => $clause ) {
-                //$filters[ '$and' ][][ $field ] = $clause;
                 $queryStatement->addFilter( $field, $clause );
             }
-
-            //$queryStatement->addFilter( '$and', $filters[ '$and' ] );
         }
 
         // Filter Or Where
         if ( count( $queryBuilderCache->orWhere ) ) {
+            $orWhere = [];
             foreach ( $queryBuilderCache->orWhere as $field => $clause ) {
-                $filters[ '$or' ][][ $field ] = $clause;
+                $orWhere[] = [ $field => $clause ];
             }
 
-            $queryStatement->addFilter( '$or', $filters[ '$or' ] );
+            $queryStatement->addFilter( '$or', $orWhere );
         }
 
         //print_out( json_encode( $queryStatement->getFilter(), JSON_PRETTY_PRINT ) );
@@ -358,6 +466,11 @@ class Connection extends AbstractConnection
         // Limit Option
         if ( $queryBuilderCache->limit > 0 ) {
             $queryStatement->addOption( 'limit', $queryBuilderCache->limit );
+        }
+
+        // Offset Option
+        if ( $queryBuilderCache->offset > 0 ) {
+            $queryStatement->addOption( 'skip', $queryBuilderCache->offset );
         }
 
         // Order Option
@@ -372,13 +485,8 @@ class Connection extends AbstractConnection
             $queryStatement->addOption( 'sort', $sort );
         }
 
-        $cursor = $this->server->executeQuery( $this->database . '.' . $queryStatement->getCollection(),
-            new \MongoDB\Driver\Query( $queryStatement->getFilter(), $queryStatement->getOptions() ) );
-
-        return $cursor->toArray();
+        return $queryStatement;
     }
-
-    // ------------------------------------------------------------------------
 
     /**
      * Connection::getAffectedDocuments

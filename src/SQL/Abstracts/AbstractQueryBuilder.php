@@ -1527,7 +1527,7 @@ abstract class AbstractQueryBuilder
      *
      * @param string    $field         Input name
      * @param string    $match         Input criteria match
-     * @param string    $wildcard      UPPERCASE positions of wildcard character BOTH|LEFT|RIGHT
+     * @param string    $wildcard      UPPERCASE positions of wildcard character BOTH|BEFORE|AFTER
      * @param bool      $caseSensitive Whether perform case sensitive LIKE or not
      * @param null|bool $escape        Whether not to try to escape identifiers
      *
@@ -1547,7 +1547,7 @@ abstract class AbstractQueryBuilder
      *
      * @param string    $field         Input name
      * @param string    $match         Input criteria match
-     * @param string    $wildcard      UPPERCASE positions of wildcard character BOTH|LEFT|RIGHT
+     * @param string    $wildcard      UPPERCASE positions of wildcard character BOTH|BEFORE|AFTER
      * @param bool      $caseSensitive Whether perform case sensitive LIKE or not
      * @param null|bool $escape        Whether not to try to escape identifiers
      *
@@ -1567,7 +1567,7 @@ abstract class AbstractQueryBuilder
      *
      * @param string    $field         Input name
      * @param string    $match         Input criteria match
-     * @param string    $wildcard      UPPERCASE positions of wildcard character BOTH|LEFT|RIGHT
+     * @param string    $wildcard      UPPERCASE positions of wildcard character BOTH|BEFORE|AFTER
      * @param bool      $caseSensitive Whether perform case sensitive LIKE or not
      * @param null|bool $escape        Whether not to try to escape identifiers
      *
@@ -1587,7 +1587,7 @@ abstract class AbstractQueryBuilder
      *
      * @param string    $field         Input name
      * @param string    $match         Input criteria match
-     * @param string    $wildcard      UPPERCASE positions of wildcard character BOTH|LEFT|RIGHT
+     * @param string    $wildcard      UPPERCASE positions of wildcard character BOTH|BEFORE|AFTER
      * @param bool      $caseSensitive Whether perform case sensitive LIKE or not
      * @param null|bool $escape        Whether not to try to escape identifiers
      *

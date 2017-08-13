@@ -38,6 +38,15 @@ class QueryStatement
     private $collection;
 
     /**
+     * QueryStatement::$document
+     *
+     * Query document.
+     *
+     * @var array
+     */
+    private $document = [];
+
+    /**
      * QueryStatement::$filter
      *
      * Query filter array.
@@ -113,6 +122,10 @@ class QueryStatement
     {
         $this->builderCache = $queryBuilderCache;
         $this->setCollection( $queryBuilderCache->from );
+
+        if( count( $queryBuilderCache->sets ) ) {
+            $this->document = $queryBuilderCache->sets;
+        }
     }
 
     //--------------------------------------------------------------------
@@ -180,6 +193,13 @@ class QueryStatement
     public function getOptions()
     {
         return $this->options;
+    }
+
+    //--------------------------------------------------------------------
+
+    public function getDocument()
+    {
+        return $this->document;
     }
 
     //--------------------------------------------------------------------

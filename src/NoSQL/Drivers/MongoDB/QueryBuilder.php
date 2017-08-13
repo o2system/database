@@ -15,6 +15,7 @@ namespace O2System\Database\NoSQL\Drivers\MongoDB;
 // ------------------------------------------------------------------------
 
 use O2System\Database\NoSQL\Abstracts\AbstractQueryBuilder;
+use O2System\Database\NoSQL\Datastructures\QueryBuilderCache;
 
 /**
  * Class QueryBuilder
@@ -24,7 +25,59 @@ use O2System\Database\NoSQL\Abstracts\AbstractQueryBuilder;
 class QueryBuilder extends AbstractQueryBuilder
 {
     /**
-     * AbstractQueryBuilder::countAll
+     * QueryBuilder::prepareWhereIn
+     *
+     * @param string|array $field
+     * @param null|mixed   $value
+     * @param string       $cacheKey
+     */
+    protected function prepareWhere( $field, $value = null, $cacheKey )
+    {
+        if ( is_array( $field ) ) {
+            foreach ( $field as $name => $value ) {
+                $this->prepareWhere( $name, $value, $cacheKey );
+            }
+        } elseif ( isset( $value ) ) {
+
+            if ( $field === '_id' ) {
+                $value = new \MongoDB\BSON\ObjectID( $value );
+            }
+
+            $this->builderCache->store( $cacheKey, [ $field => $value ] );
+        }
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryBuilder::prepareWhereIn
+     *
+     * @param       $field
+     * @param array $values
+     * @param       $cacheKey
+     */
+    protected function prepareWhereIn( $field, array $values = [], $cacheKey )
+    {
+        if ( is_array( $field ) ) {
+            foreach ( $field as $name => $values ) {
+                $this->prepareWhereIn( $name, $values, $cacheKey );
+            }
+        } elseif ( count( $values ) ) {
+
+            if ( $field === '_id' ) {
+                foreach ( $values as $key => $value ) {
+                    $values[ $key ] = new \MongoDB\BSON\ObjectID( $value );
+                }
+            }
+
+            $this->builderCache->store( $cacheKey, [ $field => $values ] );
+        }
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryBuilder::countAll
      *
      * Returns numbers of query result.
      *
@@ -38,7 +91,7 @@ class QueryBuilder extends AbstractQueryBuilder
 
         $result = $this->conn->query( $this->builderCache );
 
-        if( $result->count() ) {
+        if ( $result->count() ) {
             $totalDocuments = $result->count();
         }
 
@@ -48,7 +101,7 @@ class QueryBuilder extends AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
-     * AbstractQueryBuilder::countAllResult
+     * QueryBuilder::countAllResult
      *
      * Returns numbers of total documents.
      *
@@ -67,12 +120,79 @@ class QueryBuilder extends AbstractQueryBuilder
 
         $totalDocuments = 0;
 
-        if( isset( $result->n ) ) {
-            $totalDocuments = (int) $result->n;
+        if ( isset( $result->n ) ) {
+            $totalDocuments = (int)$result->n;
         }
 
         return $totalDocuments;
     }
 
     //--------------------------------------------------------------------
+
+    /**
+     * QueryBuilder::platformInsertHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    protected function platformInsertHandler( QueryBuilderCache $queryBuilderCache )
+    {
+        if ( $queryBuilderCache->from ) {
+            return $this->conn->execute( $queryBuilderCache, [ 'method' => 'insert' ] );
+        }
+
+        return false;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryBuilder::platformUpdateHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    protected function platformUpdateHandler( QueryBuilderCache $queryBuilderCache )
+    {
+        if ( $queryBuilderCache->from ) {
+
+            // New sets document
+            $collection = $queryBuilderCache->from;
+            $sets = $queryBuilderCache->sets;
+
+            // Get old document
+            $document = $this->get()->first();
+            $newQueryBuilderCache = new QueryBuilderCache();
+            $newQueryBuilderCache->store( 'from', $collection );
+            $newQueryBuilderCache->store( 'where', [ '_id' => $document->_id ] );
+            $document = $document->getArrayCopy();
+            unset( $document[ '_id' ] );
+
+            $newQueryBuilderCache->store( 'sets', array_merge( $document, $sets ) );
+
+            return $this->conn->execute( $newQueryBuilderCache, [ 'method' => 'update' ] );
+        }
+
+        return false;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryBuilder::platformDeleteHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    protected function platformDeleteHandler( QueryBuilderCache $queryBuilderCache )
+    {
+        if ( $queryBuilderCache->from ) {
+            return $this->conn->execute( $queryBuilderCache, [ 'method' => 'delete' ] );
+        }
+
+        return false;
+    }
 }
