@@ -745,6 +745,33 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::insertBatch
+     *
+     * @param array $sets
+     *
+     * @return bool
+     */
+    public function insertBatch( array $sets )
+    {
+        $this->builderCache->store( 'sets', $sets );
+
+        return $this->platformInsertBatchHandler( $this->builderCache );
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::platformInsertBatchHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    abstract protected function platformInsertBatchHandler( QueryBuilderCache $queryBuilderCache );
+
+    //--------------------------------------------------------------------
+
+    /**
      * AbstractQueryBuilder::update
      *
      * @param array $sets
@@ -774,7 +801,94 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
-     * AbstractQueryBuilder::update
+     * AbstractQueryBuilder::updateBatch
+     *
+     * @param array $sets
+     * @param array $where
+     *
+     * @return bool
+     */
+    public function updateBatch( array $sets, array $where = [] )
+    {
+        $this->where( $where );
+        $this->builderCache->store( 'sets', $sets );
+
+        return $this->platformUpdateBatchHandler( $this->builderCache );
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::platformUpdateBatchHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    abstract protected function platformUpdateBatchHandler( QueryBuilderCache $queryBuilderCache );
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::replace
+     *
+     * @param array $sets
+     * @param array $where
+     *
+     * @return bool
+     */
+    public function replace( array $sets, array $where = [] )
+    {
+        $this->where( $where );
+        $this->builderCache->store( 'sets', $sets );
+
+        return $this->platformReplaceHandler( $this->builderCache );
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::platformReplaceHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    abstract protected function platformReplaceHandler( QueryBuilderCache $queryBuilderCache );
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::replaceBatch
+     *
+     * @param array $sets
+     * @param array $where
+     *
+     * @return bool
+     */
+    public function replaceBatch( array $sets, array $where = [] )
+    {
+        $this->where( $where );
+        $this->builderCache->store( 'sets', $sets );
+
+        return $this->platformReplaceBatchHandler( $this->builderCache );
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::platformReplaceBatchHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    abstract protected function platformReplaceBatchHandler( QueryBuilderCache $queryBuilderCache );
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::delete
      *
      * @param array $where Where clause.
      * @param int   $limit Limit clause.
@@ -802,4 +916,36 @@ abstract class AbstractQueryBuilder
      * @return bool
      */
     abstract protected function platformDeleteHandler( QueryBuilderCache $queryBuilderCache );
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::deleteBatch
+     *
+     * @param array $where Where clause.
+     * @param int   $limit Limit clause.
+     *
+     * @return bool
+     */
+    public function deleteBatch( $where = [], $limit = null )
+    {
+        $this->where( $where );
+
+        if ( isset( $limit ) ) {
+            $this->limit( $limit );
+        }
+
+        return $this->platformDeleteBatchHandler( $this->builderCache );
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::platformDeleteBatchHandler
+     *
+     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     *
+     * @return bool
+     */
+    abstract protected function platformDeleteBatchHandler( QueryBuilderCache $queryBuilderCache );
 }
