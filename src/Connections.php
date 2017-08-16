@@ -75,28 +75,29 @@ class Connections extends AbstractObjectRegistryPattern
      *
      * Create Item Pool
      *
-     * @param string            $connectionOffset
+     * @param string                $connectionOffset
      * @param Datastructures\Config $connectionConfig
      *
-     * @return \O2System\Database\Abstracts\AbstractConnection
+     * @return bool|\O2System\Database\SQL\Abstracts\AbstractConnection|\O2System\Database\NoSQL\Abstracts\AbstractConnection
      */
     public function &createConnection( $connectionOffset, Datastructures\Config $connectionConfig )
     {
-        $driverClassName = '\O2System\Database\Drivers\\' . ucfirst(
-                str_replace(
-                    'sql',
-                    'SQL',
-                    $connectionConfig->driver
-                )
-            ) . '\Connection';
+        $driverMaps = [
+            'mongodb' => '\O2System\Database\NoSQL\Drivers\MongoDB\Connection',
+            'mysql'   => '\O2System\Database\SQL\Drivers\MySQL\Connection',
+            'sqlite'  => '\O2System\Database\SQL\Drivers\SQLite\Connection',
+        ];
 
-        if ( class_exists( $driverClassName ) ) {
-            $driverInstance = new $driverClassName( $connectionConfig );
+        if ( array_key_exists( $connectionConfig->driver, $driverMaps ) ) {
+            if ( class_exists( $driverClassName = $driverMaps[ $connectionConfig->driver ] ) ) {
+                $driverInstance = new $driverClassName( $connectionConfig );
+                $this->register( $driverInstance, $connectionOffset );
+            }
 
-            $this->register( $driverInstance, $connectionOffset );
+            return $this->getObject( $connectionOffset );
         }
 
-        return $this->getObject( $connectionOffset );
+        return false;
     }
 
     // ------------------------------------------------------------------------
@@ -112,7 +113,7 @@ class Connections extends AbstractObjectRegistryPattern
      */
     public function isValid( $value )
     {
-        if ( $value instanceof AbstractConnection ) {
+        if ( $value instanceof \O2System\Database\SQL\Abstracts\AbstractConnection || $value instanceof \O2System\Database\NoSQL\Abstracts\AbstractConnection ) {
             return true;
         }
 
