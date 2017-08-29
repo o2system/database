@@ -10,14 +10,14 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\NoSQL\Datastructures;
+namespace O2System\Database\NoSql\Datastructures;
 
 // ------------------------------------------------------------------------
 
 /**
  * Class QueryBuilderCache
  *
- * @package O2System\Database\SQL\Datastructures
+ * @package O2System\Database\Sql\Datastructures
  */
 class QueryBuilderCache
 {

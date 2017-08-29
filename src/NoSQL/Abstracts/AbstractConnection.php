@@ -10,12 +10,12 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\NoSQL\Abstracts;
+namespace O2System\Database\NoSql\Abstracts;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\NoSQL\Datastructures\QueryBuilderCache;
-use O2System\Database\NoSQL\Datastructures\QueryStatement;
+use O2System\Database\NoSql\Datastructures\QueryBuilderCache;
+use O2System\Database\NoSql\Datastructures\QueryStatement;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Database\Datastructures\Config;
 use O2System\Database\DataObjects\Result;
@@ -611,7 +611,7 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::execute
      *
-     * Execute SQL statement against database.
+     * Execute Sql statement against database.
      *
      * @param QueryBuilderCache $queryBuilderCache
      *
@@ -652,7 +652,7 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::executeHandler
      *
-     * Driver dependent way method for execute the SQL statement.
+     * Driver dependent way method for execute the Sql statement.
      *
      * @param QueryStatement $queryStatement Query object.
      *
@@ -716,7 +716,7 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::platformQueryHandler
      *
-     * Driver dependent way method for execute the SQL statement.
+     * Driver dependent way method for execute the Sql statement.
      *
      * @param QueryStatement $queryStatement Query object.
      *

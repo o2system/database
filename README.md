@@ -21,7 +21,7 @@ O2System Database is an Open Source PHP Database Drivers Library. The database d
 | ------------- |:-------------:|:-----:| ----- |
 | MongoDB | ```Yes``` | ```Yes``` | http://php.net/manual/en/set.mongodb.php |
 
-### Composer Instalation
+### Composer Installation
 The best way to install O2System Database is to use [Composer](https://getcomposer.org)
 ```
 composer require o2system/database --prefer-dist dev-master

@@ -10,21 +10,21 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\NoSQL\Datastructures;
+namespace O2System\Database\NoSql\Datastructures;
 
 // ------------------------------------------------------------------------
 
 /**
  * Class QueryStatement
  *
- * @package O2System\Database\SQL\Datastructures
+ * @package O2System\Database\Sql\Datastructures
  */
 class QueryStatement
 {
     /**
      * QueryStatement::$builderCache
      *
-     * @var \O2System\Database\NoSQL\Datastructures\QueryBuilderCache
+     * @var \O2System\Database\NoSql\Datastructures\QueryBuilderCache
      */
     private $builderCache;
 
@@ -116,7 +116,7 @@ class QueryStatement
     /**
      * QueryStatement::__construct
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      */
     public function __construct( QueryBuilderCache $queryBuilderCache )
     {

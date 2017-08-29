@@ -10,7 +10,7 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\SQL\Datastructures;
+namespace O2System\Database\Sql\Datastructures;
 
 // ------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ use O2System\Psr\Patterns\AbstractItemStoragePattern;
 /**
  * Class QueryBuilderCache
  *
- * @package O2System\Database\SQL\Datastructures
+ * @package O2System\Database\Sql\Datastructures
  */
 class QueryBuilderCache
 {
@@ -73,6 +73,11 @@ class QueryBuilderCache
     }
 
     // ------------------------------------------------------------------------
+
+    public function __set( $index, $value )
+    {
+       $this->storage[ $index ] = $value;
+    }
 
     public function store( $index, $value )
     {
@@ -207,5 +212,7 @@ class QueryBuilderCache
         foreach ( $cacheKeys as $cacheKey => $cacheDefaultValue ) {
             $this->storage[ $cacheKey ] = $cacheDefaultValue;
         }
+
+        $this->statement = null;
     }
 }

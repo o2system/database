@@ -78,14 +78,14 @@ class Connections extends AbstractObjectRegistryPattern
      * @param string                $connectionOffset
      * @param Datastructures\Config $connectionConfig
      *
-     * @return bool|\O2System\Database\SQL\Abstracts\AbstractConnection|\O2System\Database\NoSQL\Abstracts\AbstractConnection
+     * @return bool|\O2System\Database\Sql\Abstracts\AbstractConnection|\O2System\Database\NoSql\Abstracts\AbstractConnection
      */
     public function &createConnection( $connectionOffset, Datastructures\Config $connectionConfig )
     {
         $driverMaps = [
-            'mongodb' => '\O2System\Database\NoSQL\Drivers\MongoDB\Connection',
-            'mysql'   => '\O2System\Database\SQL\Drivers\MySQL\Connection',
-            'sqlite'  => '\O2System\Database\SQL\Drivers\SQLite\Connection',
+            'mongodb' => '\O2System\Database\NoSql\Drivers\MongoDb\Connection',
+            'mysql'   => '\O2System\Database\Sql\Drivers\MySql\Connection',
+            'sqlite'  => '\O2System\Database\Sql\Drivers\Sqlite\Connection',
         ];
 
         if ( array_key_exists( $connectionConfig->driver, $driverMaps ) ) {
@@ -113,7 +113,7 @@ class Connections extends AbstractObjectRegistryPattern
      */
     public function isValid( $value )
     {
-        if ( $value instanceof \O2System\Database\SQL\Abstracts\AbstractConnection || $value instanceof \O2System\Database\NoSQL\Abstracts\AbstractConnection ) {
+        if ( $value instanceof \O2System\Database\Sql\Abstracts\AbstractConnection || $value instanceof \O2System\Database\NoSql\Abstracts\AbstractConnection ) {
             return true;
         }
 

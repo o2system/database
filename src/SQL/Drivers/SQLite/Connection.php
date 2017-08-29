@@ -10,20 +10,20 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\SQL\Drivers\SQLite;
+namespace O2System\Database\Sql\Drivers\Sqlite;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\SQL\Datastructures\QueryStatement;
+use O2System\Database\Sql\Datastructures\QueryStatement;
 use O2System\Spl\Datastructures\SplArrayObject;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Database\Datastructures\Config;
-use O2System\Database\SQL\Abstracts\AbstractConnection;
+use O2System\Database\Sql\Abstracts\AbstractConnection;
 
 /**
  * Class Connection
  *
- * @package O2System\Database\SQL\Drivers\SQLite
+ * @package O2System\Database\Sql\Drivers\Sqlite
  */
 class Connection extends AbstractConnection
 {
@@ -32,7 +32,7 @@ class Connection extends AbstractConnection
      *
      * DELETE hack flag
      *
-     * Whether to use the SQLite3 "delete hack" which allows the number
+     * Whether to use the Sqlite3 "delete hack" which allows the number
      * of affected rows to be shown. Uses a preg_replace when enabled,
      * adding a bit more processing to all queries.
      *
@@ -47,7 +47,7 @@ class Connection extends AbstractConnection
      *
      * @var string
      */
-    protected $platform = 'SQLite3';
+    protected $platform = 'Sqlite3';
 
     /**
      * Connection::$config
@@ -67,9 +67,9 @@ class Connection extends AbstractConnection
     /**
      * Connection::$handle
      *
-     * SQLite Connection Instance.
+     * Sqlite Connection Instance.
      *
-     * @var \SQLite3
+     * @var \Sqlite3
      */
     protected $handle;
 
@@ -84,7 +84,7 @@ class Connection extends AbstractConnection
      */
     public function isSupported()
     {
-        return extension_loaded( 'sqlite3' );
+        return extension_loaded( 'Sqlite3' );
     }
 
     // ------------------------------------------------------------------------
@@ -145,13 +145,13 @@ class Connection extends AbstractConnection
     {
         if ( empty( $this->queriesResultCache[ 'tableNames' ] ) ) {
 
-            $sqlStatement = 'SELECT "NAME" FROM "SQLITE_MASTER" WHERE "TYPE" = \'table\'';
+            $SqlStatement = 'SELECT "NAME" FROM "SqlITE_MASTER" WHERE "TYPE" = \'table\'';
 
             if ( $prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '' ) {
-                $sqlStatement .= ' AND "NAME" LIKE \'' . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%' ";
+                $SqlStatement .= ' AND "NAME" LIKE \'' . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%' ";
             }
 
-            $result = $this->query( $sqlStatement );
+            $result = $this->query( $SqlStatement );
 
             if ( $result->count() ) {
                 foreach ( $result as $row ) {
@@ -225,7 +225,7 @@ class Connection extends AbstractConnection
      */
     protected function platformGetPlatformInfoHandler()
     {
-        return new SplArrayObject( \SQLite3::version() );
+        return new SplArrayObject( \Sqlite3::version() );
     }
 
     // ------------------------------------------------------------------------
@@ -245,9 +245,9 @@ class Connection extends AbstractConnection
         $this->database = $config->database;
 
         if ( $config->readOnly === true ) {
-            $this->handle = new \SQLite3( $config->database, SQLITE3_OPEN_READONLY );
+            $this->handle = new \Sqlite3( $config->database, SqlITE3_OPEN_READONLY );
         } else {
-            $this->handle = new \SQLite3( $config->database, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE );
+            $this->handle = new \Sqlite3( $config->database, SqlITE3_OPEN_READWRITE | SqlITE3_OPEN_CREATE );
         }
 
         // Enable throwing exceptions
@@ -266,7 +266,7 @@ class Connection extends AbstractConnection
     /**
      * Connection::executeHandler
      *
-     * Driver dependent way method for execute the SQL statement.
+     * Driver dependent way method for execute the Sql statement.
      *
      * @param QueryStatement $queryStatement Query object.
      *
@@ -290,7 +290,7 @@ class Connection extends AbstractConnection
     /**
      * Connection::platformQueryHandler
      *
-     * Driver dependent way method for execute the SQL statement.
+     * Driver dependent way method for execute the Sql statement.
      *
      * @param QueryStatement $queryStatement Query object.
      *
@@ -302,7 +302,7 @@ class Connection extends AbstractConnection
 
         if ( false !== ( $result = $this->handle->query( $queryStatement->getSqlFinalStatement() ) ) ) {
             $i = 0;
-            while ( $row = $result->fetchArray( SQLITE3_ASSOC ) ) {
+            while ( $row = $result->fetchArray( SqlITE3_ASSOC ) ) {
                 $rows[ $i ] = $row;
                 $i++;
             }
@@ -416,22 +416,22 @@ class Connection extends AbstractConnection
     /**
      * Connection::prepareSqlStatement
      *
-     * Platform preparing a SQL statement.
+     * Platform preparing a Sql statement.
      *
-     * @param string $sqlStatement SQL Statement to be prepared.
-     * @param array  $options      Preparing sql statement options.
+     * @param string $SqlStatement Sql Statement to be prepared.
+     * @param array  $options      Preparing Sql statement options.
      *
      * @return string
      */
-    protected function platformPrepareSqlStatement( $sqlStatement, array $options = [] )
+    protected function platformPrepareSqlStatement( $SqlStatement, array $options = [] )
     {
-        // SQLite3::changes() returns 0 for "DELETE FROM TABLE" queries. This hack
+        // Sqlite3::changes() returns 0 for "DELETE FROM TABLE" queries. This hack
         // modifies the query so that it a proper number of affected rows is returned.
-        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $sqlStatement ) ) {
-            return trim( $sqlStatement ) . ' WHERE 1=1';
+        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $SqlStatement ) ) {
+            return trim( $SqlStatement ) . ' WHERE 1=1';
         }
 
-        return $sqlStatement;
+        return $SqlStatement;
     }
 
     // ------------------------------------------------------------------------
@@ -448,6 +448,6 @@ class Connection extends AbstractConnection
     protected function platformEscapeStringHandler( $string )
     {
 
-        return \SQLite3::escapeString( $string );
+        return \Sqlite3::escapeString( $string );
     }
 }

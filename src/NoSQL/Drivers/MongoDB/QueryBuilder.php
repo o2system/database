@@ -10,17 +10,17 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\NoSQL\Drivers\MongoDB;
+namespace O2System\Database\NoSql\Drivers\MongoDb;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\NoSQL\Abstracts\AbstractQueryBuilder;
-use O2System\Database\NoSQL\Datastructures\QueryBuilderCache;
+use O2System\Database\NoSql\Abstracts\AbstractQueryBuilder;
+use O2System\Database\NoSql\Datastructures\QueryBuilderCache;
 
 /**
  * Class QueryBuilder
  *
- * @package O2System\Database\Drivers\MySQL
+ * @package O2System\Database\Drivers\MySql
  */
 class QueryBuilder extends AbstractQueryBuilder
 {
@@ -40,7 +40,7 @@ class QueryBuilder extends AbstractQueryBuilder
         } elseif ( isset( $value ) ) {
 
             if ( $field === '_id' ) {
-                $value = new \MongoDB\BSON\ObjectID( $value );
+                $value = new \MongoDb\BSON\ObjectID( $value );
             }
 
             $this->builderCache->store( $cacheKey, [ $field => $value ] );
@@ -66,7 +66,7 @@ class QueryBuilder extends AbstractQueryBuilder
 
             if ( $field === '_id' ) {
                 foreach ( $values as $key => $value ) {
-                    $values[ $key ] = new \MongoDB\BSON\ObjectID( $value );
+                    $values[ $key ] = new \MongoDb\BSON\ObjectID( $value );
                 }
             }
 
@@ -114,7 +114,7 @@ class QueryBuilder extends AbstractQueryBuilder
     public function countAllResults( $reset = true )
     {
         $cursor = $this->conn->server->executeCommand( 'neo_app',
-            new \MongoDB\Driver\Command( [ 'count' => 'posts' ] ) );
+            new \MongoDb\Driver\Command( [ 'count' => 'posts' ] ) );
 
         $result = current( $cursor->toArray() );
 
@@ -132,7 +132,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformInsertHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -150,7 +150,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformInsertBatchHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -168,7 +168,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformUpdateHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -201,7 +201,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformUpdateBatchHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -243,7 +243,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformReplaceHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -262,7 +262,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformReplaceBatchHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -281,7 +281,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformDeleteHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -299,7 +299,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformDeleteBatchHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */

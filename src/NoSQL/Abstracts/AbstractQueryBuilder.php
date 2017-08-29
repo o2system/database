@@ -10,11 +10,11 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\NoSQL\Abstracts;
+namespace O2System\Database\NoSql\Abstracts;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\NoSQL\Datastructures\QueryBuilderCache;
+use O2System\Database\NoSql\Datastructures\QueryBuilderCache;
 
 /**
  * Class AbstractQueryBuilder
@@ -47,7 +47,7 @@ abstract class AbstractQueryBuilder
      *
      * Query builder cache instance.
      *
-     * @var \O2System\Database\NoSQL\Datastructures\QueryBuilderCache
+     * @var \O2System\Database\NoSql\Datastructures\QueryBuilderCache
      */
     protected $builderCache;
 
@@ -69,7 +69,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::select
      *
-     * Add SELECT SQL statement portions into Query Builder.
+     * Add SELECT Sql statement portions into Query Builder.
      *
      * @param string|array $field        String of field name
      *                                   Array list of string field names
@@ -116,7 +116,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::from
      *
-     * Generates FROM SQL statement portions into Query Builder.
+     * Generates FROM Sql statement portions into Query Builder.
      *
      * @param string $collection Collection name
      *
@@ -134,7 +134,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::join
      *
-     * Add JOIN SQL statement portions into Query Builder.
+     * Add JOIN Sql statement portions into Query Builder.
      *
      * @param string $collection Collection name
      * @param null   $condition  Join conditions: table.column = other_table.column
@@ -152,7 +152,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::where
      *
-     * Add WHERE SQL statement portions into Query Builder
+     * Add WHERE Sql statement portions into Query Builder
      *
      * @param string|array $field Input name, array of [field => value] (grouped where)
      * @param null|string  $value Input criteria or UPPERCASE grouped type AND|OR
@@ -171,7 +171,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::orWhere
      *
-     * Add OR WHERE SQL statement portions into Query Builder
+     * Add OR WHERE Sql statement portions into Query Builder
      *
      * @param string|array $field Input name, array of [field => value] (grouped where)
      * @param null|string  $value Input criteria or UPPERCASE grouped type AND|OR
@@ -210,7 +210,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::whereIn
      *
-     * Add WHERE IN SQL statement portions into Query Builder
+     * Add WHERE IN Sql statement portions into Query Builder
      *
      * @param string    $field  Input name
      * @param array     $values Array of values criteria
@@ -230,7 +230,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::orWhereIn
      *
-     * Add OR WHERE IN SQL statement portions into Query Builder
+     * Add OR WHERE IN Sql statement portions into Query Builder
      *
      * @param string    $field  Input name
      * @param array     $values Array of values criteria
@@ -250,7 +250,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::whereNotIn
      *
-     * Add WHERE NOT IN SQL statement portions into Query Builder
+     * Add WHERE NOT IN Sql statement portions into Query Builder
      *
      * @param string $field  Input name
      * @param array  $values Array of values criteria
@@ -269,7 +269,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::orWhereNotIn
      *
-     * Add OR WHERE NOT IN SQL statement portions into Query Builder
+     * Add OR WHERE NOT IN Sql statement portions into Query Builder
      *
      * @param string $field  Input name
      * @param array  $values Array of values criteria
@@ -308,7 +308,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::whereBetween
      *
-     * Add WHERE BETWEEN SQL statement portions into Query Builder
+     * Add WHERE BETWEEN Sql statement portions into Query Builder
      *
      * @param string $field
      * @param int    $start
@@ -328,7 +328,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::orWhereBetween
      *
-     * Add OR WHERE BETWEEN SQL statement portions into Query Builder
+     * Add OR WHERE BETWEEN Sql statement portions into Query Builder
      *
      * @param string $field
      * @param int    $start
@@ -348,7 +348,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::whereNotBetween
      *
-     * Add WHERE NOT BETWEEN SQL statement portions into Query Builder
+     * Add WHERE NOT BETWEEN Sql statement portions into Query Builder
      *
      * @param string $field
      * @param int    $start
@@ -368,7 +368,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::orWhereNotBetween
      *
-     * Add OR WHERE NOT BETWEEN SQL statement portions into Query Builder
+     * Add OR WHERE NOT BETWEEN Sql statement portions into Query Builder
      *
      * @param string $field
      * @param int    $start
@@ -408,7 +408,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::like
      *
-     * Generates a %LIKE% SQL statement portions of the query.
+     * Generates a %LIKE% Sql statement portions of the query.
      * Separates multiple calls with 'AND'.
      *
      * @param string $field         Input name
@@ -430,7 +430,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::orLike
      *
-     * Add OR LIKE SQL statement portions into Query Builder
+     * Add OR LIKE Sql statement portions into Query Builder
      *
      * @param string $field         Input name
      * @param string $match         Input criteria match
@@ -451,7 +451,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::notLike
      *
-     * Add NOT LIKE SQL statement portions into Query Builder
+     * Add NOT LIKE Sql statement portions into Query Builder
      *
      * @param string $field         Input name
      * @param string $match         Input criteria match
@@ -472,7 +472,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::orNotLike
      *
-     * Add OR NOT LIKE SQL statement portions into Query Builder
+     * Add OR NOT LIKE Sql statement portions into Query Builder
      *
      * @param string $field         Input name
      * @param string $match         Input criteria match
@@ -529,7 +529,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::groupBy
      *
-     * Add GROUP BY SQL statement into Query Builder.
+     * Add GROUP BY Sql statement into Query Builder.
      *
      * @param string $field
      *
@@ -545,7 +545,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::orderBy
      *
-     * Add ORDER BY SQL statement portions into Query Builder.
+     * Add ORDER BY Sql statement portions into Query Builder.
      *
      * @param string $field
      * @param string $direction
@@ -564,7 +564,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::page
      *
-     * Add Set LIMIT, OFFSET SQL statement by page number and entries.
+     * Add Set LIMIT, OFFSET Sql statement by page number and entries.
      *
      * @param int  $page    Page number
      * @param null $entries Num entries of each page
@@ -595,7 +595,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::limit
      *
-     * Add LIMIT,OFFSET SQL statement into Query Builder.
+     * Add LIMIT,OFFSET Sql statement into Query Builder.
      *
      * @param    int $limit  LIMIT value
      * @param    int $offset OFFSET value
@@ -615,7 +615,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::offset
      *
-     * Add OFFSET SQL statement into Query Builder.
+     * Add OFFSET Sql statement into Query Builder.
      *
      * @param    int $offset OFFSET value
      *
@@ -633,7 +633,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::get
      *
-     * Perform execution of SQL Query Builder and run ConnectionInterface::query()
+     * Perform execution of Sql Query Builder and run ConnectionInterface::query()
      *
      * @param null|int $limit
      * @param null|int $offset
@@ -661,7 +661,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::getWhere
      *
-     * Perform execution of SQL Query Builder and run ConnectionInterface::query()
+     * Perform execution of Sql Query Builder and run ConnectionInterface::query()
      *
      * @param array    $where
      * @param null|int $limit
@@ -736,7 +736,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformInsertHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -763,7 +763,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformInsertBatchHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -792,7 +792,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformUpdateHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -821,7 +821,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformUpdateBatchHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -850,7 +850,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformReplaceHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -879,7 +879,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformReplaceBatchHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -911,7 +911,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformDeleteHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -943,7 +943,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformDeleteBatchHandler
      *
-     * @param \O2System\Database\NoSQL\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */

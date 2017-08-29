@@ -10,11 +10,11 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\SQL\Abstracts;
+namespace O2System\Database\Sql\Abstracts;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\SQL\Datastructures\QueryStatement;
+use O2System\Database\Sql\Datastructures\QueryStatement;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Database\Datastructures\Config;
 use O2System\Database\DataObjects\Result;
@@ -23,7 +23,7 @@ use O2System\Spl\Traits\Collectors\ConfigCollectorTrait;
 /**
  * Class AbstractConnection
  *
- * @package O2System\Database\SQL\Abstracts
+ * @package O2System\Database\Sql\Abstracts
  */
 abstract class AbstractConnection
 {
@@ -472,9 +472,9 @@ abstract class AbstractConnection
      *
      * Returns the last query's statement object.
      *
-     * @return Query
+     * @return QueryStatement
      */
-    final public function getLatestQuery()
+    public function getLastQuery()
     {
         return end( $this->queriesCache );
     }
@@ -661,9 +661,9 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::execute
      *
-     * Execute SQL statement against database.
+     * Execute Sql statement against database.
      *
-     * @param string $sqlStatement The SQL statement.
+     * @param string $sqlStatement The Sql statement.
      *
      * @return bool
      * @throws \O2System\Spl\Exceptions\RuntimeException
@@ -695,7 +695,7 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::executeHandler
      *
-     * Driver dependent way method for execute the SQL statement.
+     * Driver dependent way method for execute the Sql statement.
      *
      * @param QueryStatement $queryStatement Query object.
      *
@@ -776,7 +776,7 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::platformQueryHandler
      *
-     * Driver dependent way method for execute the SQL statement.
+     * Driver dependent way method for execute the Sql statement.
      *
      * @param QueryStatement $queryStatement Query object.
      *
@@ -907,7 +907,7 @@ abstract class AbstractConnection
     /**
      * QueryStatement::compileSqlBinds
      *
-     * Escapes and inserts any binds into the final SQL statement object.
+     * Escapes and inserts any binds into the final Sql statement object.
      *
      * @return string
      */
@@ -945,7 +945,7 @@ abstract class AbstractConnection
             $sqlStatement = $this->replaceSimpleBinds( $sqlStatement, $sqlBinds, $bindCount, $markerLength );
         }
 
-        return $sqlStatement;
+        return $sqlStatement . ';';
     }
 
     //--------------------------------------------------------------------
@@ -973,7 +973,7 @@ abstract class AbstractConnection
                     $bindReplaceItem = preg_quote( $bindReplaceItem );
                 }
 
-                $escapedValue = '(' . implode( ',', $escapedValue ) . ')';
+                $escapedValue = implode( ',', $escapedValue );
             } else {
                 $escapedValue = preg_quote( trim( $escapedValue, $this->config[ 'escapeCharacter' ] ) );
             }
@@ -1052,7 +1052,7 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::escapeIdentifiers
      *
-     * Escape the SQL Identifiers
+     * Escape the Sql Identifiers
      *
      * This function escapes column and table names
      *
@@ -1434,10 +1434,10 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::prepareSqlStatement
      *
-     * Platform preparing a SQL statement.
+     * Platform preparing a Sql statement.
      *
-     * @param string $sqlStatement SQL Statement to be prepared.
-     * @param array  $options      Preparing sql statement options.
+     * @param string $sqlStatement Sql Statement to be prepared.
+     * @param array  $options      Preparing Sql statement options.
      *
      * @return string
      */

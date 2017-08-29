@@ -10,16 +10,16 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\SQL\Drivers\MySQL;
+namespace O2System\Database\Sql\Drivers\MySql;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\SQL\Abstracts\AbstractQueryBuilder;
+use O2System\Database\Sql\Abstracts\AbstractQueryBuilder;
 
 /**
  * Class QueryBuilder
  *
- * @package O2System\Database\SQL\Drivers\MySQL
+ * @package O2System\Database\Sql\Drivers\MySql
  */
 class QueryBuilder extends AbstractQueryBuilder
 {
@@ -198,7 +198,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::countAllResult
      *
-     * Perform execution of count all result from Query Builder along with WHERE, LIKE, HAVING, GROUP BY, and LIMIT SQL
+     * Perform execution of count all result from Query Builder along with WHERE, LIKE, HAVING, GROUP BY, and LIMIT Sql
      * statement.
      *
      * @param bool $reset Whether perform reset Query Builder or not
@@ -209,15 +209,15 @@ class QueryBuilder extends AbstractQueryBuilder
      */
     public function countAllResults( $reset = true )
     {
-        // generate sql statement
-        $sqlStatement = $this->getSqlStatement();
-        $sqlStatement = str_replace( 'SELECT', 'SELECT SQL_CALC_FOUND_ROWS', $sqlStatement );
+        // generate Sql statement
+        $SqlStatement = $this->getSqlStatement();
+        $SqlStatement = str_replace( 'SELECT', 'SELECT SQL_CALC_FOUND_ROWS', $SqlStatement );
 
         if ( $this->testMode ) {
-            return $sqlStatement;
+            return $SqlStatement;
         }
 
-        $this->conn->query( $sqlStatement, $this->builderCache->binds );
+        $this->conn->query( $SqlStatement, $this->builderCache->binds );
         $result = $this->conn->query( 'SELECT FOUND_ROWS() AS numrows;' );
 
         if ( $reset === true ) {

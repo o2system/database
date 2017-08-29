@@ -10,20 +10,20 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\NoSQL\Drivers\MongoDB;
+namespace O2System\Database\NoSql\Drivers\MongoDb;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\NoSQL\Datastructures\QueryStatement;
+use O2System\Database\NoSql\Datastructures\QueryStatement;
 use O2System\Spl\Datastructures\SplArrayObject;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Database\Datastructures\Config;
-use O2System\Database\NoSQL\Abstracts\AbstractConnection;
+use O2System\Database\NoSql\Abstracts\AbstractConnection;
 
 /**
  * Class Connection
  *
- * @package O2System\Database\NoSQL\Drivers\MongoDB
+ * @package O2System\Database\NoSql\Drivers\MongoDb
  */
 class Connection extends AbstractConnection
 {
@@ -34,23 +34,23 @@ class Connection extends AbstractConnection
      *
      * @var string
      */
-    protected $platform = 'MongoDB';
+    protected $platform = 'MongoDb';
 
     /**
      * Connection::$handle
      *
-     * MongoDB Connection Instance.
+     * MongoDb Connection Instance.
      *
-     * @var \MongoDB\Driver\Manager
+     * @var \MongoDb\Driver\Manager
      */
     public $handle;
 
     /**
      * Connection::$server
      *
-     * MongoDB Server Instance.
+     * MongoDb Server Instance.
      *
-     * @var \MongoDB\Driver\Server
+     * @var \MongoDb\Driver\Server
      */
     public $server;
 
@@ -65,7 +65,7 @@ class Connection extends AbstractConnection
      */
     public function isSupported()
     {
-        return extension_loaded( 'mongodb' );
+        return extension_loaded( 'mongoDb' );
     }
 
     // ------------------------------------------------------------------------
@@ -97,7 +97,7 @@ class Connection extends AbstractConnection
      */
     public function getDatabases()
     {
-        $cursor = $this->server->executeCommand( 'admin', new \MongoDB\Driver\Command( [ 'listDatabases' => 1 ] ) );
+        $cursor = $this->server->executeCommand( 'admin', new \MongoDb\Driver\Command( [ 'listDatabases' => 1 ] ) );
 
         $cursor->setTypeMap( [ 'root' => 'array', 'document' => 'array' ] );
         $result = current( $cursor->toArray() );
@@ -127,7 +127,7 @@ class Connection extends AbstractConnection
     public function getCollections()
     {
         $cursor = $this->server->executeCommand( $this->database,
-            new \MongoDB\Driver\Command( [ 'listCollections' => 1 ] ) );
+            new \MongoDb\Driver\Command( [ 'listCollections' => 1 ] ) );
         $cursor->setTypeMap( [ 'root' => 'array', 'document' => 'array' ] );
 
         $result = new \IteratorIterator( $cursor );
@@ -156,7 +156,7 @@ class Connection extends AbstractConnection
     public function getKeys( $collection )
     {
         $cursor = $this->server->executeQuery( $this->database . '.' . $collection,
-            new \MongoDB\Driver\Query( [], [ 'limit' => 1 ] ) );
+            new \MongoDb\Driver\Query( [], [ 'limit' => 1 ] ) );
 
         $result = current( $cursor->toArray() );
 
@@ -182,7 +182,7 @@ class Connection extends AbstractConnection
     public function getIndexes( $collection )
     {
         $cursor = $this->server->executeCommand( $this->database,
-            new \MongoDB\Driver\Command( [ 'listIndexes' => $collection ] ) );
+            new \MongoDb\Driver\Command( [ 'listIndexes' => $collection ] ) );
         $cursor->setTypeMap( [ 'root' => 'array', 'document' => 'array' ] );
 
         $result = new \IteratorIterator( $cursor );
@@ -238,8 +238,8 @@ class Connection extends AbstractConnection
         $port = empty( $config->port ) ? 27071 : $config->port;
         $this->database = $config->database;
 
-        $this->handle = new \MongoDB\Driver\Manager( 'mongodb://' . $hostname . ':' . $port );
-        $this->server = $this->handle->selectServer( new \MongoDB\Driver\ReadPreference( \MongoDB\Driver\ReadPreference::RP_PRIMARY ) );
+        $this->handle = new \MongoDb\Driver\Manager( 'mongoDb://' . $hostname . ':' . $port );
+        $this->server = $this->handle->selectServer( new \MongoDb\Driver\ReadPreference( \MongoDb\Driver\ReadPreference::RP_PRIMARY ) );
     }
 
     //--------------------------------------------------------------------
@@ -261,7 +261,7 @@ class Connection extends AbstractConnection
     /**
      * Connection::platformExecuteHandler
      *
-     * Driver dependent way method for execute the SQL statement.
+     * Driver dependent way method for execute the Sql statement.
      *
      * @param QueryStatement $queryStatement Query object.
      *
@@ -277,7 +277,7 @@ class Connection extends AbstractConnection
             unset( $options[ 'method' ] );
 
             $options = array_merge( [ 'safe' => true, 'ordered' => true ], $options );
-            $bulk = new \MongoDB\Driver\BulkWrite( $options );
+            $bulk = new \MongoDb\Driver\BulkWrite( $options );
             $documents = $queryStatement->getDocument();
 
             if ( is_numeric( key( $documents ) ) ) { // batch process
@@ -331,7 +331,7 @@ class Connection extends AbstractConnection
                 }
 
                 return true;
-            } catch ( \MongoDB\Driver\Exception\BulkWriteException $e ) {
+            } catch ( \MongoDb\Driver\Exception\BulkWriteException $e ) {
                 $queryStatement->setError( $e->getCode(), $e->getMessage() );
             }
         }
@@ -344,7 +344,7 @@ class Connection extends AbstractConnection
     /**
      * Connection::platformQueryHandler
      *
-     * Driver dependent way method for execute the SQL statement.
+     * Driver dependent way method for execute the Sql statement.
      *
      * @param QueryStatement $queryStatement Query object.
      *
@@ -355,7 +355,7 @@ class Connection extends AbstractConnection
         $this->parseQueryStatement( $queryStatement );
 
         $cursor = $this->server->executeQuery( $this->database . '.' . $queryStatement->getCollection(),
-            new \MongoDB\Driver\Query( $queryStatement->getFilter(), $queryStatement->getOptions() ) );
+            new \MongoDb\Driver\Query( $queryStatement->getFilter(), $queryStatement->getOptions() ) );
 
         return $cursor->toArray();
     }

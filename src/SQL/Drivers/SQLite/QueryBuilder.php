@@ -10,16 +10,16 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\SQL\Drivers\SQLite;
+namespace O2System\Database\Sql\Drivers\Sqlite;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\SQL\Abstracts\AbstractQueryBuilder;
+use O2System\Database\Sql\Abstracts\AbstractQueryBuilder;
 
 /**
  * Class QueryBuilder
  *
- * @package O2System\Database\SQL\Drivers\SQLite
+ * @package O2System\Database\Sql\Drivers\Sqlite
  */
 class QueryBuilder extends AbstractQueryBuilder
 {

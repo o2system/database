@@ -10,46 +10,46 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\SQL\Datastructures;
+namespace O2System\Database\Sql\Datastructures;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\SQL\Abstracts\AbstractConnection;
+use O2System\Database\Sql\Abstracts\AbstractConnection;
 
 /**
  * Class QueryStatement
  *
- * @package O2System\Database\SQL\Datastructures
+ * @package O2System\Database\Sql\Datastructures
  */
 class QueryStatement
 {
     /**
-     * QueryStatement::$sqlStatement
+     * QueryStatement::$SqlStatement
      *
-     * The SQL Statement.
+     * The Sql Statement.
      *
      * @var string
      */
-    private $sqlStatement;
+    private $SqlStatement;
 
     /**
-     * QueryStatement::$sqlBinds
+     * QueryStatement::$SqlBinds
      *
-     * The SQL Statement bindings.
+     * The Sql Statement bindings.
      *
      * @var array
      */
-    private $sqlBinds = [];
+    private $SqlBinds = [];
 
 
     /**
-     * QueryStatement::$sqlFinalStatement
+     * QueryStatement::$SqlFinalStatement
      *
-     * The compiled SQL Statement with SQL Statement binders.
+     * The compiled Sql Statement with Sql Statement binders.
      *
      * @var string
      */
-    private $sqlFinalStatement;
+    private $SqlFinalStatement;
 
     /**
      * QueryStatement::$startExecutionTime
@@ -105,15 +105,15 @@ class QueryStatement
      *
      * Sets the raw query string to use for this statement.
      *
-     * @param string $sqlStatement The SQL Statement.
-     * @param array  $sqlBinds     The SQL Statement bindings.
+     * @param string $SqlStatement The Sql Statement.
+     * @param array  $SqlBinds     The Sql Statement bindings.
      *
      * @return static
      */
-    public function setSqlStatement( $sqlStatement, array $sqlBinds = [] )
+    public function setSqlStatement( $SqlStatement, array $SqlBinds = [] )
     {
-        $this->sqlStatement = $sqlStatement;
-        $this->sqlBinds = $sqlBinds;
+        $this->SqlStatement = $SqlStatement;
+        $this->SqlBinds = $SqlBinds;
 
         return $this;
     }
@@ -125,13 +125,13 @@ class QueryStatement
      *
      * Will store the variables to bind into the query later.
      *
-     * @param array $sqlBinds
+     * @param array $SqlBinds
      *
      * @return static
      */
-    public function setBinds( array $sqlBinds )
+    public function setBinds( array $SqlBinds )
     {
-        $this->sqlBinds = $sqlBinds;
+        $this->SqlBinds = $SqlBinds;
 
         return $this;
     }
@@ -140,7 +140,7 @@ class QueryStatement
 
     public function getBinds()
     {
-        return $this->sqlBinds;
+        return $this->SqlBinds;
     }
 
     //--------------------------------------------------------------------
@@ -342,7 +342,7 @@ class QueryStatement
     /**
      * QueryStatement::isWriteStatement
      *
-     * Determines if the SQL statement is a write-syntax query or not.
+     * Determines if the Sql statement is a write-syntax query or not.
      *
      * @return bool
      */
@@ -350,7 +350,7 @@ class QueryStatement
     {
         return (bool)preg_match(
             '/^\s*"?(SET|INSERT|UPDATE|DELETE|REPLACE|CREATE|DROP|TRUNCATE|LOAD|COPY|ALTER|RENAME|GRANT|REVOKE|LOCK|UNLOCK|REINDEX)\s/i',
-            $this->sqlStatement
+            $this->SqlStatement
         );
     }
 
@@ -368,9 +368,9 @@ class QueryStatement
      */
     public function swapTablePrefix( $search, $replace )
     {
-        $sql = empty( $this->sqlFinalStatement ) ? $this->sqlStatement : $this->sqlFinalStatement;
+        $Sql = empty( $this->SqlFinalStatement ) ? $this->SqlStatement : $this->SqlFinalStatement;
 
-        $this->sqlFinalStatement = preg_replace( '/(\W)' . $search . '(\S+?)/', '\\1' . $replace . '\\2', $sql );
+        $this->SqlFinalStatement = preg_replace( '/(\W)' . $search . '(\S+?)/', '\\1' . $replace . '\\2', $Sql );
 
         return $this;
     }
@@ -380,20 +380,20 @@ class QueryStatement
     /**
      * QueryStatement::getSqlStatement
      *
-     * Get the original SQL statement.
+     * Get the original Sql statement.
      *
-     * @return string   The SQL statement string.
+     * @return string   The Sql statement string.
      */
     public function getSqlStatement()
     {
-        return $this->sqlStatement;
+        return $this->SqlStatement;
     }
 
     //--------------------------------------------------------------------
 
     public function setSqlFinalStatement( $finalStatement )
     {
-        $this->sqlFinalStatement = $finalStatement;
+        $this->SqlFinalStatement = $finalStatement;
 
         return $this;
     }
@@ -410,7 +410,7 @@ class QueryStatement
      */
     public function getSqlFinalStatement()
     {
-        return $this->sqlFinalStatement;
+        return $this->SqlFinalStatement;
     }
 
     //--------------------------------------------------------------------
@@ -418,7 +418,7 @@ class QueryStatement
     /**
      * QueryStatement::__toString
      *
-     * Convert this query into compiled SQL Statement string.
+     * Convert this query into compiled Sql Statement string.
      *
      * @return string
      */

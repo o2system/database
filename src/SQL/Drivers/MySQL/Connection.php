@@ -10,20 +10,20 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\SQL\Drivers\MySQL;
+namespace O2System\Database\Sql\Drivers\MySql;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\SQL\Datastructures\QueryStatement;
+use O2System\Database\Sql\Datastructures\QueryStatement;
 use O2System\Spl\Datastructures\SplArrayObject;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Database\Datastructures\Config;
-use O2System\Database\SQL\Abstracts\AbstractConnection;
+use O2System\Database\Sql\Abstracts\AbstractConnection;
 
 /**
  * Class Connection
  *
- * @package O2System\Database\SQL\Drivers\MySQL
+ * @package O2System\Database\Sql\Drivers\MySql
  */
 class Connection extends AbstractConnection
 {
@@ -32,7 +32,7 @@ class Connection extends AbstractConnection
      *
      * DELETE hack flag
      *
-     * Whether to use the MySQL "delete hack" which allows the number
+     * Whether to use the MySql "delete hack" which allows the number
      * of affected rows to be shown. Uses a preg_replace when enabled,
      * adding a bit more processing to all queries.
      *
@@ -67,9 +67,9 @@ class Connection extends AbstractConnection
     /**
      * Connection::$handle
      *
-     * MySQLi Connection Instance.
+     * MySqli Connection Instance.
      *
-     * @var \mysqli
+     * @var \mySqli
      */
     protected $handle;
 
@@ -171,13 +171,13 @@ class Connection extends AbstractConnection
     {
         if ( empty( $this->queriesResultCache[ 'tableNames' ] ) ) {
 
-            $sqlStatement = 'SHOW TABLES FROM ' . $this->escapeIdentifiers( $this->config[ 'database' ] );
+            $SqlStatement = 'SHOW TABLES FROM ' . $this->escapeIdentifiers( $this->config[ 'database' ] );
 
             if ( $prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '' ) {
-                $sqlStatement .= " LIKE '" . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%'";
+                $SqlStatement .= " LIKE '" . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%'";
             }
 
-            $result = $this->query( $sqlStatement );
+            $result = $this->query( $SqlStatement );
 
             if ( $result->count() ) {
                 foreach ( $result as $row ) {
@@ -267,7 +267,7 @@ class Connection extends AbstractConnection
 
         $client[ 'version' ][ 'string' ] = $this->handle->client_info;
         $client[ 'version' ][ 'number' ] = $this->handle->client_version;
-        $client[ 'stats' ] = mysqli_get_client_stats();
+        $client[ 'stats' ] = mySqli_get_client_stats();
 
         return new SplArrayObject( [
             'name'     => $this->getPlatform(),
@@ -311,7 +311,7 @@ class Connection extends AbstractConnection
         $flags = ( $config->compress === true )
             ? MYSQLI_CLIENT_COMPRESS
             : 0;
-        $this->handle = mysqli_init();
+        $this->handle = mySqli_init();
         //$this->handle->autocommit( ( $this->transactionEnabled ? true : false ) );
 
         $this->handle->options( MYSQLI_OPT_CONNECT_TIMEOUT, 10 );
@@ -320,14 +320,14 @@ class Connection extends AbstractConnection
             if ( $config->strictOn ) {
                 $this->handle->options(
                     MYSQLI_INIT_COMMAND,
-                    'SET SESSION sql_mode = CONCAT(@@sql_mode, ",", "STRICT_ALL_TABLES")'
+                    'SET SESSION Sql_mode = CONCAT(@@Sql_mode, ",", "STRICT_ALL_TABLES")'
                 );
             } else {
                 $this->handle->options(
                     MYSQLI_INIT_COMMAND,
-                    'SET SESSION sql_mode =
+                    'SET SESSION Sql_mode =
 					REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
-					@@sql_mode,
+					@@Sql_mode,
 					"STRICT_ALL_TABLES,", ""),
 					",STRICT_ALL_TABLES", ""),
 					"STRICT_ALL_TABLES", ""),
@@ -394,7 +394,7 @@ class Connection extends AbstractConnection
             $flags
         )
         ) {
-            // Prior to version 5.7.3, MySQL silently downgrades to an unencrypted connection if SSL setup fails
+            // Prior to version 5.7.3, MySql silently downgrades to an unencrypted connection if SSL setup fails
             if (
                 ( $flags & MYSQLI_CLIENT_SSL )
                 AND version_compare( $this->handle->client_info, '5.7.3', '<=' )
@@ -402,7 +402,7 @@ class Connection extends AbstractConnection
                     ->fetch_object()->Value )
             ) {
                 $this->handle->close();
-                // 'MySQLi was configured for an SSL connection, but got an unencrypted connection instead!';
+                // 'MySqli was configured for an SSL connection, but got an unencrypted connection instead!';
                 logger()->error( 'E_DB_CONNECTION_SSL', [ $this->platform ] );
 
                 if ( $config->debug ) {
@@ -461,7 +461,7 @@ class Connection extends AbstractConnection
     /**
      * Connection::executeHandler
      *
-     * Driver dependent way method for execute the SQL statement.
+     * Driver dependent way method for execute the Sql statement.
      *
      * @param QueryStatement $queryStatement Query object.
      *
@@ -485,7 +485,7 @@ class Connection extends AbstractConnection
     /**
      * Connection::platformQueryHandler
      *
-     * Driver dependent way method for execute the SQL statement.
+     * Driver dependent way method for execute the Sql statement.
      *
      * @param QueryStatement $queryStatement Query object.
      *
@@ -533,6 +533,26 @@ class Connection extends AbstractConnection
     }
 
     // ------------------------------------------------------------------------
+
+    /**
+     * Connection::getLastQuery
+     *
+     * Returns the last query's statement object.
+     *
+     * @return QueryStatement
+     */
+    public function getLastQuery()
+    {
+        $last = end( $this->queriesCache );
+
+        if( $last->getSqlStatement() === 'SELECT FOUND_ROWS() AS numrows;' ) {
+            $last = prev( $this->queriesCache );
+        }
+
+        return $last;
+    }
+
+    //--------------------------------------------------------------------
 
     /**
      * Connection::platformTransactionBeginHandler
@@ -595,22 +615,22 @@ class Connection extends AbstractConnection
     /**
      * Connection::prepareSqlStatement
      *
-     * Platform preparing a SQL statement.
+     * Platform preparing a Sql statement.
      *
-     * @param string $sqlStatement SQL Statement to be prepared.
-     * @param array  $options      Preparing sql statement options.
+     * @param string $SqlStatement Sql Statement to be prepared.
+     * @param array  $options      Preparing Sql statement options.
      *
      * @return string
      */
-    protected function platformPrepareSqlStatement( $sqlStatement, array $options = [] )
+    protected function platformPrepareSqlStatement( $SqlStatement, array $options = [] )
     {
-        // mysqli_affected_rows() returns 0 for "DELETE FROM TABLE" queries. This hack
+        // mySqli_affected_rows() returns 0 for "DELETE FROM TABLE" queries. This hack
         // modifies the query so that it a proper number of affected rows is returned.
-        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $sqlStatement ) ) {
-            return trim( $sqlStatement ) . ' WHERE 1=1';
+        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $SqlStatement ) ) {
+            return trim( $SqlStatement ) . ' WHERE 1=1';
         }
 
-        return $sqlStatement;
+        return $SqlStatement;
     }
 
     // ------------------------------------------------------------------------
