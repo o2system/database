@@ -24,7 +24,7 @@ O2System Database is an Open Source PHP Database Drivers Library. The database d
 ### Composer Installation
 The best way to install O2System Database is to use [Composer](https://getcomposer.org)
 ```
-composer require o2system/database --prefer-dist dev-master
+composer require o2system/database
 ```
 > Packagist: [https://packagist.org/packages/o2system/database](https://packagist.org/packages/o2system/database)
 
