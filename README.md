@@ -1,6 +1,5 @@
 # O2System Database
-
-O2System Database is an Open Source PHP Database Drivers Library. The database drivers in the O2System Database are grouped into two main categories: SQL and NoSQL that focus on providing database drivers based on their storage locations: local and remote storage. O2System Database is build for working more powerful with O2System Framework, but also can be used for integrated with others as standalone version with limited features.
+O2System Database is an Open Source PHP Database Drivers Library. The database drivers in the O2System Database are grouped into two main categories: SQL and NoSQL. O2System Database is built for working more powerfully within <the> O2System Framework, but it can also be used within other frameworks as standalone version with limited features.
 
 ### Supported Remote Storage SQL Database Engines Drivers
 | Engine | 5.6+ | 7.0+  | &nbsp; |
