@@ -173,6 +173,10 @@ abstract class AbstractConnection
      */
     public function __construct( Config $config )
     {
+        language()
+            ->addFilePath( str_replace( 'NoSql' . DIRECTORY_SEPARATOR . 'Abstracts', '', __DIR__ ) . DIRECTORY_SEPARATOR )
+            ->loadFile( 'database' );
+
         $config->merge(
             array_merge(
                 [
@@ -243,7 +247,7 @@ abstract class AbstractConnection
 
             // We still don't have a connection?
             if ( ! $this->handle ) {
-                throw new RuntimeException( 'E_DB_UNABLE_TO_CONNECT', 0, [ $this->platform ] );
+                throw new RuntimeException( 'DB_E_UNABLE_TO_CONNECT', 0, [ $this->platform ] );
             }
         }
 
@@ -450,7 +454,7 @@ abstract class AbstractConnection
      *
      * Returns the last query's statement object.
      *
-     * @return Query
+     * @return QueryStatement
      */
     final public function getLatestQuery()
     {
@@ -701,7 +705,6 @@ abstract class AbstractConnection
 
             if ( $this->transactionInProgress ) {
                 $this->transactionStatus = false;
-                $this->transactionRollBack();
                 $this->transactionInProgress = false;
             }
 

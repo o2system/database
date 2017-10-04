@@ -424,6 +424,6 @@ class QueryStatement
      */
     public function __toString()
     {
-        return (string)$this->getFinalStatement();
+        return (string)$this->getSqlFinalStatement();
     }
 }

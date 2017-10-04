@@ -186,6 +186,10 @@ abstract class AbstractConnection
      */
     public function __construct( Config $config )
     {
+        language()
+            ->addFilePath( str_replace( 'Sql' . DIRECTORY_SEPARATOR . 'Abstracts', '', __DIR__ ) . DIRECTORY_SEPARATOR )
+            ->loadFile( 'database' );
+
         $config->merge(
             array_merge(
                 [
@@ -265,7 +269,7 @@ abstract class AbstractConnection
 
             // We still don't have a connection?
             if ( ! $this->handle ) {
-                throw new RuntimeException( 'E_DB_UNABLE_TO_CONNECT', 0, [ $this->platform ] );
+                throw new RuntimeException( 'DB_E_UNABLE_TO_CONNECT', 0, [ $this->platform ] );
             }
         }
 

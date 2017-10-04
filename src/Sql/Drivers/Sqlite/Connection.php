@@ -145,7 +145,7 @@ class Connection extends AbstractConnection
     {
         if ( empty( $this->queriesResultCache[ 'tableNames' ] ) ) {
 
-            $SqlStatement = 'SELECT "NAME" FROM "SqlITE_MASTER" WHERE "TYPE" = \'table\'';
+            $SqlStatement = 'SELECT "NAME" FROM "SQLITE_MASTER" WHERE "TYPE" = \'table\'';
 
             if ( $prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '' ) {
                 $SqlStatement .= ' AND "NAME" LIKE \'' . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%' ";
@@ -245,9 +245,9 @@ class Connection extends AbstractConnection
         $this->database = $config->database;
 
         if ( $config->readOnly === true ) {
-            $this->handle = new \Sqlite3( $config->database, SqlITE3_OPEN_READONLY );
+            $this->handle = new \Sqlite3( $config->database, SQLITE3_OPEN_READONLY );
         } else {
-            $this->handle = new \Sqlite3( $config->database, SqlITE3_OPEN_READWRITE | SqlITE3_OPEN_CREATE );
+            $this->handle = new \Sqlite3( $config->database, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE );
         }
 
         // Enable throwing exceptions
@@ -302,7 +302,7 @@ class Connection extends AbstractConnection
 
         if ( false !== ( $result = $this->handle->query( $queryStatement->getSqlFinalStatement() ) ) ) {
             $i = 0;
-            while ( $row = $result->fetchArray( SqlITE3_ASSOC ) ) {
+            while ( $row = $result->fetchArray( SQLITE3_ASSOC ) ) {
                 $rows[ $i ] = $row;
                 $i++;
             }

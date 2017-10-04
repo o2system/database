@@ -2139,7 +2139,7 @@ abstract class AbstractQueryBuilder
 
         $count = 0;
 
-        while ( array_key_exists( $field . $count, $this->builderCache->binds ) ) {
+        while ( array_key_exists( $field . '_' . $count, $this->builderCache->binds ) ) {
             ++$count;
         }
 
@@ -2169,7 +2169,14 @@ abstract class AbstractQueryBuilder
         $this->set( $sets, null, $escape );
 
         $result = false;
-        if ( ! empty( $this->builderCache->sets ) ) {
+
+        /**
+         * @bugs
+         *
+         * @issued_by: Triyana Suryapraja Sukmana <https://github.com/tss182>
+         * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
+         */
+        if ( count( $this->builderCache->sets ) ) {
             $SqlStatement = $this->platformInsertStatement(
                 $this->conn->protectIdentifiers(
                     $this->builderCache->from[ 0 ],
@@ -2428,7 +2435,13 @@ abstract class AbstractQueryBuilder
 
         $this->set( $sets, null, $escape );
 
-        if ( ! empty( $this->builderCache->sets ) ) {
+        /**
+         * @bugs
+         *
+         * @issued_by: Triyana Suryapraja Sukmana <https://github.com/tss182>
+         * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
+         */
+        if ( count( $this->builderCache->sets ) ) {
             $SqlStatement = $this->platformReplaceStatement(
                 $this->conn->protectIdentifiers(
                     $this->builderCache->from[ 0 ],
@@ -2532,7 +2545,13 @@ abstract class AbstractQueryBuilder
         $this->set( $sets, null, $escape );
         $this->where( $where );
 
-        if ( ! empty( $this->builderCache->sets ) ) {
+        /**
+         * @bugs
+         *
+         * @issued_by: Triyana Suryapraja Sukmana <https://github.com/tss182>
+         * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
+         */
+        if ( count( $this->builderCache->sets ) ) {
             $SqlStatement = $this->platformUpdateStatement(
                 $this->conn->protectIdentifiers(
                     $this->builderCache->from[ 0 ],

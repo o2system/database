@@ -14,8 +14,6 @@ namespace O2System\Database\Sql\Datastructures;
 
 // ------------------------------------------------------------------------
 
-use O2System\Psr\Patterns\AbstractItemStoragePattern;
-
 /**
  * Class QueryBuilderCache
  *
