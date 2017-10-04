@@ -2305,7 +2305,7 @@ abstract class AbstractQueryBuilder
         // Batch this baby
         $affectedRows = 0;
         for ( $i = 0, $total = count( $sets ); $i < $total; $i += $batchSize ) {
-            $Sql = $this->platformInsertStatement(
+            $Sql = $this->platformInsertBatchStatement(
                 $this->conn->protectIdentifiers( $this->builderCache->from[ 0 ], true, $escape, false ),
                 $this->builderCache->keys,
                 array_slice( $this->builderCache->sets, $i, $batchSize )
@@ -2325,6 +2325,19 @@ abstract class AbstractQueryBuilder
 
         return $affectedRows;
     }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::platformInsertBatchStatement
+     *
+     * @param string $table
+     * @param array  $keys
+     * @param array  $values
+     *
+     * @return mixed
+     */
+    abstract protected function platformInsertBatchStatement( $table, array $keys, array $values );
 
     //--------------------------------------------------------------------
 

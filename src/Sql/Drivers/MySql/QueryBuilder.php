@@ -76,6 +76,16 @@ class QueryBuilder extends AbstractQueryBuilder
 
     //--------------------------------------------------------------------
 
+    protected function platformInsertBatchStatement( $table, array $keys, array $values )
+    {
+        return 'INSERT INTO '
+            . $table
+            . ' ('
+            . implode( ', ', $keys )
+            . ') VALUES '
+            . implode( ', ', $values );
+    }
+
     /**
      * QueryBuilder::platformReplaceStatement
      *
