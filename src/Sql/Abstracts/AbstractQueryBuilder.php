@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\Sql\Abstracts;
@@ -34,6 +35,16 @@ abstract class AbstractQueryBuilder
      * @var bool
      */
     public $testMode = false;
+
+    /**
+     * AbstractQueryBuilder::testMode
+     *
+     * If true, no queries will actually be
+     * ran against the database.
+     *
+     * @var bool
+     */
+    public $cacheMode = false;
 
     /**
      * AbstractQueryBuilder::$conn
@@ -91,9 +102,17 @@ abstract class AbstractQueryBuilder
     {
         $this->conn =& $conn;
         $this->builderCache = new QueryBuilderCache();
+        $this->cacheMode = $this->conn->getConfig( 'cacheEnable' );
     }
 
     // ------------------------------------------------------------------------
+
+    public function cache( $mode = true )
+    {
+        $this->cacheEnable = (bool) $mode;
+
+        return $this;
+    }
 
     /**
      * AbstractQueryBuilder::select
@@ -376,11 +395,11 @@ abstract class AbstractQueryBuilder
         $alias = empty( $alias )
             ? strtolower( $type ) . '_' . $field
             : $alias;
-        $SqlStatement = sprintf( $SqlAggregateFunctions[ $type ], $field )
+        $sqlStatement = sprintf( $SqlAggregateFunctions[ $type ], $field )
             . ' AS '
             . $this->conn->escapeIdentifiers( $alias );
 
-        $this->select( $SqlStatement );
+        $this->select( $sqlStatement );
 
         return $this;
     }
@@ -660,13 +679,13 @@ abstract class AbstractQueryBuilder
                 $fieldAlias = end( $xFieldName );
             }
 
-            $SqlStatement = sprintf(
+            $sqlStatement = sprintf(
                     'EXTRACT(%s FROM %s)', // Returns a single part of a date/time
                     $unit,
                     $this->conn->protectIdentifiers( $fieldName )
                 ) . ' AS ' . $this->conn->escapeIdentifiers( $fieldAlias );
 
-            $this->select( $SqlStatement );
+            $this->select( $sqlStatement );
         }
 
         return $this;
@@ -790,7 +809,7 @@ abstract class AbstractQueryBuilder
      */
     protected function hasDateType( $string )
     {
-        return (bool)preg_match(
+        return (bool) preg_match(
             '/(' . implode( '|\s', $this->getDateTypes() ) . '\s*\(|\s)/i',
             trim( $string )
         );
@@ -1134,7 +1153,7 @@ abstract class AbstractQueryBuilder
      */
     protected function hasOperator( $string )
     {
-        return (bool)preg_match(
+        return (bool) preg_match(
             '/(<|>|!|=|\sIS NULL|\sIS NOT NULL|\sEXISTS|\sBETWEEN|\sLIKE|\sIN\s*\(|\s)/i',
             trim( $string )
         );
@@ -1500,11 +1519,11 @@ abstract class AbstractQueryBuilder
                 $importBindsReplacement[] = ':' . $importBindKey;
             }
 
-            $SqlStatement = $values->getSqlStatement();
-            $SqlStatement = str_replace( $importBindsPattern, $importBindsReplacement, $SqlStatement );
+            $sqlStatement = $values->getSqlStatement();
+            $sqlStatement = str_replace( $importBindsPattern, $importBindsReplacement, $sqlStatement );
 
             $whereIn = [
-                'condition' => $prefix . $fieldKey . $not . ' IN (' . $SqlStatement . ')',
+                'condition' => $prefix . $fieldKey . $not . ' IN (' . $sqlStatement . ')',
                 'escape'    => false,
             ];
         }
@@ -1751,7 +1770,7 @@ abstract class AbstractQueryBuilder
             $direction = '';
 
             // Do we have a seed value?
-            $field = ctype_digit( (string)$field )
+            $field = ctype_digit( (string) $field )
                 ? sprintf( $this->SqlOrderByRandomKeywords[ 1 ], $field )
                 : $this->SqlOrderByRandomKeywords[ 0 ];
         } elseif ( empty( $field ) ) {
@@ -1804,9 +1823,9 @@ abstract class AbstractQueryBuilder
      */
     public function page( $page = 1, $entries = null )
     {
-        $page = (int)intval( $page );
+        $page = (int) intval( $page );
 
-        $entries = (int)( isset( $entries )
+        $entries = (int) ( isset( $entries )
             ? $entries
             : ( $this->builderCache->limit === false
                 ? 5
@@ -1836,7 +1855,7 @@ abstract class AbstractQueryBuilder
     public function limit( $limit, $offset = 0 )
     {
         if ( ! is_null( $limit ) ) {
-            $this->builderCache->limit = (int)$limit;
+            $this->builderCache->limit = (int) $limit;
         }
 
         $this->offset( $offset );
@@ -1858,7 +1877,7 @@ abstract class AbstractQueryBuilder
     public function offset( $offset )
     {
         if ( ! empty( $offset ) ) {
-            $this->builderCache->offset = (int)$offset;
+            $this->builderCache->offset = (int) $offset;
         }
 
         return $this;
@@ -1884,6 +1903,10 @@ abstract class AbstractQueryBuilder
             $this->limit( $limit, $offset );
         }
 
+        if ( $this->cacheMode ) {
+            $this->conn->cache( $this->cacheMode );
+        }
+
         $result = $this->testMode
             ? $this->getSqlStatement()
             : $this->conn->query( $this->getSqlStatement( false ), $this->builderCache->binds );
@@ -1891,6 +1914,8 @@ abstract class AbstractQueryBuilder
         if ( $result ) {
             $result->setTotalRows( $this->countAllResults( true ) );
         }
+
+        $this->cacheMode = $this->conn->getConfig( 'cacheEnable' );
 
         return $result;
     }
@@ -1917,6 +1942,10 @@ abstract class AbstractQueryBuilder
             $this->limit( $limit, $offset );
         }
 
+        if ( $this->cacheMode ) {
+            $this->conn->cache( $this->cacheMode );
+        }
+
         $result = $this->testMode
             ? $this->getSqlStatement()
             : $this->conn->query( $this->getSqlStatement( false ), $this->builderCache->binds );
@@ -1924,6 +1953,8 @@ abstract class AbstractQueryBuilder
         if ( $result ) {
             $result->setTotalRows( $this->countAllResults( true ) );
         }
+
+        $this->cacheMode = $this->conn->getConfig( 'cacheEnable' );
 
         return $result;
     }
@@ -1942,23 +1973,23 @@ abstract class AbstractQueryBuilder
     public function countAll()
     {
         $this->count( '*', 'numrows' );
-        $SqlStatement = $this->getSqlStatement();
+        $sqlStatement = $this->getSqlStatement();
 
         if ( $this->isSubQuery ) {
-            return '( ' . $SqlStatement . ' )';
+            return '( ' . $sqlStatement . ' )';
         }
 
         if ( $this->testMode ) {
-            return $SqlStatement;
+            return $sqlStatement;
         }
 
-        $result = $this->conn->query( $SqlStatement );
+        $result = $this->conn->query( $sqlStatement );
 
         if ( $result->count() == 0 ) {
             return 0;
         }
 
-        return (int)$result->first()->numrows;
+        return (int) $result->first()->numrows;
     }
 
     //--------------------------------------------------------------------
@@ -1986,7 +2017,7 @@ abstract class AbstractQueryBuilder
         array_unshift( $this->builderCache->select, 'COUNT(*) AS numrows' );
 
         // generate Sql statement
-        $SqlStatement = $this->getSqlStatement();
+        $sqlStatement = $this->getSqlStatement();
 
         // restore previous select
         $this->builderCache->select = $previousSelect;
@@ -1994,10 +2025,10 @@ abstract class AbstractQueryBuilder
         $this->builderCache->offset = $previousOffset;
 
         if ( $this->testMode ) {
-            return $SqlStatement;
+            return $sqlStatement;
         }
 
-        $result = $this->conn->query( $SqlStatement, $this->builderCache->binds );
+        $result = $this->conn->query( $sqlStatement, $this->builderCache->binds );
 
         if ( $reset === true ) {
             $this->builderCache->reset();
@@ -2007,7 +2038,7 @@ abstract class AbstractQueryBuilder
             return 0;
         }
 
-        return (int)$result->first()->numrows;
+        return (int) $result->first()->numrows;
     }
 
     //--------------------------------------------------------------------
@@ -2177,7 +2208,7 @@ abstract class AbstractQueryBuilder
          * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
          */
         if ( count( $this->builderCache->sets ) ) {
-            $SqlStatement = $this->platformInsertStatement(
+            $sqlStatement = $this->platformInsertStatement(
                 $this->conn->protectIdentifiers(
                     $this->builderCache->from[ 0 ],
                     true,
@@ -2189,10 +2220,10 @@ abstract class AbstractQueryBuilder
             );
 
             if ( $this->testMode ) {
-                return $SqlStatement;
+                return $sqlStatement;
             }
 
-            $result = $this->conn->query( $SqlStatement, $this->builderCache->binds );
+            $result = $this->conn->query( $sqlStatement, $this->builderCache->binds );
         }
 
         $this->builderCache->resetModifier();
@@ -2455,7 +2486,7 @@ abstract class AbstractQueryBuilder
          * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
          */
         if ( count( $this->builderCache->sets ) ) {
-            $SqlStatement = $this->platformReplaceStatement(
+            $sqlStatement = $this->platformReplaceStatement(
                 $this->conn->protectIdentifiers(
                     $this->builderCache->from[ 0 ],
                     true,
@@ -2467,12 +2498,13 @@ abstract class AbstractQueryBuilder
             );
 
             if ( $this->testMode ) {
-                return $SqlStatement;
+                return $sqlStatement;
             }
 
+            $sqlBinds = $this->builderCache->binds;
             $this->builderCache->resetModifier();
 
-            return $this->conn->query( $SqlStatement, $this->builderCache->binds );
+            return $this->conn->query( $sqlStatement, $sqlBinds );
         }
 
         return false;
@@ -2565,7 +2597,7 @@ abstract class AbstractQueryBuilder
          * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
          */
         if ( count( $this->builderCache->sets ) ) {
-            $SqlStatement = $this->platformUpdateStatement(
+            $sqlStatement = $this->platformUpdateStatement(
                 $this->conn->protectIdentifiers(
                     $this->builderCache->from[ 0 ],
                     true,
@@ -2576,12 +2608,13 @@ abstract class AbstractQueryBuilder
             );
 
             if ( $this->testMode ) {
-                return $SqlStatement;
+                return $sqlStatement;
             }
 
+            $sqlBinds = $this->builderCache->binds;
             $this->builderCache->resetModifier();
 
-            return $this->conn->query( $SqlStatement, $this->builderCache->binds );
+            return $this->conn->query( $sqlStatement, $sqlBinds );
         }
 
         return false;
@@ -2729,7 +2762,7 @@ abstract class AbstractQueryBuilder
             $this->limit( $limit );
         }
 
-        $SqlStatement = $this->platformDeleteStatement(
+        $sqlStatement = $this->platformDeleteStatement(
             $this->conn->protectIdentifiers(
                 $this->builderCache->from[ 0 ],
                 true,
@@ -2739,12 +2772,13 @@ abstract class AbstractQueryBuilder
         );
 
         if ( $this->testMode ) {
-            return $SqlStatement;
+            return $sqlStatement;
         }
 
+        $sqlBinds = $this->builderCache->binds;
         $this->builderCache->resetModifier();
 
-        return $this->conn->query( $SqlStatement, $this->builderCache->binds );
+        return $this->conn->query( $sqlStatement, $sqlBinds );
     }
 
     //--------------------------------------------------------------------
@@ -2782,15 +2816,15 @@ abstract class AbstractQueryBuilder
             $table = $this->conn->protectIdentifiers( $table, true, true );
         }
 
-        $SqlStatement = $this->platformDeleteStatement( $table );
+        $sqlStatement = $this->platformDeleteStatement( $table );
 
         if ( $this->testMode === true ) {
-            return $SqlStatement;
+            return $sqlStatement;
         }
 
         $this->builderCache->resetModifier();
 
-        return $this->conn->query( $SqlStatement );
+        return $this->conn->query( $sqlStatement );
     }
 
     //--------------------------------------------------------------------
@@ -2815,15 +2849,15 @@ abstract class AbstractQueryBuilder
             $table = $this->conn->protectIdentifiers( $table, true, true );
         }
 
-        $SqlStatement = $this->platformTruncateStatement( $table );
+        $sqlStatement = $this->platformTruncateStatement( $table );
 
         if ( $this->testMode === true ) {
-            return $SqlStatement;
+            return $sqlStatement;
         }
 
         $this->builderCache->resetModifier();
 
-        return $this->conn->query( $SqlStatement );
+        return $this->conn->query( $sqlStatement );
     }
 
     //--------------------------------------------------------------------
@@ -2870,7 +2904,6 @@ abstract class AbstractQueryBuilder
     {
         $subQuery = clone $this;
         $subQuery->builderCache = new QueryBuilderCache();
-        unset( $subQuery->conn );
 
         $subQuery->isSubQuery = true;
 
@@ -2890,7 +2923,7 @@ abstract class AbstractQueryBuilder
      */
     public function getSqlStatement( $reset = true )
     {
-        $SqlStatementsSequence = [
+        $sqlStatementsSequence = [
             'Select',
             'Union',
             'Into',
@@ -2906,20 +2939,20 @@ abstract class AbstractQueryBuilder
         ];
 
         if ( empty( $this->builderCache->getStatement() ) ) {
-            $SqlStatement = [];
-            foreach ( $SqlStatementsSequence as $compileMethod ) {
-                $SqlStatement[] = trim( call_user_func( [ &$this, 'compile' . $compileMethod . 'Statement' ] ) );
+            $sqlStatement = [];
+            foreach ( $sqlStatementsSequence as $compileMethod ) {
+                $sqlStatement[] = trim( call_user_func( [ &$this, 'compile' . $compileMethod . 'Statement' ] ) );
             }
 
-            $SqlStatement = implode( PHP_EOL, array_filter( $SqlStatement ) );
+            $sqlStatement = implode( PHP_EOL, array_filter( $sqlStatement ) );
 
             if ( $reset ) {
                 $this->builderCache->reset();
 
-                return $SqlStatement;
+                return $sqlStatement;
             }
 
-            $this->builderCache->setStatement( $SqlStatement );
+            $this->builderCache->setStatement( $sqlStatement );
         }
 
         return $this->builderCache->getStatement();
@@ -2943,9 +2976,9 @@ abstract class AbstractQueryBuilder
     {
         // Write the "select" portion of the query
         if ( $selectOverride !== false ) {
-            $SqlStatement = $selectOverride;
+            $sqlStatement = $selectOverride;
         } else {
-            $SqlStatement = ( ! $this->builderCache->distinct )
+            $sqlStatement = ( ! $this->builderCache->distinct )
                 ? 'SELECT %s'
                 : 'SELECT DISTINCT %s';
 
@@ -2969,10 +3002,10 @@ abstract class AbstractQueryBuilder
                 $SqlSelectStatement = implode( ", \n\t", $this->builderCache->select );
             }
 
-            $SqlStatement = sprintf( $SqlStatement, $SqlSelectStatement );
+            $sqlStatement = sprintf( $sqlStatement, $SqlSelectStatement );
         }
 
-        return trim( $SqlStatement );
+        return trim( $sqlStatement );
     }
 
     //--------------------------------------------------------------------
@@ -2984,21 +3017,21 @@ abstract class AbstractQueryBuilder
      */
     protected function compileUnionStatement()
     {
-        $SqlStatement = '';
+        $sqlStatement = '';
 
         if ( count( $this->builderCache->union ) ) {
             foreach ( $this->builderCache->union as $union ) {
-                $SqlStatement .= "\n UNION \n" . $union;
+                $sqlStatement .= "\n UNION \n" . $union;
             }
         }
 
         if ( count( $this->builderCache->unionAll ) ) {
             foreach ( $this->builderCache->unionAll as $union ) {
-                $SqlStatement .= "\n UNION ALL \n" . $union;
+                $sqlStatement .= "\n UNION ALL \n" . $union;
             }
         }
 
-        return trim( $SqlStatement );
+        return trim( $sqlStatement );
     }
 
     //--------------------------------------------------------------------
@@ -3232,7 +3265,7 @@ abstract class AbstractQueryBuilder
      */
     protected function compileNotBetweenStatement()
     {
-        return $this->compileWhereHavingStatement( 'not_between' );
+        return $this->compileWhereHavingStatement( 'notBetween' );
     }
 
     //--------------------------------------------------------------------
@@ -3294,7 +3327,7 @@ abstract class AbstractQueryBuilder
     {
         $string = trim( $string );
 
-        if ( empty( $string ) || ctype_digit( $string ) || (string)(float)$string === $string
+        if ( empty( $string ) || ctype_digit( $string ) || (string) (float) $string === $string
             || in_array(
                 strtoupper( $string ),
                 [ 'TRUE', 'FALSE' ],

@@ -8,12 +8,14 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\Sql\Abstracts;
 
 // ------------------------------------------------------------------------
 
+use O2System\Cache\Item;
 use O2System\Database\Sql\Datastructures\QueryStatement;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Database\Datastructures\Config;
@@ -30,13 +32,22 @@ abstract class AbstractConnection
     use ConfigCollectorTrait;
 
     /**
-     * AbstractConnection::$debugEnabled
+     * AbstractConnection::$debugEnable
      *
      * Connection debug mode flag.
      *
      * @var bool
      */
-    public $debugEnabled = true;
+    public $debugEnable = true;
+
+    /**
+     * AbstractConnection::$cacheEnable
+     *
+     * Connection cache mode flag.
+     *
+     * @var bool
+     */
+    protected $cacheEnable = false;
 
     /**
      * AbstractConnection::$database
@@ -205,7 +216,7 @@ abstract class AbstractConnection
 
         $this->config = $config;
 
-        $this->debugEnabled = $config->offsetExists( 'debugEnabled' );
+        $this->debugEnable = $config->offsetExists( 'debugEnabled' );
         $this->transactionEnabled = $config->offsetGet( 'transEnabled' );
         $this->database = $config->offsetGet( 'database' );
 
@@ -277,6 +288,13 @@ abstract class AbstractConnection
     }
 
     // ------------------------------------------------------------------------
+
+    public function cache( $mode = true )
+    {
+        $this->cacheEnable = (bool) $mode;
+
+        return $this;
+    }
 
     /**
      * AbstractConnection::platformConnectHandler
@@ -371,7 +389,7 @@ abstract class AbstractConnection
      */
     final public function connected()
     {
-        return (bool)( $this->handle === false
+        return (bool) ( $this->handle === false
             ? false
             : true );
     }
@@ -418,7 +436,7 @@ abstract class AbstractConnection
      */
     final public function getConnectTimeStart()
     {
-        return (int)$this->connectTimeStart;
+        return (int) $this->connectTimeStart;
     }
 
     // ------------------------------------------------------------------------
@@ -466,7 +484,7 @@ abstract class AbstractConnection
      */
     final public function getQueriesCount()
     {
-        return (int)count( $this->queriesCache );
+        return (int) count( $this->queriesCache );
     }
 
     //--------------------------------------------------------------------
@@ -530,7 +548,7 @@ abstract class AbstractConnection
             $this->getDatabases();
         }
 
-        return (bool)in_array( $databaseName, $this->queriesResultCache[ 'databaseNames' ] );
+        return (bool) in_array( $databaseName, $this->queriesResultCache[ 'databaseNames' ] );
     }
 
     // ------------------------------------------------------------------------
@@ -600,7 +618,7 @@ abstract class AbstractConnection
             $this->getTables();
         }
 
-        return (bool)in_array( $table, $this->queriesResultCache[ 'tableNames' ] );
+        return (bool) in_array( $table, $this->queriesResultCache[ 'tableNames' ] );
     }
 
     // ------------------------------------------------------------------------
@@ -635,7 +653,7 @@ abstract class AbstractConnection
             $this->getColumns( $table );
         }
 
-        return (bool)isset( $this->queriesResultCache[ 'tableColumns' ][ $table ][ $column ] );
+        return (bool) isset( $this->queriesResultCache[ 'tableColumns' ][ $table ][ $column ] );
     }
 
     // ------------------------------------------------------------------------
@@ -691,7 +709,7 @@ abstract class AbstractConnection
 
         $this->queriesCache[] = $queryStatement;
 
-        return (bool)$result;
+        return (bool) $result;
     }
 
     // ------------------------------------------------------------------------
@@ -745,7 +763,35 @@ abstract class AbstractConnection
                     $this->transactionStatus = $result;
                 }
             } else {
-                $rows = $this->platformQueryHandler( $queryStatement );
+                if ( class_exists( 'O2System\Framework', false ) &&
+                    $this->cacheEnable === true
+                ) {
+                    $cacheKey = 'query-' . md5( $queryStatement );
+                    $cacheHandle = cache()->getItemPool( 'default' );
+
+                    if ( cache()->hasItemPool( 'database' ) ) {
+                        $cacheHandle = cache()->getItemPool( 'output' );
+                    }
+
+                    if ( $cacheHandle instanceof \O2System\Psr\Cache\CacheItemPoolInterface ) {
+                        if ( $cacheHandle->hasItem( $cacheKey ) ) {
+                            $rows = $cacheHandle->getItem( $cacheKey )->get();
+                        } else {
+                            $rows = $this->platformQueryHandler( $queryStatement );
+                            $cacheHandle->save( new Item( $cacheKey, $rows ) );
+                        }
+                    }
+
+                    if ( ! isset( $rows ) ) {
+                        $rows = $this->platformQueryHandler( $queryStatement );
+                    }
+
+                    $this->cache( $this->config->cacheEnable );
+
+                } else {
+                    $rows = $this->platformQueryHandler( $queryStatement );
+                }
+
                 $result = new Result( $rows );
 
                 if ( $this->transactionInProgress ) {
@@ -759,7 +805,7 @@ abstract class AbstractConnection
         $this->queriesCache[] = $queryStatement;
 
         if ( $queryStatement->hasError() ) {
-            if ( $this->debugEnabled ) {
+            if ( $this->debugEnable ) {
                 throw new RuntimeException( $queryStatement->getErrorMessage(), $queryStatement->getErrorCode() );
             }
 
@@ -799,7 +845,7 @@ abstract class AbstractConnection
      */
     public function getTransactionStatus()
     {
-        return (bool)$this->transactionStatus;
+        return (bool) $this->transactionStatus;
     }
 
     //--------------------------------------------------------------------

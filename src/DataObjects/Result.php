@@ -72,7 +72,9 @@ class Result implements
      */
     public function __construct( array $rows )
     {
-        $this->rows = $rows;
+        foreach( $rows as $row ) {
+            $this->rows[] = new Result\Row( $row );
+        }
         $this->totalRows = $this->numRows = count( $rows );
     }
 
@@ -96,7 +98,7 @@ class Result implements
     {
         $this->seek( 0 );
 
-        return new Result\Row( (array) $this->rows[ $this->position ] );
+        return $this->rows[ $this->position ];
     }
 
     // ------------------------------------------------------------------------
@@ -167,7 +169,7 @@ class Result implements
     {
         $this->seek( $this->count() - 1 );
 
-        return new Result\Row( (array) $this->rows[ $this->position ] );
+        return $this->rows[ $this->position ];
     }
 
     // ------------------------------------------------------------------------
@@ -185,7 +187,7 @@ class Result implements
     {
         $this->seek( $this->position );
 
-        return new Result\Row( (array) $this->rows[ $this->position ] );
+        return $this->rows[ $this->position ];
     }
 
     // ------------------------------------------------------------------------
@@ -431,6 +433,6 @@ class Result implements
      */
     public function jsonSerialize()
     {
-        return json_encode( $this->rows );
+        return $this->rows;
     }
 }

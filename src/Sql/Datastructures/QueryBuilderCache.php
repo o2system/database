@@ -8,31 +8,28 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\Sql\Datastructures;
 
 // ------------------------------------------------------------------------
 
+use O2System\Spl\Datastructures\SplArrayObject;
+
 /**
  * Class QueryBuilderCache
  *
  * @package O2System\Database\Sql\Datastructures
  */
-class QueryBuilderCache
+class QueryBuilderCache extends SplArrayObject
 {
-    /**
-     * QueryBuilderCache::$storage
-     *
-     * Query builder cache.
-     *
-     * @var array
-     */
-    protected $storage
-        = [
+    public function __construct()
+    {
+        parent::__construct( [
             'select'        => [],
             'union'         => [],
-            'unionAll'     => [],
+            'unionAll'      => [],
             'into'          => false,
             'distinct'      => false,
             'from'          => [],
@@ -40,7 +37,7 @@ class QueryBuilderCache
             'where'         => [],
             'having'        => [],
             'between'       => [],
-            'notBetween'   => [],
+            'notBetween'    => [],
             'limit'         => false,
             'offset'        => false,
             'groupBy'       => [],
@@ -52,58 +49,20 @@ class QueryBuilderCache
             'noEscape'      => [],
             'bracketOpen'   => false,
             'bracketCount'  => 0,
-        ];
-
-    /**
-     * QueryBuilderCache::$statement
-     *
-     * Query statement.
-     *
-     * @var string
-     */
-    protected $statement;
-
-    // ------------------------------------------------------------------------
-
-    public function &__get( $property )
-    {
-        return $this->storage[ $property ];
+            'statement'     => null,
+        ], SplArrayObject::ARRAY_AS_PROPS );
     }
-
-    // ------------------------------------------------------------------------
-
-    public function __set( $index, $value )
-    {
-       $this->storage[ $index ] = $value;
-    }
-
-    public function store( $index, $value )
-    {
-        if ( array_key_exists( $index, $this->storage ) ) {
-            if ( is_array( $this->storage[ $index ] ) ) {
-                array_push( $this->storage[ $index ], $value );
-            } elseif ( is_bool( $this->storage[ $index ] ) ) {
-                $this->storage[ $index ] = (bool)$value;
-            } else {
-                $this->storage[ $index ] = $value;
-            }
-        }
-
-        return $this;
-    }
-
-    // ------------------------------------------------------------------------
 
     public function setStatement( $statement )
     {
-        $this->statement = trim( $statement );
+        $this->offsetSet( 'statement', trim( $statement ) );
     }
 
     // ------------------------------------------------------------------------
 
     public function getStatement()
     {
-        return $this->statement;
+        return $this->offsetGet( 'statement' );
     }
 
     // ------------------------------------------------------------------------
@@ -138,7 +97,7 @@ class QueryBuilderCache
             [
                 'select'        => [],
                 'union'         => [],
-                'unionAll'     => [],
+                'unionAll'      => [],
                 'into'          => false,
                 'distinct'      => false,
                 'from'          => [],
@@ -146,7 +105,7 @@ class QueryBuilderCache
                 'where'         => [],
                 'having'        => [],
                 'between'       => [],
-                'notBetween'   => [],
+                'notBetween'    => [],
                 'limit'         => false,
                 'offset'        => false,
                 'groupBy'       => [],
@@ -157,6 +116,7 @@ class QueryBuilderCache
                 'noEscape'      => [],
                 'bracketOpen'   => false,
                 'bracketCount'  => 0,
+                'statement'     => null,
             ]
         );
     }
@@ -190,6 +150,7 @@ class QueryBuilderCache
                 'noEscape'      => [],
                 'bracketOpen'   => false,
                 'bracketCount'  => 0,
+                'statement'     => null,
             ]
         );
     }
@@ -207,10 +168,30 @@ class QueryBuilderCache
      */
     protected function resetRun( array $cacheKeys )
     {
-        foreach ( $cacheKeys as $cacheKey => $cacheDefaultValue ) {
-            $this->storage[ $cacheKey ] = $cacheDefaultValue;
-        }
-
-        $this->statement = null;
+        parent::__construct( array_merge( [
+            'select'        => [],
+            'union'         => [],
+            'unionAll'      => [],
+            'into'          => false,
+            'distinct'      => false,
+            'from'          => [],
+            'join'          => [],
+            'where'         => [],
+            'having'        => [],
+            'between'       => [],
+            'notBetween'    => [],
+            'limit'         => false,
+            'offset'        => false,
+            'groupBy'       => [],
+            'orderBy'       => [],
+            'keys'          => [],
+            'sets'          => [],
+            'binds'         => [],
+            'aliasedTables' => [],
+            'noEscape'      => [],
+            'bracketOpen'   => false,
+            'bracketCount'  => 0,
+            'statement'     => null,
+        ], $cacheKeys ), SplArrayObject::ARRAY_AS_PROPS );
     }
 }

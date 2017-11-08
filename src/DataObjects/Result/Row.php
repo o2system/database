@@ -14,9 +14,6 @@ namespace O2System\Database\DataObjects\Result;
 
 // ------------------------------------------------------------------------
 
-use ArrayAccess;
-use Countable;
-use IteratorAggregate;
 use O2System\Spl\Datastructures\Traits\ArrayConversionTrait;
 use O2System\Spl\Exceptions\Logic\InvalidArgumentException;
 use O2System\Spl\Iterators\ArrayIterator;
@@ -27,7 +24,12 @@ use Traversable;
  *
  * @package O2System\Database\DataObjects\Result
  */
-class Row implements IteratorAggregate, ArrayAccess, Countable
+class Row implements
+    \IteratorAggregate,
+    \ArrayAccess,
+    \Countable,
+    \Serializable,
+    \JsonSerializable
 {
     use ArrayConversionTrait;
 
@@ -418,5 +420,51 @@ class Row implements IteratorAggregate, ArrayAccess, Countable
     public function offsetUnset( $field )
     {
         unset( $this->columns[ $field ] );
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * String representation of object
+     *
+     * @link  http://php.net/manual/en/serializable.serialize.php
+     * @return string the string representation of the object or null
+     * @since 5.1.0
+     */
+    public function serialize()
+    {
+        return serialize( $this->rows );
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Constructs the object
+     *
+     * @link  http://php.net/manual/en/serializable.unserialize.php
+     *
+     * @param string $serialized <p>
+     *                           The string representation of the object.
+     *                           </p>
+     *
+     * @return void
+     * @since 5.1.0
+     */
+    public function unserialize( $serialized )
+    {
+        $this->rows = unserialize( $serialized );
+    }
+
+    /**
+     * Specify data which should be serialized to JSON
+     *
+     * @link  http://php.net/manual/en/jsonserializable.jsonserialize.php
+     * @return mixed data which can be serialized by <b>json_encode</b>,
+     *        which is a value of any type other than a resource.
+     * @since 5.4.0
+     */
+    public function jsonSerialize()
+    {
+        return $this->rows;
     }
 }
