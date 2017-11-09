@@ -465,6 +465,6 @@ class Row implements
      */
     public function jsonSerialize()
     {
-        return $this->rows;
+        return $this->columns;
     }
 }
