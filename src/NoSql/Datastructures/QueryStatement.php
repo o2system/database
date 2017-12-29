@@ -130,11 +130,24 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
+    /**
+     * QueryStatement::getBuilderCache
+     * 
+     * @return void
+     */
     public function getBuilderCache()
     {
         return $this->builderCache;
     }
 
+    /**
+     * QueryStatement::setCollection
+     *
+     * Set Query Collection name
+     * 
+     * @param   string $collection
+     * 
+     */
     public function setCollection( $collection )
     {
         $this->collection = trim( $collection );
@@ -144,6 +157,13 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
+    /**
+     * QueryStatement::getCollection
+     *
+     * Get Query Collection name
+     * 
+     * @return string
+     */
     public function getCollection()
     {
         return $this->collection;
@@ -151,6 +171,13 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
+    /**
+     * QueryStatement::setFilter
+     *
+     * Set Query Filter Array
+     * 
+     * @param array $filter
+     */
     public function setFilter( array $filter )
     {
         $this->filter = $filter;
@@ -158,6 +185,16 @@ class QueryStatement
         return $this;
     }
 
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryStatement::addFilter
+     *
+     * Add Query Filter 
+     * 
+     * @param string    $field
+     * @param int       $value
+     */
     public function addFilter( $field, $value )
     {
         $this->filter[ $field ] = $value;
@@ -165,6 +202,15 @@ class QueryStatement
         return $this;
     }
 
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryStatement::getFilter
+     *
+     * Get Query Filter
+     * 
+     * @return array
+     */
     public function getFilter()
     {
         return $this->filter;
@@ -172,6 +218,14 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
+    /**
+     * QueryStatement::setOptions
+     *
+     * Set Query Options
+     * 
+     * @param array $options
+     * @return static
+     */
     public function setOptions( array $options )
     {
         $this->options = $options;
@@ -181,6 +235,16 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
+    /**
+     * QueryStatement::addOption
+     *
+     * Add Query Option
+     * 
+     * @param string $option
+     * @param mixed  $value
+     *
+     * @return  static
+     */
     public function addOption( $option, $value )
     {
         $this->options[ $option ] = $value;
@@ -190,6 +254,13 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
+    /**
+     * QueryStatement::getOptions
+     *
+     * Get Query Options
+     * 
+     * @return array
+     */
     public function getOptions()
     {
         return $this->options;
@@ -197,6 +268,13 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
+    /**
+     * QueryStatement::getDocument
+     *
+     * Get Query Document
+     *  
+     * @return array
+     */
     public function getDocument()
     {
         return $this->document;

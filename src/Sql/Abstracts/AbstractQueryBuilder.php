@@ -107,12 +107,20 @@ abstract class AbstractQueryBuilder
 
     // ------------------------------------------------------------------------
 
+    /**
+     * AbstractQueryBuilder::cache
+     * 
+     * @param  boolean $mode
+     * @return static
+     */
     public function cache( $mode = true )
     {
         $this->cacheEnable = (bool) $mode;
 
         return $this;
     }
+
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractQueryBuilder::select

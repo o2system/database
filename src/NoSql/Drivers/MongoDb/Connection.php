@@ -362,6 +362,12 @@ class Connection extends AbstractConnection
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Connection::parseQueryStatement
+     * 
+     * @param  QueryStatement $queryStatement Query object.
+     * @return object
+     */
     protected function parseQueryStatement( QueryStatement &$queryStatement )
     {
         $queryBuilderCache = $queryStatement->getBuilderCache();
@@ -487,6 +493,8 @@ class Connection extends AbstractConnection
 
         return $queryStatement;
     }
+
+    // ------------------------------------------------------------------------
 
     /**
      * Connection::getAffectedDocuments

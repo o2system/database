@@ -60,6 +60,13 @@ class QueryBuilderCache
 
     // ------------------------------------------------------------------------
 
+    /**
+     * QueryBuilderCache::__get
+     *
+     * 
+     * @param  string $property
+     * @return array
+     */
     public function &__get( $property )
     {
         return $this->storage[ $property ];
@@ -67,6 +74,13 @@ class QueryBuilderCache
 
     // ------------------------------------------------------------------------
 
+    /**
+     * QueryBuilderCache::store
+     * 
+     * @param  string|bool $index
+     * @param  array|bool $value
+     * @return array
+     */
     public function store( $index, $value )
     {
         if ( array_key_exists( $index, $this->storage ) ) {
@@ -86,6 +100,15 @@ class QueryBuilderCache
         return $this;
     }
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * QueryBuilderCache::setStatement
+     *
+     * Set Statement Query Builder cache
+     * 
+     * @param string $statement
+     */
     public function setStatement( $statement )
     {
         $this->statement = trim( $statement );
@@ -93,6 +116,12 @@ class QueryBuilderCache
 
     // ------------------------------------------------------------------------
 
+    /**
+     * QueryBuilderCache::getStatement
+     *
+     * Get Statement Query Builder cache
+     * @return string
+     */
     public function getStatement()
     {
         return $this->statement;

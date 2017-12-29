@@ -24,6 +24,8 @@ use O2System\Spl\Datastructures\SplArrayObject;
 class DataSerialize extends SplArrayObject
 {
     /**
+     * DataSerialize::__construct
+     * 
      * SimpleSerializeField constructor.
      *
      * @param array $data
@@ -42,6 +44,8 @@ class DataSerialize extends SplArrayObject
     // ------------------------------------------------------------------------
 
     /**
+     * DataSerialize::__set
+     * 
      * Magic Method __set
      *
      * @param $index
@@ -56,6 +60,8 @@ class DataSerialize extends SplArrayObject
     // ------------------------------------------------------------------------
 
     /**
+     * DataSerialize::__toArray
+     * 
      * magic Method __toArray
      *
      * @return array

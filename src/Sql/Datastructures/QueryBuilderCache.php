@@ -15,15 +15,17 @@ namespace O2System\Database\Sql\Datastructures;
 
 // ------------------------------------------------------------------------
 
-use O2System\Spl\Datastructures\SplArrayObject;
-
 /**
  * Class QueryBuilderCache
  *
  * @package O2System\Database\Sql\Datastructures
  */
-class QueryBuilderCache extends SplArrayObject
+class QueryBuilderCache extends \ArrayObject
 {
+    /**
+     * QueryBuilderCache::__construct
+     * 
+     */
     public function __construct()
     {
         parent::__construct( [
@@ -50,9 +52,18 @@ class QueryBuilderCache extends SplArrayObject
             'bracketOpen'   => false,
             'bracketCount'  => 0,
             'statement'     => null,
-        ], SplArrayObject::ARRAY_AS_PROPS );
+        ], \ArrayObject::ARRAY_AS_PROPS );
     }
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * QueryBuilderCache::setStatement
+     *
+     * Set Statement Query Builder cache
+     * 
+     * @param string $statement
+     */
     public function setStatement( $statement )
     {
         $this->offsetSet( 'statement', trim( $statement ) );
@@ -60,6 +71,13 @@ class QueryBuilderCache extends SplArrayObject
 
     // ------------------------------------------------------------------------
 
+    /**
+     * QueryBuilderCache::getStatement
+     *
+     * Get Statement Query Builder cache
+     * 
+     * @return string
+     */
     public function getStatement()
     {
         return $this->offsetGet( 'statement' );
@@ -192,6 +210,6 @@ class QueryBuilderCache extends SplArrayObject
             'bracketOpen'   => false,
             'bracketCount'  => 0,
             'statement'     => null,
-        ], $cacheKeys ), SplArrayObject::ARRAY_AS_PROPS );
+        ], $cacheKeys ), \ArrayObject::ARRAY_AS_PROPS );
     }
 }

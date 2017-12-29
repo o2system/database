@@ -289,12 +289,20 @@ abstract class AbstractConnection
 
     // ------------------------------------------------------------------------
 
+    /**
+     * AbstractConnection::cache
+     * 
+     * @param  boolean $mode
+     * @return static
+     */
     public function cache( $mode = true )
     {
         $this->cacheEnable = (bool) $mode;
 
         return $this;
     }
+
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::platformConnectHandler

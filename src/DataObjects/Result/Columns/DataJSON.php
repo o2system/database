@@ -24,6 +24,8 @@ use O2System\Spl\Datastructures\SplArrayObject;
 class DataJSON extends SplArrayObject
 {
     /**
+     * DataJSON::__construct
+     * 
      * SimpleJSONField constructor.
      *
      * @param array $data
@@ -42,7 +44,8 @@ class DataJSON extends SplArrayObject
     // ------------------------------------------------------------------------
 
     /**
-     *
+     * DataJSON::__set
+     * 
      * Magic Method __set
      *
      * @param string $index
@@ -61,6 +64,8 @@ class DataJSON extends SplArrayObject
     // ------------------------------------------------------------------------
 
     /**
+     * DataJSON__toArray
+     * 
      * Magic Method __toArray
      *
      * @return array

@@ -34,6 +34,8 @@ class Row implements
     use ArrayConversionTrait;
 
     /**
+     * Row::$columns
+     * 
      * List of result row fields
      *
      * @access  protected
@@ -455,6 +457,8 @@ class Row implements
         $this->rows = unserialize( $serialized );
     }
 
+    // ------------------------------------------------------------------------
+    
     /**
      * Specify data which should be serialized to JSON
      *

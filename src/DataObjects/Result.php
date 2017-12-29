@@ -32,6 +32,8 @@ class Result implements
     use ArrayConversionTrait;
 
     /**
+     * Result::$position
+     * 
      * SeekableIterator Position
      *
      * @access  protected
@@ -40,6 +42,8 @@ class Result implements
     private $position = 0;
 
     /**
+     * Result::$rows
+     * 
      * List of Result Rows
      *
      * @access  private
@@ -48,6 +52,8 @@ class Result implements
     private $rows = [];
 
     /**
+     * Result::$numRows
+     * 
      * Number of rows
      *
      * @access private
@@ -56,6 +62,8 @@ class Result implements
     private $numRows = 0;
 
     /**
+     * Result::$totalRows
+     * 
      * Total of rows
      *
      * @access private
@@ -151,6 +159,17 @@ class Result implements
 
     // ------------------------------------------------------------------------
 
+    /**
+     * $result::countAll
+     *
+     * Count all elements
+     * 
+     * @return int Total row as an integer.
+     *        </p>
+     *        <p>
+     *        The return value is cast to an integer.
+     * 
+     */
     public function countAll()
     {
         return $this->totalRows;
@@ -303,6 +322,8 @@ class Result implements
     // ------------------------------------------------------------------------
 
     /**
+     * Result::offsetExists
+     * 
      * Whether a offset exists
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetexists.php
@@ -325,6 +346,8 @@ class Result implements
     // ------------------------------------------------------------------------
 
     /**
+     * Result::offsetGet
+     * 
      * Offset to retrieve
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetget.php
@@ -348,6 +371,8 @@ class Result implements
     // ------------------------------------------------------------------------
 
     /**
+     * Result::offsetSet
+     * 
      * Offset to set
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetset.php
@@ -372,6 +397,8 @@ class Result implements
     // ------------------------------------------------------------------------
 
     /**
+     * Result::offsetUnset
+     * 
      * Offset to unset
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetunset.php
@@ -393,6 +420,8 @@ class Result implements
     // ------------------------------------------------------------------------
 
     /**
+     * Result::serialize
+     * 
      * String representation of object
      *
      * @link  http://php.net/manual/en/serializable.serialize.php
@@ -407,6 +436,8 @@ class Result implements
     // ------------------------------------------------------------------------
 
     /**
+     * Result::unserialize
+     * 
      * Constructs the object
      *
      * @link  http://php.net/manual/en/serializable.unserialize.php
@@ -423,7 +454,11 @@ class Result implements
         $this->rows = unserialize( $serialized );
     }
 
+    // ------------------------------------------------------------------------
+
     /**
+     * Result::jsonSerialize
+     * 
      * Specify data which should be serialized to JSON
      *
      * @link  http://php.net/manual/en/jsonserializable.jsonserialize.php
