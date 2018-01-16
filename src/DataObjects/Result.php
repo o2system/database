@@ -14,6 +14,7 @@ namespace O2System\Database\DataObjects;
 
 // ------------------------------------------------------------------------
 
+use O2System\Database\DataObjects\Result\Info;
 use O2System\Database\DataObjects\Result\Row;
 use O2System\Spl\Datastructures\Traits\ArrayConversionTrait;
 
@@ -469,5 +470,20 @@ class Result implements
     public function jsonSerialize()
     {
         return $this->rows;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Result::getInfo
+     *
+     * @return \O2System\Database\DataObjects\Result\Info
+     */
+    public function getInfo()
+    {
+        return new Info([
+            'rows' => $this->countAll(),
+            'founds' => $this->count()
+        ]);
     }
 }
