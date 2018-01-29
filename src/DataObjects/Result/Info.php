@@ -41,6 +41,8 @@ class Info
             'founds' => 0,
             'pages' => 0,
         ], $total));
+
+        $this->setEntries( $this->total->founds );
     }
 
     // ------------------------------------------------------------------------
@@ -55,8 +57,28 @@ class Info
     public function setEntries( $entries )
     {
         $this->entries = (int) $entries;
+        $this->total->pages = ceil($this->total->rows / $this->entries );
+
+        $activePage = $this->getActivePage();
+
+        $this->numbering = new SplArrayObject([
+            'start' => $start = ($activePage == 1 ? 1 : ( $activePage - 1 ) * $this->entries + 1),
+            'end' =>  ( $start + $this->total->founds ) - 1
+        ]);
 
         return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Info::getEntries
+     *
+     * @return \O2System\Spl\Datastructures\SplArrayObject
+     */
+    public function getEntries()
+    {
+        return $this->entries;
     }
 
     // ------------------------------------------------------------------------
@@ -68,8 +90,6 @@ class Info
      */
     public function getTotal()
     {
-        $this->total->pages = round( $this->total->rows / $this->entries );
-
         return $this->total;
     }
 
@@ -82,11 +102,11 @@ class Info
      */
     public function getNumbering()
     {
-        $activePage = (input()->get('page') ? input()->get('page') : 1);
+        return $this->numbering;
+    }
 
-        return new SplArrayObject([
-           'start' => $start = ($activePage == 1 ? 1 : $activePage * $this->entries + 1),
-           'end' =>  $start + $this->entries
-        ]);
+    public function getActivePage()
+    {
+        return (input()->get('page') ? input()->get('page') : 1);
     }
 }

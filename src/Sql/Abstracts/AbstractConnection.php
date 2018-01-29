@@ -216,8 +216,8 @@ abstract class AbstractConnection
 
         $this->config = $config;
 
-        $this->debugEnable = $config->offsetExists( 'debugEnabled' );
-        $this->transactionEnabled = $config->offsetGet( 'transEnabled' );
+        $this->debugEnable = $config->offsetExists( 'debugEnable' );
+        $this->transactionEnabled = $config->offsetGet( 'transEnable' );
         $this->database = $config->offsetGet( 'database' );
 
         $this->connect(

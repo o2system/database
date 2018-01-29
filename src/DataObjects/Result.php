@@ -483,7 +483,7 @@ class Result implements
     {
         return new Info([
             'rows' => $this->countAll(),
-            'founds' => $this->count()
+            'founds' => $this->count(),
         ]);
     }
 }

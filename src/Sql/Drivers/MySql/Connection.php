@@ -311,7 +311,7 @@ class Connection extends AbstractConnection
         $flags = ( $config->compress === true )
             ? MYSQLI_CLIENT_COMPRESS
             : 0;
-        $this->handle = mySqli_init();
+        $this->handle = mysqli_init();
         //$this->handle->autocommit( ( $this->transactionEnabled ? true : false ) );
 
         $this->handle->options( MYSQLI_OPT_CONNECT_TIMEOUT, 10 );

@@ -1866,7 +1866,7 @@ abstract class AbstractQueryBuilder
      *
      * @return    static
      */
-    public function limit($limit, $offset = 0)
+    public function limit($limit, $offset = null)
     {
         if ( ! is_null($limit)) {
             $this->builderCache->limit = (int)$limit;
@@ -3374,7 +3374,7 @@ abstract class AbstractQueryBuilder
         if ($this->builderCache->limit) {
             if ($this->builderCache->offset) {
                 return sprintf(
-                    'LIMIT %s,%s',
+                    'LIMIT %s OFFSET %s',
                     $this->builderCache->limit,
                     $this->builderCache->offset
                 );
