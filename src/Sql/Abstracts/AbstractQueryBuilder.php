@@ -71,7 +71,7 @@ abstract class AbstractQueryBuilder
      *
      * @var string
      */
-    protected $arrayObjectConversionMethod = 'json';
+    protected $arrayObjectConversionMethod = 'json_encode';
 
     /**
      * AbstractQueryBuilder::$SqlRandomKeywords
@@ -1243,6 +1243,57 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::whereBetween
+     *
+     * Add WHERE BETWEEN Sql statement portions into Query Builder
+     *
+     * @param string $field  Input name
+     * @param array  $values Array of between values
+     *
+     * @return static
+     */
+    public function whereBetween($field, array $values = [], $escape = null)
+    {
+        return $this->prepareWhereStatement($field, implode(' AND ', $values), 'AND ', $escape, 'between');
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::orWhereBetween
+     *
+     * Add OR WHERE BETWEEN Sql statement portions into Query Builder
+     *
+     * @param string $field  Input name
+     * @param array  $values Array of between values
+     *
+     * @return static
+     */
+    public function orWhereBetween($field, array $values = [], $escape = null)
+    {
+        return $this->prepareWhereStatement($field, implode(' AND ', $values), 'OR ', $escape, 'between');
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::whereNotBetween
+     *
+     * Add WHERE NOT BETWEEN Sql statement portions into Query Builder
+     *
+     * @param string $field  Input name
+     * @param array  $values Array of between values
+     *
+     * @return static
+     */
+    public function whereNotBetween($field, array $values = [], $escape = null)
+    {
+        return $this->prepareWhereStatement($field, implode(' AND ', $values), 'OR ', $escape, 'notBetween');
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
      * AbstractQueryBuilder::prepareWhereHavingStatement
      *
      * Add WHERE, HAVING Sql statement portion into Query Builder.
@@ -1270,17 +1321,13 @@ abstract class AbstractQueryBuilder
         is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
 
         foreach ($field as $fieldName => $fieldValue) {
-            $prefix = (count($this->builderCache->{$cacheKey}) === 0)
-                ? $this->getBracketType('')
-                : $this->getBracketType($type);
-
             if ($fieldValue !== null) {
                 $operator = $this->getOperator($fieldName);
                 $fieldName = trim(str_replace($operator, '', $fieldName));
 
                 $fieldBind = $this->bind($fieldName, $fieldValue);
 
-                if (empty($operator)) {
+                if (empty($operator) && !in_array($cacheKey, ['between', 'notBetween'])) {
                     $fieldName .= ' =';
                 } else {
                     $fieldName .= $operator;
@@ -1304,10 +1351,33 @@ abstract class AbstractQueryBuilder
                 ? ' :' . $fieldBind
                 : $fieldValue;
 
-            $this->builderCache->{$cacheKey}[] = [
-                'condition' => $prefix . $fieldName . $fieldValue,
-                'escape'    => $escape,
-            ];
+            if($cacheKey === 'having') {
+                $prefix = (count($this->builderCache->having) === 0)
+                    ? $this->getBracketType('')
+                    : $this->getBracketType($type);
+
+                $this->builderCache->having[] = [
+                    'condition' => $prefix . $fieldName . $fieldValue,
+                    'escape'    => $escape,
+                ];
+            } else {
+                $prefix = (count($this->builderCache->where) === 0)
+                    ? $this->getBracketType('')
+                    : $this->getBracketType($type);
+
+                if($cacheKey === 'between') {
+                    $condition = $prefix . $fieldName . ' BETWEEN' . $fieldValue;
+                } elseif($cacheKey === 'notBetween') {
+                    $condition = $prefix . $fieldName . ' NOT BETWEEN' . $fieldValue;
+                } else {
+                    $condition = $prefix . $fieldName . $fieldValue;
+                }
+
+                $this->builderCache->where[] = [
+                    'condition' => $condition,
+                    'escape'    => $escape,
+                ];
+            }
         }
 
         return $this;
@@ -1388,57 +1458,6 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
-     * AbstractQueryBuilder::whereBetween
-     *
-     * Add WHERE BETWEEN Sql statement portions into Query Builder
-     *
-     * @param string $field  Input name
-     * @param array  $values Array of between values
-     *
-     * @return static
-     */
-    public function whereBetween($field, array $values = [], $escape = null)
-    {
-        return $this->prepareWhereStatement($field, implode(' AND ', $values), 'AND ', $escape, 'between');
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractQueryBuilder::orWhereBetween
-     *
-     * Add OR WHERE BETWEEN Sql statement portions into Query Builder
-     *
-     * @param string $field  Input name
-     * @param array  $values Array of between values
-     *
-     * @return static
-     */
-    public function orWhereBetween($field, array $values = [], $escape = null)
-    {
-        return $this->prepareWhereStatement($field, implode(' AND ', $values), 'OR ', $escape, 'between');
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractQueryBuilder::whereNotBetween
-     *
-     * Add WHERE NOT BETWEEN Sql statement portions into Query Builder
-     *
-     * @param string $field  Input name
-     * @param array  $values Array of between values
-     *
-     * @return static
-     */
-    public function whereNotBetween($field, array $values = [], $escape = null)
-    {
-        return $this->prepareWhereStatement($field, implode(' AND ', $values), 'OR ', $escape, 'not_between');
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
      * AbstractQueryBuilder::orWhereNotBetween
      *
      * Add OR WHERE NOT BETWEEN Sql statement portions into Query Builder
@@ -1450,7 +1469,7 @@ abstract class AbstractQueryBuilder
      */
     public function orWhereNotBetween($field, array $values = [], $escape = null)
     {
-        return $this->prepareWhereStatement($field, implode(' OR ', $values), 'OR ', $escape, 'not_between');
+        return $this->prepareWhereStatement($field, implode(' OR ', $values), 'OR ', $escape, 'notBetween');
     }
 
     //--------------------------------------------------------------------
@@ -2944,10 +2963,8 @@ abstract class AbstractQueryBuilder
             'From',
             'Join',
             'Where',
-            'GroupBy',
             'Having',
-            'Between',
-            'NotBetween',
+            'GroupBy',
             'OrderBy',
             'Limit',
         ];
@@ -3178,20 +3195,6 @@ abstract class AbstractQueryBuilder
                 return "\n" . sprintf(
                         'HAVING %s',
                         implode("\n", $this->builderCache->having)
-                    );
-            }
-
-            if ($cacheKey === 'between') {
-                return "\n" . sprintf(
-                        'BETWEEN %s',
-                        implode("\n", $this->builderCache->between)
-                    );
-            }
-
-            if ($cacheKey === 'notBetween') {
-                return "\n" . sprintf(
-                        'NOT BETWEEN %s',
-                        implode("\n", $this->builderCache->notBetween)
                     );
             }
 

@@ -1032,6 +1032,8 @@ abstract class AbstractConnection
                 }
 
                 $escapedValue = implode( ',', $escapedValue );
+            } elseif (strpos($bindReplace, ' AND ') !== false) {
+                $escapedValue = $bindReplace;
             } else {
                 $escapedValue = preg_quote( trim( $escapedValue, $this->config[ 'escapeCharacter' ] ) );
             }
