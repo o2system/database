@@ -969,7 +969,7 @@ abstract class AbstractConnection
      *
      * @return string
      */
-    protected function compileSqlBinds( $sqlStatement, array $binds = [] )
+    public function compileSqlBinds( $sqlStatement, array $binds = [] )
     {
         $hasSqlBinders = strpos( $sqlStatement, ':' ) !== false;
 

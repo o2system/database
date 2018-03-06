@@ -17,6 +17,7 @@ namespace O2System\Database\Sql\Abstracts;
 
 use O2System\Database\DataObjects\Result;
 use O2System\Database\Sql\Datastructures\QueryBuilderCache;
+use O2System\Database\Sql\Datastructures\QueryStatement;
 use O2System\Spl\Exceptions\RuntimeException;
 
 /**
@@ -1945,7 +1946,7 @@ abstract class AbstractQueryBuilder
             : $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
 
         if ($result) {
-            $result->setTotalRows($this->countAllResults(true));
+            $result->setTotalRows($this->countAllResults());
         }
 
         $this->cacheMode = $this->conn->getConfig('cacheEnable');
@@ -1984,7 +1985,7 @@ abstract class AbstractQueryBuilder
             : $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
 
         if ($result) {
-            $result->setTotalRows($this->countAllResults(true));
+            $result->setTotalRows($this->countAllResults());
         }
 
         $this->cacheMode = $this->conn->getConfig('cacheEnable');
@@ -2006,17 +2007,21 @@ abstract class AbstractQueryBuilder
     public function countAll()
     {
         $this->count('*', 'numrows');
-        $sqlStatement = $this->getSqlStatement();
 
-        if ($this->isSubQuery) {
+        if ($this->testMode) {
+            return $this->getSqlStatement(false);
+        } elseif ($this->isSubQuery) {
+            $queryStatement = new QueryStatement();
+            $queryStatement->setSqlStatement( $sqlStatement = $this->getSqlStatement(), $this->builderCache->binds );
+            $queryStatement->setSqlFinalStatement( $this->conn->compileSqlBinds( $sqlStatement, $this->builderCache->binds ) );
+
+            $sqlStatement = $queryStatement->getSqlFinalStatement();
+
             return '( ' . $sqlStatement . ' )';
         }
 
-        if ($this->testMode) {
-            return $sqlStatement;
-        }
-
-        $result = $this->conn->query($sqlStatement);
+        $result = $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
+        $this->builderCache->reset();
 
         if ($result->count() == 0) {
             return 0;
@@ -2033,13 +2038,11 @@ abstract class AbstractQueryBuilder
      * Perform execution of count all result from Query Builder along with WHERE, LIKE, HAVING, GROUP BY, and LIMIT Sql
      * statement.
      *
-     * @param bool $reset Whether perform reset Query Builder or not
-     *
      * @return int
      * @throws \O2System\Spl\Exceptions\RuntimeException
      * @access   public
      */
-    public function countAllResults($reset = true)
+    public function countAllResults()
     {
         // save previous
         $previousSelect = $this->builderCache->select;
@@ -2058,14 +2061,19 @@ abstract class AbstractQueryBuilder
         $this->builderCache->offset = $previousOffset;
 
         if ($this->testMode) {
-            return $sqlStatement;
+            return $this->getSqlStatement(false);
+        } elseif ($this->isSubQuery) {
+            $queryStatement = new QueryStatement();
+            $queryStatement->setSqlStatement( $sqlStatement = $this->getSqlStatement(), $this->builderCache->binds );
+            $queryStatement->setSqlFinalStatement( $this->conn->compileSqlBinds( $sqlStatement, $this->builderCache->binds ) );
+
+            $sqlStatement = $queryStatement->getSqlFinalStatement();
+
+            return '( ' . $sqlStatement . ' )';
         }
 
-        $result = $this->conn->query($sqlStatement, $this->builderCache->binds);
-
-        if ($reset === true) {
-            $this->builderCache->reset();
-        }
+        $result = $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
+        $this->builderCache->reset();
 
         if ($result->count() == 0) {
             return 0;

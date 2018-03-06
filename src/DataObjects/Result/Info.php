@@ -42,7 +42,7 @@ class Info
             'pages' => 0,
         ], $total));
 
-        $this->setEntries( $this->total->founds );
+        $this->setEntries( $this->entries );
     }
 
     // ------------------------------------------------------------------------
@@ -57,7 +57,8 @@ class Info
     public function setEntries( $entries )
     {
         $this->entries = (int) $entries;
-        $this->total->pages = ceil($this->total->rows / $this->entries );
+
+        $this->total->pages = @ceil($this->total->rows / $this->entries );
 
         $activePage = $this->getActivePage();
 
