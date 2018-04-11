@@ -1785,7 +1785,7 @@ abstract class AbstractQueryBuilder
      *
      * Add ORDER BY Sql statement portions into Query Builder.
      *
-     * @param string    $fields
+     * @param string|array $fields
      * @param string    $direction
      * @param null|bool $escape Whether not to try to escape identifiers
      *

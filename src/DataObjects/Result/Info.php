@@ -34,15 +34,15 @@ class Info
      *
      * @param array $total
      */
-    public function __construct( array $total )
+    public function __construct(array $total)
     {
         $this->total = new SplArrayObject(array_merge([
-            'rows' => 0,
+            'rows'   => 0,
             'founds' => 0,
-            'pages' => 0,
+            'pages'  => 0,
         ], $total));
 
-        $this->setEntries( $this->entries );
+        $this->setEntries($this->entries);
     }
 
     // ------------------------------------------------------------------------
@@ -54,17 +54,17 @@ class Info
      *
      * @return static
      */
-    public function setEntries( $entries )
+    public function setEntries($entries)
     {
-        $this->entries = (int) $entries;
+        $this->entries = (int)$entries;
 
-        $this->total->pages = @ceil($this->total->rows / $this->entries );
+        $this->total->pages = @ceil($this->total->rows / $this->entries);
 
         $activePage = $this->getActivePage();
 
         $this->numbering = new SplArrayObject([
-            'start' => $start = ($activePage == 1 ? 1 : ( $activePage - 1 ) * $this->entries + 1),
-            'end' =>  ( $start + $this->total->founds ) - 1
+            'start' => $start = ($activePage == 1 ? 1 : ($activePage - 1) * $this->entries + 1),
+            'end'   => ($start + $this->total->founds) - 1,
         ]);
 
         return $this;
@@ -89,8 +89,12 @@ class Info
      *
      * @return \O2System\Spl\Datastructures\SplArrayObject
      */
-    public function getTotal()
+    public function getTotal($offset = null)
     {
+        if (isset($offset)) {
+            return $this->total->offsetGet($offset);
+        }
+
         return $this->total;
     }
 
