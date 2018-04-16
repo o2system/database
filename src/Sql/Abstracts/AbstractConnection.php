@@ -38,7 +38,16 @@ abstract class AbstractConnection
      *
      * @var bool
      */
-    public $debugEnable = true;
+    public $debugEnable = false;
+
+    /**
+     * AbstractConnection::$transactionEnable
+     *
+     * Connection debug mode flag.
+     *
+     * @var bool
+     */
+    public $transactionEnable = false;
 
     /**
      * AbstractConnection::$cacheEnable
@@ -216,8 +225,8 @@ abstract class AbstractConnection
 
         $this->config = $config;
 
-        $this->debugEnable = $config->offsetExists( 'debugEnable' );
-        $this->transactionEnabled = $config->offsetGet( 'transEnable' );
+        $this->debugEnable = (bool) $config->offsetGet( 'debugEnable' );
+        $this->transactionEnable = (bool) $config->offsetGet( 'transEnable' );
         $this->database = $config->offsetGet( 'database' );
 
         $this->connect(

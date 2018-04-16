@@ -312,7 +312,7 @@ class Connection extends AbstractConnection
             ? MYSQLI_CLIENT_COMPRESS
             : 0;
         $this->handle = mysqli_init();
-        //$this->handle->autocommit( ( $this->transactionEnabled ? true : false ) );
+        //$this->handle->autocommit( ( $this->transactionEnable ? true : false ) );
 
         $this->handle->options( MYSQLI_OPT_CONNECT_TIMEOUT, 10 );
 
@@ -405,7 +405,7 @@ class Connection extends AbstractConnection
                 // 'MySqli was configured for an SSL connection, but got an unencrypted connection instead!';
                 logger()->error( 'E_DB_CONNECTION_SSL', [ $this->platform ] );
 
-                if ( $config->debug ) {
+                if ( $config->debugEnable ) {
                     throw new RuntimeException( 'E_DB_CONNECTION_SSL' );
                 }
 
@@ -417,7 +417,7 @@ class Connection extends AbstractConnection
                 logger()->error( 'E_DB_CONNECTION_CHARSET', [ $config->charset ] );
                 $this->handle->close();
 
-                if ( $config->debug ) {
+                if ( $config->debugEnable ) {
                     // 'Unable to set client connection character set: ' . $this->charset
                     throw new RuntimeException( 'E_DB_CONNECTION_CHARSET', [ $config->charset ] );
                 }
