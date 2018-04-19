@@ -171,13 +171,13 @@ class Connection extends AbstractConnection
     {
         if ( empty( $this->queriesResultCache[ 'tableNames' ] ) ) {
 
-            $SqlStatement = 'SHOW TABLES FROM ' . $this->escapeIdentifiers( $this->config[ 'database' ] );
+            $sqlStatement = 'SHOW TABLES FROM ' . $this->escapeIdentifiers( $this->config[ 'database' ] );
 
             if ( $prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '' ) {
-                $SqlStatement .= " LIKE '" . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%'";
+                $sqlStatement .= " LIKE '" . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%'";
             }
 
-            $result = $this->query( $SqlStatement );
+            $result = $this->query( $sqlStatement );
 
             if ( $result->count() ) {
                 foreach ( $result as $row ) {
@@ -617,20 +617,20 @@ class Connection extends AbstractConnection
      *
      * Platform preparing a Sql statement.
      *
-     * @param string $SqlStatement Sql Statement to be prepared.
+     * @param string $sqlStatement Sql Statement to be prepared.
      * @param array  $options      Preparing Sql statement options.
      *
      * @return string
      */
-    protected function platformPrepareSqlStatement( $SqlStatement, array $options = [] )
+    protected function platformPrepareSqlStatement( $sqlStatement, array $options = [] )
     {
         // mySqli_affected_rows() returns 0 for "DELETE FROM TABLE" queries. This hack
         // modifies the query so that it a proper number of affected rows is returned.
-        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $SqlStatement ) ) {
-            return trim( $SqlStatement ) . ' WHERE 1=1';
+        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $sqlStatement ) ) {
+            return trim( $sqlStatement ) . ' WHERE 1=1';
         }
 
-        return $SqlStatement;
+        return $sqlStatement;
     }
 
     // ------------------------------------------------------------------------

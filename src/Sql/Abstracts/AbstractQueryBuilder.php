@@ -3044,6 +3044,8 @@ abstract class AbstractQueryBuilder
             $sqlStatement = sprintf($sqlStatement, $SqlSelectStatement);
         }
 
+        $sqlStatement = str_replace( 'SELECT', 'SELECT SQL_CALC_FOUND_ROWS', $sqlStatement );
+
         return trim($sqlStatement);
     }
 
