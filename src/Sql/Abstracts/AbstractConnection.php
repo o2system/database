@@ -38,7 +38,16 @@ abstract class AbstractConnection
      *
      * @var bool
      */
-    public $debugEnable = true;
+    public $debugEnable = false;
+
+    /**
+     * AbstractConnection::$transactionEnable
+     *
+     * Connection debug mode flag.
+     *
+     * @var bool
+     */
+    public $transactionEnable = false;
 
     /**
      * AbstractConnection::$cacheEnable
@@ -195,17 +204,17 @@ abstract class AbstractConnection
      *
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function __construct( Config $config )
+    public function __construct(Config $config)
     {
         language()
-            ->addFilePath( str_replace( 'Sql' . DIRECTORY_SEPARATOR . 'Abstracts', '', __DIR__ ) . DIRECTORY_SEPARATOR )
-            ->loadFile( 'database' );
+            ->addFilePath(str_replace('Sql' . DIRECTORY_SEPARATOR . 'Abstracts', '', __DIR__) . DIRECTORY_SEPARATOR)
+            ->loadFile('database');
 
         $config->merge(
             array_merge(
                 [
                     'escapeCharacter'     => '"',
-                    'reservedIdentifiers' => [ '*' ],
+                    'reservedIdentifiers' => ['*'],
                     'likeEscapeStatement' => ' ESCAPE \'%s\' ',
                     'likeEscapeCharacter' => '!',
                     'bindMarker'          => '?',
@@ -216,12 +225,12 @@ abstract class AbstractConnection
 
         $this->config = $config;
 
-        $this->debugEnable = $config->offsetExists( 'debugEnable' );
-        $this->transactionEnabled = $config->offsetGet( 'transEnable' );
-        $this->database = $config->offsetGet( 'database' );
+        $this->debugEnable = (bool)$config->offsetGet('debugEnable');
+        $this->transactionEnable = (bool)$config->offsetGet('transEnable');
+        $this->database = $config->offsetGet('database');
 
         $this->connect(
-            ( $config->offsetExists( 'persistent' )
+            ($config->offsetExists('persistent')
                 ? $this->persistent = $config->persistent
                 : true
             )
@@ -240,7 +249,7 @@ abstract class AbstractConnection
      * @return void
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    final public function connect( $persistent = true )
+    final public function connect($persistent = true)
     {
         /* If an established connection is available, then there's
          * no need to connect and select the database.
@@ -248,30 +257,30 @@ abstract class AbstractConnection
          * Depending on the database driver, conn_id can be either
          * boolean TRUE, a resource or an object.
          */
-        if ( $this->handle ) {
+        if ($this->handle) {
             return;
         }
 
         //--------------------------------------------------------------------
 
         $this->persistent = $persistent;
-        $this->connectTimeStart = microtime( true );
+        $this->connectTimeStart = microtime(true);
 
         // Connect to the database and set the connection ID
-        $this->platformConnectHandler( $this->config );
+        $this->platformConnectHandler($this->config);
 
         // No connection resource? Check if there is a failover else throw an error
-        if ( ! $this->handle ) {
+        if ( ! $this->handle) {
             // Check if there is a failover set
-            if ( ! empty( $this->config[ 'failover' ] ) && is_array( $this->config[ 'failover' ] ) ) {
+            if ( ! empty($this->config[ 'failover' ]) && is_array($this->config[ 'failover' ])) {
                 // Go over all the failovers
-                foreach ( $this->config[ 'failover' ] as $failover ) {
+                foreach ($this->config[ 'failover' ] as $failover) {
 
                     // Try to connect
-                    $this->platformConnectHandler( $failover = new Config( $failover ) );
+                    $this->platformConnectHandler($failover = new Config($failover));
 
                     // If a connection is made break the foreach loop
-                    if ( $this->handle ) {
+                    if ($this->handle) {
                         $this->config = $failover;
                         break;
                     }
@@ -279,25 +288,26 @@ abstract class AbstractConnection
             }
 
             // We still don't have a connection?
-            if ( ! $this->handle ) {
-                throw new RuntimeException( 'DB_E_UNABLE_TO_CONNECT', 0, [ $this->platform ] );
+            if ( ! $this->handle) {
+                throw new RuntimeException('DB_E_UNABLE_TO_CONNECT', 0, [$this->platform]);
             }
         }
 
-        $this->connectTimeDuration = microtime( true ) - $this->connectTimeStart;
+        $this->connectTimeDuration = microtime(true) - $this->connectTimeStart;
     }
 
     // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::cache
-     * 
+     *
      * @param  boolean $mode
+     *
      * @return static
      */
-    public function cache( $mode = true )
+    public function cache($mode = true)
     {
-        $this->cacheEnable = (bool) $mode;
+        $this->cacheEnable = (bool)$mode;
 
         return $this;
     }
@@ -313,7 +323,7 @@ abstract class AbstractConnection
      *
      * @return mixed
      */
-    abstract protected function platformConnectHandler( Config $config );
+    abstract protected function platformConnectHandler(Config $config);
 
     //--------------------------------------------------------------------
 
@@ -351,7 +361,7 @@ abstract class AbstractConnection
      */
     public function getPlatformInfo()
     {
-        if ( isset( $this->queriesResultCache[ 'platformInfo' ] ) ) {
+        if (isset($this->queriesResultCache[ 'platformInfo' ])) {
             return $this->queriesResultCache[ 'platformInfo' ];
         }
 
@@ -381,8 +391,8 @@ abstract class AbstractConnection
      */
     public function reconnect()
     {
-        if ( empty( $this->handle ) ) {
-            $this->platformConnectHandler( $this->config );
+        if (empty($this->handle)) {
+            $this->platformConnectHandler($this->config);
         }
     }
 
@@ -397,9 +407,9 @@ abstract class AbstractConnection
      */
     final public function connected()
     {
-        return (bool) ( $this->handle === false
+        return (bool)($this->handle === false
             ? false
-            : true );
+            : true);
     }
 
     //--------------------------------------------------------------------
@@ -413,7 +423,7 @@ abstract class AbstractConnection
      */
     final public function disconnect()
     {
-        if ( $this->handle ) {
+        if ($this->handle) {
             $this->platformDisconnectHandler();
             $this->handle = false;
         }
@@ -444,7 +454,7 @@ abstract class AbstractConnection
      */
     final public function getConnectTimeStart()
     {
-        return (int) $this->connectTimeStart;
+        return (int)$this->connectTimeStart;
     }
 
     // ------------------------------------------------------------------------
@@ -461,9 +471,9 @@ abstract class AbstractConnection
      *
      * @return mixed
      */
-    final public function getConnectTimeDuration( $decimals = 6 )
+    final public function getConnectTimeDuration($decimals = 6)
     {
-        return number_format( $this->connectTimeDuration, $decimals );
+        return number_format($this->connectTimeDuration, $decimals);
     }
 
     // ------------------------------------------------------------------------
@@ -492,7 +502,7 @@ abstract class AbstractConnection
      */
     final public function getQueriesCount()
     {
-        return (int) count( $this->queriesCache );
+        return (int)count($this->queriesCache);
     }
 
     //--------------------------------------------------------------------
@@ -506,7 +516,7 @@ abstract class AbstractConnection
      */
     public function getLastQuery()
     {
-        return end( $this->queriesCache );
+        return end($this->queriesCache);
     }
 
     //--------------------------------------------------------------------
@@ -520,7 +530,7 @@ abstract class AbstractConnection
      *
      * @return static
      */
-    public function setDatabase( $database )
+    public function setDatabase($database)
     {
         $this->database = $database;
 
@@ -550,13 +560,13 @@ abstract class AbstractConnection
      *
      * @return bool Returns false if database doesn't exists.
      */
-    final public function hasDatabase( $databaseName )
+    final public function hasDatabase($databaseName)
     {
-        if ( empty( $this->queriesResultCache[ 'databaseNames' ] ) ) {
+        if (empty($this->queriesResultCache[ 'databaseNames' ])) {
             $this->getDatabases();
         }
 
-        return (bool) in_array( $databaseName, $this->queriesResultCache[ 'databaseNames' ] );
+        return (bool)in_array($databaseName, $this->queriesResultCache[ 'databaseNames' ]);
     }
 
     // ------------------------------------------------------------------------
@@ -568,7 +578,7 @@ abstract class AbstractConnection
      *
      * @return string
      */
-    final public function setTablePrefix( $tablePrefix )
+    final public function setTablePrefix($tablePrefix)
     {
         return $this->config[ 'tablePrefix' ] = $tablePrefix;
     }
@@ -582,15 +592,15 @@ abstract class AbstractConnection
      *
      * @return string Returns prefixed table name.
      */
-    final public function prefixTable( $tableName )
+    final public function prefixTable($tableName)
     {
         $tablePrefix = $this->config[ 'tablePrefix' ];
 
-        if ( empty( $tablePrefix ) ) {
+        if (empty($tablePrefix)) {
             return $tableName;
         }
 
-        return $tablePrefix . str_replace( $tablePrefix, '', $tableName );
+        return $tablePrefix . str_replace($tablePrefix, '', $tableName);
     }
 
     // ------------------------------------------------------------------------
@@ -605,7 +615,7 @@ abstract class AbstractConnection
      * @return array Returns an array
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    abstract public function getTables( $prefixLimit = false );
+    abstract public function getTables($prefixLimit = false);
 
     // ------------------------------------------------------------------------
 
@@ -618,15 +628,15 @@ abstract class AbstractConnection
      *
      * @return bool
      */
-    public function hasTable( $table )
+    public function hasTable($table)
     {
-        $table = $this->prefixTable( $table );
+        $table = $this->prefixTable($table);
 
-        if ( empty( $this->queriesResultCache[ 'tableNames' ] ) ) {
+        if (empty($this->queriesResultCache[ 'tableNames' ])) {
             $this->getTables();
         }
 
-        return (bool) in_array( $table, $this->queriesResultCache[ 'tableNames' ] );
+        return (bool)in_array($table, $this->queriesResultCache[ 'tableNames' ]);
     }
 
     // ------------------------------------------------------------------------
@@ -639,7 +649,7 @@ abstract class AbstractConnection
      * @return array
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    abstract public function getColumns( $table );
+    abstract public function getColumns($table);
 
     // ------------------------------------------------------------------------
 
@@ -653,15 +663,15 @@ abstract class AbstractConnection
      *
      * @return bool
      */
-    public function hasColumn( $column, $table )
+    public function hasColumn($column, $table)
     {
-        $table = $this->prefixTable( $table );
+        $table = $this->prefixTable($table);
 
-        if ( empty( $this->queriesResultCache[ 'tableColumns' ][ $table ] ) ) {
-            $this->getColumns( $table );
+        if (empty($this->queriesResultCache[ 'tableColumns' ][ $table ])) {
+            $this->getColumns($table);
         }
 
-        return (bool) isset( $this->queriesResultCache[ 'tableColumns' ][ $table ][ $column ] );
+        return (bool)isset($this->queriesResultCache[ 'tableColumns' ][ $table ][ $column ]);
     }
 
     // ------------------------------------------------------------------------
@@ -698,26 +708,26 @@ abstract class AbstractConnection
      * @return bool
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function execute( $sqlStatement )
+    public function execute($sqlStatement)
     {
-        if ( empty( $this->handle ) ) {
+        if (empty($this->handle)) {
             $this->connect();
         }
 
         $queryStatement = new QueryStatement();
-        $queryStatement->setSqlStatement( $sqlStatement );
-        $queryStatement->setSqlFinalStatement( $sqlStatement );
+        $queryStatement->setSqlStatement($sqlStatement);
+        $queryStatement->setSqlFinalStatement($sqlStatement);
 
-        $startTime = microtime( true );
-        $result = $this->platformExecuteHandler( $queryStatement );
+        $startTime = microtime(true);
+        $result = $this->platformExecuteHandler($queryStatement);
 
-        $queryStatement->setDuration( $startTime );
-        $queryStatement->setAffectedRows( $this->getAffectedRows() );
-        $queryStatement->setLastInsertId( $this->getLastInsertId() );
+        $queryStatement->setDuration($startTime);
+        $queryStatement->setAffectedRows($this->getAffectedRows());
+        $queryStatement->setLastInsertId($this->getLastInsertId());
 
         $this->queriesCache[] = $queryStatement;
 
-        return (bool) $result;
+        return (bool)$result;
     }
 
     // ------------------------------------------------------------------------
@@ -731,7 +741,7 @@ abstract class AbstractConnection
      *
      * @return bool
      */
-    abstract protected function platformExecuteHandler( QueryStatement &$queryStatement );
+    abstract protected function platformExecuteHandler(QueryStatement &$queryStatement);
 
     // ------------------------------------------------------------------------
 
@@ -744,80 +754,83 @@ abstract class AbstractConnection
      * @return bool|\O2System\Database\DataObjects\Result Returns boolean if the query is contains writing syntax
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function query( $sqlStatement, array $binds = [] )
+    public function query($sqlStatement, array $binds = [])
     {
-        if ( empty( $this->handle ) ) {
-            $this->connect( $this->persistent );
+        if (empty($this->handle)) {
+            $this->connect($this->persistent);
         }
 
         $result = false;
         $queryStatement = new QueryStatement();
 
-        $queryStatement->setSqlStatement( $sqlStatement, $binds );
-        $queryStatement->setSqlFinalStatement( $this->compileSqlBinds( $sqlStatement, $binds ) );
+        $queryStatement->setSqlStatement($sqlStatement, $binds);
+        $queryStatement->setSqlFinalStatement($this->compileSqlBinds($sqlStatement, $binds));
 
-        if ( ! empty( $this->swapTablePrefix ) AND ! empty( $this->config->tablePrefix ) ) {
-            $queryStatement->swapTablePrefix( $this->config->tablePrefix, $this->swapTablePrefix );
+        if ( ! empty($this->swapTablePrefix) AND ! empty($this->config->tablePrefix)) {
+            $queryStatement->swapTablePrefix($this->config->tablePrefix, $this->swapTablePrefix);
         }
 
-        $startTime = microtime( true );
+        $startTime = microtime(true);
 
         // Run the query for real
-        if ( $this->disableQueryExecution === false ) {
-            if ( $queryStatement->isWriteStatement() ) {
-                $result = $this->platformExecuteHandler( $queryStatement );
+        if ($this->disableQueryExecution === false) {
+            if ($queryStatement->isWriteStatement()) {
+                $result = $this->platformExecuteHandler($queryStatement);
 
-                if ( $this->transactionInProgress ) {
+                if ($this->transactionInProgress) {
                     $this->transactionStatus = $result;
                 }
             } else {
-                if ( class_exists( 'O2System\Framework', false ) &&
+                if (class_exists('O2System\Framework', false) &&
                     $this->cacheEnable === true
                 ) {
-                    $cacheKey = 'query-' . md5( $queryStatement );
-                    $cacheHandle = cache()->getItemPool( 'default' );
+                    $cacheKey = $queryStatement->getKey();
+                    $cacheHandle = cache()->getItemPool('default');
 
-                    if ( cache()->hasItemPool( 'database' ) ) {
-                        $cacheHandle = cache()->getItemPool( 'output' );
+                    if (cache()->hasItemPool('database')) {
+                        $cacheHandle = cache()->getItemPool('output');
                     }
 
-                    if ( $cacheHandle instanceof \O2System\Psr\Cache\CacheItemPoolInterface ) {
-                        if ( $cacheHandle->hasItem( $cacheKey ) ) {
-                            $rows = $cacheHandle->getItem( $cacheKey )->get();
+                    if ($cacheHandle instanceof \O2System\Psr\Cache\CacheItemPoolInterface) {
+                        if ($cacheHandle->hasItem($cacheKey)) {
+                            $rows = $cacheHandle->getItem($cacheKey)->get();
                         } else {
-                            $rows = $this->platformQueryHandler( $queryStatement );
-                            $cacheHandle->save( new Item( $cacheKey, $rows ) );
+                            $rows = $this->platformQueryHandler($queryStatement);
+                            $cacheHandle->save(new Item($cacheKey, $rows));
                         }
                     }
 
-                    if ( ! isset( $rows ) ) {
-                        $rows = $this->platformQueryHandler( $queryStatement );
+                    if ( ! isset($rows)) {
+                        $rows = $this->platformQueryHandler($queryStatement);
                     }
 
-                    $this->cache( $this->config->cacheEnable );
+                    $this->cache($this->config->cacheEnable);
 
                 } else {
-                    $rows = $this->platformQueryHandler( $queryStatement );
+                    $rows = $this->platformQueryHandler($queryStatement);
                 }
 
-                $result = new Result( $rows );
+                $result = new Result($rows);
 
-                if ( $this->transactionInProgress ) {
-                    $this->transactionStatus = ( $queryStatement->hasError() ? false : true );
+                if ($this->transactionInProgress) {
+                    $this->transactionStatus = ($queryStatement->hasError() ? false : true);
                 }
             }
         }
 
-        $queryStatement->setDuration( $startTime );
+        $queryStatement->setDuration($startTime);
+        $queryStatement->addHit(1);
 
-        $this->queriesCache[] = $queryStatement;
+        if ( ! array_key_exists($queryStatement->getKey(), $this->queriesCache)) {
+            $this->queriesCache[ $queryStatement->getKey() ] = $queryStatement;
+        }
 
-        if ( $queryStatement->hasError() ) {
-            if ( $this->debugEnable ) {
-                throw new RuntimeException( $queryStatement->getErrorMessage(), $queryStatement->getErrorCode() );
+        if ($queryStatement->hasError()) {
+            if ($this->debugEnable) {
+                throw new RuntimeException($queryStatement->getErrorMessage(), $queryStatement->getErrorCode());
             }
 
-            if ( $this->transactionInProgress ) {
+            if ($this->transactionInProgress) {
                 $this->transactionStatus = false;
                 $this->transactionRollBack();
                 $this->transactionInProgress = false;
@@ -840,7 +853,7 @@ abstract class AbstractConnection
      *
      * @return array
      */
-    abstract protected function platformQueryHandler( QueryStatement &$queryStatement );
+    abstract protected function platformQueryHandler(QueryStatement &$queryStatement);
 
     // ------------------------------------------------------------------------
 
@@ -853,7 +866,7 @@ abstract class AbstractConnection
      */
     public function getTransactionStatus()
     {
-        return (bool) $this->transactionStatus;
+        return (bool)$this->transactionStatus;
     }
 
     //--------------------------------------------------------------------
@@ -873,13 +886,13 @@ abstract class AbstractConnection
          * checks if the transaction already started
          * then we only increment the transaction depth.
          */
-        if ( $this->transactionDepth > 0 ) {
+        if ($this->transactionDepth > 0) {
             $this->transactionDepth++;
 
             return true;
         }
 
-        if ( $this->platformTransactionBeginHandler() ) {
+        if ($this->platformTransactionBeginHandler()) {
             $this->transactionInProgress = true;
             $this->transactionDepth++;
 
@@ -909,7 +922,7 @@ abstract class AbstractConnection
      */
     public function transactionRollBack()
     {
-        if ( $this->transactionInProgress ) {
+        if ($this->transactionInProgress) {
             return $this->platformTransactionRollBackHandler();
         }
 
@@ -938,8 +951,8 @@ abstract class AbstractConnection
      */
     public function transactionCommit()
     {
-        if ( $this->transactionInProgress ) {
-            if ( $this->transactionStatus ) {
+        if ($this->transactionInProgress) {
+            if ($this->transactionStatus) {
                 $this->platformTransactionCommitHandler();
 
                 return true;
@@ -969,38 +982,38 @@ abstract class AbstractConnection
      *
      * @return string
      */
-    public function compileSqlBinds( $sqlStatement, array $binds = [] )
+    public function compileSqlBinds($sqlStatement, array $binds = [])
     {
-        $hasSqlBinders = strpos( $sqlStatement, ':' ) !== false;
+        $hasSqlBinders = strpos($sqlStatement, ':') !== false;
 
-        if ( empty( $binds ) || empty( $this->config[ 'bindMarker' ] ) ||
-            ( strpos( $sqlStatement, $this->config[ 'bindMarker' ] ) === false &&
-                $hasSqlBinders === false )
+        if (empty($binds) || empty($this->config[ 'bindMarker' ]) ||
+            (strpos($sqlStatement, $this->config[ 'bindMarker' ]) === false &&
+                $hasSqlBinders === false)
         ) {
             return $sqlStatement;
         }
 
-        if ( ! is_array( $binds ) ) {
-            $sqlBinds = [ $binds ];
+        if ( ! is_array($binds)) {
+            $sqlBinds = [$binds];
             $bindCount = 1;
         } else {
             $sqlBinds = $binds;
-            $bindCount = count( $sqlBinds );
+            $bindCount = count($sqlBinds);
         }
 
         // Reverse the binds so that duplicate named binds
         // will be processed prior to the original binds.
-        if ( ! is_numeric( key( array_slice( $sqlBinds, 0, 1 ) ) ) ) {
-            $sqlBinds = array_reverse( $sqlBinds );
+        if ( ! is_numeric(key(array_slice($sqlBinds, 0, 1)))) {
+            $sqlBinds = array_reverse($sqlBinds);
         }
 
         // We'll need marker length later
-        $markerLength = strlen( $this->config[ 'bindMarker' ] );
+        $markerLength = strlen($this->config[ 'bindMarker' ]);
 
-        if ( $hasSqlBinders ) {
-            $sqlStatement = $this->replaceNamedBinds( $sqlStatement, $sqlBinds );
+        if ($hasSqlBinders) {
+            $sqlStatement = $this->replaceNamedBinds($sqlStatement, $sqlBinds);
         } else {
-            $sqlStatement = $this->replaceSimpleBinds( $sqlStatement, $sqlBinds, $bindCount, $markerLength );
+            $sqlStatement = $this->replaceSimpleBinds($sqlStatement, $sqlBinds, $bindCount, $markerLength);
         }
 
         return $sqlStatement . ';';
@@ -1018,31 +1031,31 @@ abstract class AbstractConnection
      *
      * @return string
      */
-    protected function replaceNamedBinds( $sqlStatement, array $sqlBinds )
+    protected function replaceNamedBinds($sqlStatement, array $sqlBinds)
     {
-        foreach ( $sqlBinds as $bindSearch => $bindReplace ) {
-            $escapedValue = $this->escape( $bindReplace );
+        foreach ($sqlBinds as $bindSearch => $bindReplace) {
+            $escapedValue = $this->escape($bindReplace);
 
             // In order to correctly handle backlashes in saved strings
             // we will need to preg_quote, so remove the wrapping escape characters
             // otherwise it will get escaped.
-            if ( is_array( $bindReplace ) ) {
-                foreach ( $bindReplace as &$bindReplaceItem ) {
-                    $bindReplaceItem = preg_quote( $bindReplaceItem );
+            if (is_array($bindReplace)) {
+                foreach ($bindReplace as &$bindReplaceItem) {
+                    $bindReplaceItem = preg_quote($bindReplaceItem);
                 }
 
-                $escapedValue = implode( ',', $escapedValue );
+                $escapedValue = implode(',', $escapedValue);
             } elseif (strpos($bindReplace, ' AND ') !== false) {
                 $escapedValue = $bindReplace;
             } else {
-                $escapedValue = preg_quote( trim( $escapedValue, $this->config[ 'escapeCharacter' ] ) );
+                $escapedValue = preg_quote(trim($escapedValue, $this->config[ 'escapeCharacter' ]));
             }
 
-            if ( preg_match( "/\(.+?\)/", $bindSearch ) ) {
-                $bindSearch = str_replace( '(', '\(', str_replace( ')', '\)', $bindSearch ) );
+            if (preg_match("/\(.+?\)/", $bindSearch)) {
+                $bindSearch = str_replace('(', '\(', str_replace(')', '\)', $bindSearch));
             }
 
-            $sqlStatement = preg_replace( '/:' . $bindSearch . '(?!\w)/', $escapedValue, $sqlStatement );
+            $sqlStatement = preg_replace('/:' . $bindSearch . '(?!\w)/', $escapedValue, $sqlStatement);
         }
 
         return $sqlStatement;
@@ -1062,15 +1075,15 @@ abstract class AbstractConnection
      *
      * @return string
      */
-    protected function replaceSimpleBinds( $sqlStatement, array $sqlBinds, $bindCount, $markerLength )
+    protected function replaceSimpleBinds($sqlStatement, array $sqlBinds, $bindCount, $markerLength)
     {
         // Make sure not to replace a chunk inside a string that happens to match the bind marker
-        if ( $chunk = preg_match_all( "/'[^']*'/i", $sqlStatement, $matches ) ) {
+        if ($chunk = preg_match_all("/'[^']*'/i", $sqlStatement, $matches)) {
             $chunk = preg_match_all(
-                '/' . preg_quote( $this->config[ 'bindMarker' ], '/' ) . '/i',
+                '/' . preg_quote($this->config[ 'bindMarker' ], '/') . '/i',
                 str_replace(
                     $matches[ 0 ],
-                    str_replace( $this->config[ 'bindMarker' ], str_repeat( ' ', $markerLength ), $matches[ 0 ] ),
+                    str_replace($this->config[ 'bindMarker' ], str_repeat(' ', $markerLength), $matches[ 0 ]),
                     $sqlStatement,
                     $chunk
                 ),
@@ -1079,17 +1092,17 @@ abstract class AbstractConnection
             );
 
             // Bind values' count must match the count of markers in the query
-            if ( $bindCount !== $chunk ) {
+            if ($bindCount !== $chunk) {
                 return $sqlStatement;
             }
         } // Number of binds must match bindMarkers in the string.
         else {
-            if ( ( $chunk = preg_match_all(
-                    '/' . preg_quote( $this->config[ 'bindMarker' ], '/' ) . '/i',
+            if (($chunk = preg_match_all(
+                    '/' . preg_quote($this->config[ 'bindMarker' ], '/') . '/i',
                     $sqlStatement,
                     $matches,
                     PREG_OFFSET_CAPTURE
-                ) ) !== $bindCount
+                )) !== $bindCount
             ) {
                 return $sqlStatement;
             }
@@ -1097,12 +1110,12 @@ abstract class AbstractConnection
 
         do {
             $chunk--;
-            $escapedValue = $this->escape( $sqlBinds[ $chunk ] );
-            if ( is_array( $escapedValue ) ) {
-                $escapedValue = '(' . implode( ',', $escapedValue ) . ')';
+            $escapedValue = $this->escape($sqlBinds[ $chunk ]);
+            if (is_array($escapedValue)) {
+                $escapedValue = '(' . implode(',', $escapedValue) . ')';
             }
-            $sqlStatement = substr_replace( $sqlStatement, $escapedValue, $matches[ 0 ][ $chunk ][ 1 ], $markerLength );
-        } while ( $chunk !== 0 );
+            $sqlStatement = substr_replace($sqlStatement, $escapedValue, $matches[ 0 ][ $chunk ][ 1 ], $markerLength);
+        } while ($chunk !== 0);
 
         return $sqlStatement;
     }
@@ -1120,48 +1133,48 @@ abstract class AbstractConnection
      *
      * @return    mixed
      */
-    final public function escapeIdentifiers( $item )
+    final public function escapeIdentifiers($item)
     {
-        if ( $this->config[ 'escapeCharacter' ] === '' OR empty( $item ) OR in_array(
+        if ($this->config[ 'escapeCharacter' ] === '' OR empty($item) OR in_array(
                 $item,
                 $this->config[ 'reservedIdentifiers' ]
             )
         ) {
             return $item;
-        } elseif ( is_array( $item ) ) {
-            foreach ( $item as $key => $value ) {
-                $item[ $key ] = $this->escapeIdentifiers( $value );
+        } elseif (is_array($item)) {
+            foreach ($item as $key => $value) {
+                $item[ $key ] = $this->escapeIdentifiers($value);
             }
 
             return $item;
         } // Avoid breaking functions and literal values inside queries
-        elseif ( ctype_digit(
+        elseif (ctype_digit(
                 $item
-            ) OR $item[ 0 ] === "'" OR ( $this->config[ 'escapeCharacter' ] !== '"' && $item[ 0 ] === '"' ) OR
-            strpos( $item, '(' ) !== false
+            ) OR $item[ 0 ] === "'" OR ($this->config[ 'escapeCharacter' ] !== '"' && $item[ 0 ] === '"') OR
+            strpos($item, '(') !== false
         ) {
             return $item;
         }
 
         static $pregEscapeCharacters = [];
 
-        if ( empty( $pregEscapeCharacters ) ) {
-            if ( is_array( $this->config[ 'escapeCharacter' ] ) ) {
+        if (empty($pregEscapeCharacters)) {
+            if (is_array($this->config[ 'escapeCharacter' ])) {
                 $pregEscapeCharacters = [
-                    preg_quote( $this->config[ 'escapeCharacter' ][ 0 ], '/' ),
-                    preg_quote( $this->config[ 'escapeCharacter' ][ 1 ], '/' ),
+                    preg_quote($this->config[ 'escapeCharacter' ][ 0 ], '/'),
+                    preg_quote($this->config[ 'escapeCharacter' ][ 1 ], '/'),
                     $this->config[ 'escapeCharacter' ][ 0 ],
                     $this->config[ 'escapeCharacter' ][ 1 ],
                 ];
             } else {
                 $pregEscapeCharacters[ 0 ]
-                    = $pregEscapeCharacters[ 1 ] = preg_quote( $this->config[ 'escapeCharacter' ], '/' );
+                    = $pregEscapeCharacters[ 1 ] = preg_quote($this->config[ 'escapeCharacter' ], '/');
                 $pregEscapeCharacters[ 2 ] = $pregEscapeCharacters[ 3 ] = $this->config[ 'escapeCharacter' ];
             }
         }
 
-        foreach ( $this->config[ 'reservedIdentifiers' ] as $id ) {
-            if ( strpos( $item, '.' . $id ) !== false ) {
+        foreach ($this->config[ 'reservedIdentifiers' ] as $id) {
+            if (strpos($item, '.' . $id) !== false) {
                 return preg_replace(
                     '/'
                     . $pregEscapeCharacters[ 0 ]
@@ -1200,9 +1213,9 @@ abstract class AbstractConnection
      *
      * @return array|string|\string[]
      */
-    final public function escapeLikeString( $string )
+    final public function escapeLikeString($string)
     {
-        return $this->escapeString( $string, true );
+        return $this->escapeString($string, true);
     }
 
     // ------------------------------------------------------------------------
@@ -1217,22 +1230,22 @@ abstract class AbstractConnection
      *
      * @return array|string|\string[]
      */
-    final public function escapeString( $string, $like = false )
+    final public function escapeString($string, $like = false)
     {
-        if ( is_array( $string ) ) {
-            foreach ( $string as $key => $value ) {
-                $string[ $key ] = $this->escapeString( $value, $like );
+        if (is_array($string)) {
+            foreach ($string as $key => $value) {
+                $string[ $key ] = $this->escapeString($value, $like);
             }
 
             return $string;
         }
 
-        $string = $this->platformEscapeStringHandler( $string );
+        $string = $this->platformEscapeStringHandler($string);
 
         // escape LIKE condition wildcards
-        if ( $like === true ) {
+        if ($like === true) {
             $string = str_replace(
-                [ $this->config[ 'likeEscapeCharacter' ], '%', '_' ],
+                [$this->config[ 'likeEscapeCharacter' ], '%', '_'],
                 [
                     $this->config[ 'likeEscapeCharacter' ] . $this->config[ 'likeEscapeCharacter' ],
                     $this->config[ 'likeEscapeCharacter' ] . '%',
@@ -1243,7 +1256,7 @@ abstract class AbstractConnection
         }
 
         // fixed escaping string bugs !_
-        $string = str_replace( '!_', '_', $string );
+        $string = str_replace('!_', '_', $string);
 
         return $string;
     }
@@ -1259,9 +1272,9 @@ abstract class AbstractConnection
      *
      * @return string
      */
-    protected function platformEscapeStringHandler( $string )
+    protected function platformEscapeStringHandler($string)
     {
-        return str_replace( "'", "''", remove_invisible_characters( $string ) );
+        return str_replace("'", "''", remove_invisible_characters($string));
     }
 
     // ------------------------------------------------------------------------
@@ -1299,14 +1312,14 @@ abstract class AbstractConnection
         $protectIdentifiers = null,
         $fieldExists = true
     ) {
-        if ( ! is_bool( $protectIdentifiers ) ) {
+        if ( ! is_bool($protectIdentifiers)) {
             $protectIdentifiers = $this->isProtectIdentifiers;
         }
 
-        if ( is_array( $item ) ) {
+        if (is_array($item)) {
             $escapedArray = [];
-            foreach ( $item as $key => $value ) {
-                $escapedArray[ $this->protectIdentifiers( $key ) ] = $this->protectIdentifiers(
+            foreach ($item as $key => $value) {
+                $escapedArray[ $this->protectIdentifiers($key) ] = $this->protectIdentifiers(
                     $value,
                     $prefixSingle,
                     $protectIdentifiers,
@@ -1323,25 +1336,25 @@ abstract class AbstractConnection
         //
         // Added exception for single quotes as well, we don't want to alter
         // literal strings.
-        if ( strcspn( $item, "()'" ) !== strlen( $item ) ) {
+        if (strcspn($item, "()'") !== strlen($item)) {
             return $item;
         }
 
         // Convert tabs or multiple spaces into single spaces
-        $item = preg_replace( '/\s+/', ' ', trim( $item ) );
+        $item = preg_replace('/\s+/', ' ', trim($item));
 
         // If the item has an alias declaration we remove it and set it aside.
         // Note: strripos() is used in order to support spaces in table names
-        if ( $offset = strripos( $item, ' AS ' ) ) {
-            $alias = ( $protectIdentifiers )
-                ? substr( $item, $offset, 4 ) . $this->escapeIdentifiers( substr( $item, $offset + 4 ) )
-                : substr( $item, $offset );
-            $item = substr( $item, 0, $offset );
-        } elseif ( $offset = strrpos( $item, ' ' ) ) {
-            $alias = ( $protectIdentifiers )
-                ? ' ' . $this->escapeIdentifiers( substr( $item, $offset + 1 ) )
-                : substr( $item, $offset );
-            $item = substr( $item, 0, $offset );
+        if ($offset = strripos($item, ' AS ')) {
+            $alias = ($protectIdentifiers)
+                ? substr($item, $offset, 4) . $this->escapeIdentifiers(substr($item, $offset + 4))
+                : substr($item, $offset);
+            $item = substr($item, 0, $offset);
+        } elseif ($offset = strrpos($item, ' ')) {
+            $alias = ($protectIdentifiers)
+                ? ' ' . $this->escapeIdentifiers(substr($item, $offset + 1))
+                : substr($item, $offset);
+            $item = substr($item, 0, $offset);
         } else {
             $alias = '';
         }
@@ -1349,12 +1362,12 @@ abstract class AbstractConnection
         // Break the string apart if it contains periods, then insert the table prefix
         // in the correct location, assuming the period doesn't indicate that we're dealing
         // with an alias. While we're at it, we will escape the components
-        if ( strpos( $item, '.' ) !== false ) {
-            $parts = explode( '.', $item );
+        if (strpos($item, '.') !== false) {
+            $parts = explode('.', $item);
 
             $aliasedTables = [];
 
-            if ( $this->queryBuilder instanceof AbstractQueryBuilder ) {
+            if ($this->queryBuilder instanceof AbstractQueryBuilder) {
                 $aliasedTables = $this->queryBuilder->getAliasedTables();
             }
 
@@ -1364,31 +1377,31 @@ abstract class AbstractConnection
             //
             // NOTE: The ! empty() condition prevents this method
             //       from breaking when Query Builder isn't enabled.
-            if ( ! empty( $aliasedTables ) AND in_array( $parts[ 0 ], $aliasedTables ) ) {
-                if ( $protectIdentifiers === true ) {
-                    foreach ( $parts as $key => $val ) {
-                        if ( ! in_array( $val, $this->config[ 'reservedIdentifiers' ] ) ) {
-                            $parts[ $key ] = $this->escapeIdentifiers( $val );
+            if ( ! empty($aliasedTables) AND in_array($parts[ 0 ], $aliasedTables)) {
+                if ($protectIdentifiers === true) {
+                    foreach ($parts as $key => $val) {
+                        if ( ! in_array($val, $this->config[ 'reservedIdentifiers' ])) {
+                            $parts[ $key ] = $this->escapeIdentifiers($val);
                         }
                     }
 
-                    $item = implode( '.', $parts );
+                    $item = implode('.', $parts);
                 }
 
                 return $item . $alias;
             }
 
             // Is there a table prefix defined in the config file? If not, no need to do anything
-            if ( $this->config->tablePrefix !== '' ) {
+            if ($this->config->tablePrefix !== '') {
                 // We now add the table prefix based on some logic.
                 // Do we have 4 segments (hostname.database.table.column)?
                 // If so, we add the table prefix to the column name in the 3rd segment.
-                if ( isset( $parts[ 3 ] ) ) {
+                if (isset($parts[ 3 ])) {
                     $i = 2;
                 }
                 // Do we have 3 segments (database.table.column)?
                 // If so, we add the table prefix to the column name in 2nd position
-                elseif ( isset( $parts[ 2 ] ) ) {
+                elseif (isset($parts[ 2 ])) {
                     $i = 1;
                 }
                 // Do we have 2 segments (table.column)?
@@ -1399,28 +1412,28 @@ abstract class AbstractConnection
 
                 // This flag is set when the supplied $item does not contain a field name.
                 // This can happen when this function is being called from a JOIN.
-                if ( $fieldExists === false ) {
+                if ($fieldExists === false) {
                     $i++;
                 }
 
                 // Verify table prefix and replace if necessary
-                if ( $this->swapTablePrefix !== '' && strpos( $parts[ $i ], $this->swapTablePrefix ) === 0 ) {
+                if ($this->swapTablePrefix !== '' && strpos($parts[ $i ], $this->swapTablePrefix) === 0) {
                     $parts[ $i ] = preg_replace(
                         '/^' . $this->swapTablePrefix . '(\S+?)/',
                         $this->config->tablePrefix . '\\1',
                         $parts[ $i ]
                     );
                 } // We only add the table prefix if it does not already exist
-                elseif ( strpos( $parts[ $i ], $this->config->tablePrefix ) !== 0 ) {
+                elseif (strpos($parts[ $i ], $this->config->tablePrefix) !== 0) {
                     $parts[ $i ] = $this->config->tablePrefix . $parts[ $i ];
                 }
 
                 // Put the parts back together
-                $item = implode( '.', $parts );
+                $item = implode('.', $parts);
             }
 
-            if ( $protectIdentifiers === true ) {
-                $item = $this->escapeIdentifiers( $item );
+            if ($protectIdentifiers === true) {
+                $item = $this->escapeIdentifiers($item);
             }
 
             return $item . $alias;
@@ -1429,25 +1442,25 @@ abstract class AbstractConnection
         // In some cases, especially 'from', we end up running through
         // protect_identifiers twice. This algorithm won't work when
         // it contains the escapeChar so strip it out.
-        $item = trim( $item, $this->config[ 'escapeCharacter' ] );
+        $item = trim($item, $this->config[ 'escapeCharacter' ]);
 
         // Is there a table prefix? If not, no need to insert it
-        if ( $this->config->tablePrefix !== '' ) {
+        if ($this->config->tablePrefix !== '') {
             // Verify table prefix and replace if necessary
-            if ( $this->swapTablePrefix !== '' && strpos( $item, $this->swapTablePrefix ) === 0 ) {
+            if ($this->swapTablePrefix !== '' && strpos($item, $this->swapTablePrefix) === 0) {
                 $item = preg_replace(
                     '/^' . $this->swapTablePrefix . '(\S+?)/',
                     $this->config->tablePrefix . '\\1',
                     $item
                 );
             } // Do we prefix an item with no segments?
-            elseif ( $prefixSingle === true && strpos( $item, $this->config->tablePrefix ) !== 0 ) {
+            elseif ($prefixSingle === true && strpos($item, $this->config->tablePrefix) !== 0) {
                 $item = $this->config->tablePrefix . $item;
             }
         }
 
-        if ( $protectIdentifiers === true && ! in_array( $item, $this->config[ 'reservedIdentifiers' ] ) ) {
-            $item = $this->escapeIdentifiers( $item );
+        if ($protectIdentifiers === true && ! in_array($item, $this->config[ 'reservedIdentifiers' ])) {
+            $item = $this->escapeIdentifiers($item);
         }
 
         return $item . $alias;
@@ -1464,22 +1477,22 @@ abstract class AbstractConnection
      *
      * @return int|string
      */
-    final public function escape( $string )
+    final public function escape($string)
     {
-        if ( is_array( $string ) ) {
-            $string = array_map( [ &$this, 'escape' ], $string );
+        if (is_array($string)) {
+            $string = array_map([&$this, 'escape'], $string);
 
             return $string;
         } else {
-            if ( is_string( $string ) OR ( is_object( $string ) && method_exists( $string, '__toString' ) ) ) {
-                return "'" . $this->escapeString( $string ) . "'";
+            if (is_string($string) OR (is_object($string) && method_exists($string, '__toString'))) {
+                return "'" . $this->escapeString($string) . "'";
             } else {
-                if ( is_bool( $string ) ) {
-                    return ( $string === false )
+                if (is_bool($string)) {
+                    return ($string === false)
                         ? 0
                         : 1;
                 } else {
-                    if ( $string === null ) {
+                    if ($string === null) {
                         return 'NULL';
                     }
                 }
@@ -1501,7 +1514,7 @@ abstract class AbstractConnection
      *
      * @return string
      */
-    abstract protected function platformPrepareSqlStatement( $sqlStatement, array $options = [] );
+    abstract protected function platformPrepareSqlStatement($sqlStatement, array $options = []);
 
     // ------------------------------------------------------------------------
 
@@ -1514,11 +1527,11 @@ abstract class AbstractConnection
      */
     public function getQueryBuilder()
     {
-        if ( ! $this->queryBuilder instanceof AbstractQueryBuilder ) {
-            $className = str_replace( 'Connection', 'QueryBuilder', get_called_class() );
+        if ( ! $this->queryBuilder instanceof AbstractQueryBuilder) {
+            $className = str_replace('Connection', 'QueryBuilder', get_called_class());
 
-            if ( class_exists( $className ) ) {
-                $this->queryBuilder = new $className( $this );
+            if (class_exists($className)) {
+                $this->queryBuilder = new $className($this);
             }
         }
 
@@ -1534,8 +1547,8 @@ abstract class AbstractConnection
      *
      * @return AbstractQueryBuilder
      */
-    public function table( $tableName )
+    public function table($tableName)
     {
-        return $this->getQueryBuilder()->from( $tableName );
+        return $this->getQueryBuilder()->from($tableName);
     }
 }

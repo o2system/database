@@ -220,14 +220,13 @@ class QueryBuilder extends AbstractQueryBuilder
     public function countAllResults( $reset = true )
     {
         // generate Sql statement
-        $SqlStatement = $this->getSqlStatement();
-        $SqlStatement = str_replace( 'SELECT', 'SELECT SQL_CALC_FOUND_ROWS', $SqlStatement );
+        $sqlStatement = $this->getSqlStatement();
 
         if ( $this->testMode ) {
-            return $SqlStatement;
+            return $sqlStatement;
         }
 
-        $this->conn->query( $SqlStatement, $this->builderCache->binds );
+        $this->conn->query( $sqlStatement, $this->builderCache->binds );
         $result = $this->conn->query( 'SELECT FOUND_ROWS() AS numrows;' );
 
         if ( $reset === true ) {

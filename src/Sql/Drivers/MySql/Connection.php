@@ -171,13 +171,13 @@ class Connection extends AbstractConnection
     {
         if ( empty( $this->queriesResultCache[ 'tableNames' ] ) ) {
 
-            $SqlStatement = 'SHOW TABLES FROM ' . $this->escapeIdentifiers( $this->config[ 'database' ] );
+            $sqlStatement = 'SHOW TABLES FROM ' . $this->escapeIdentifiers( $this->config[ 'database' ] );
 
             if ( $prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '' ) {
-                $SqlStatement .= " LIKE '" . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%'";
+                $sqlStatement .= " LIKE '" . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%'";
             }
 
-            $result = $this->query( $SqlStatement );
+            $result = $this->query( $sqlStatement );
 
             if ( $result->count() ) {
                 foreach ( $result as $row ) {
@@ -312,7 +312,7 @@ class Connection extends AbstractConnection
             ? MYSQLI_CLIENT_COMPRESS
             : 0;
         $this->handle = mysqli_init();
-        //$this->handle->autocommit( ( $this->transactionEnabled ? true : false ) );
+        //$this->handle->autocommit( ( $this->transactionEnable ? true : false ) );
 
         $this->handle->options( MYSQLI_OPT_CONNECT_TIMEOUT, 10 );
 
@@ -405,7 +405,7 @@ class Connection extends AbstractConnection
                 // 'MySqli was configured for an SSL connection, but got an unencrypted connection instead!';
                 logger()->error( 'E_DB_CONNECTION_SSL', [ $this->platform ] );
 
-                if ( $config->debug ) {
+                if ( $config->debugEnable ) {
                     throw new RuntimeException( 'E_DB_CONNECTION_SSL' );
                 }
 
@@ -417,7 +417,7 @@ class Connection extends AbstractConnection
                 logger()->error( 'E_DB_CONNECTION_CHARSET', [ $config->charset ] );
                 $this->handle->close();
 
-                if ( $config->debug ) {
+                if ( $config->debugEnable ) {
                     // 'Unable to set client connection character set: ' . $this->charset
                     throw new RuntimeException( 'E_DB_CONNECTION_CHARSET', [ $config->charset ] );
                 }
@@ -617,20 +617,20 @@ class Connection extends AbstractConnection
      *
      * Platform preparing a Sql statement.
      *
-     * @param string $SqlStatement Sql Statement to be prepared.
+     * @param string $sqlStatement Sql Statement to be prepared.
      * @param array  $options      Preparing Sql statement options.
      *
      * @return string
      */
-    protected function platformPrepareSqlStatement( $SqlStatement, array $options = [] )
+    protected function platformPrepareSqlStatement( $sqlStatement, array $options = [] )
     {
         // mySqli_affected_rows() returns 0 for "DELETE FROM TABLE" queries. This hack
         // modifies the query so that it a proper number of affected rows is returned.
-        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $SqlStatement ) ) {
-            return trim( $SqlStatement ) . ' WHERE 1=1';
+        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $sqlStatement ) ) {
+            return trim( $sqlStatement ) . ' WHERE 1=1';
         }
 
-        return $SqlStatement;
+        return $sqlStatement;
     }
 
     // ------------------------------------------------------------------------
