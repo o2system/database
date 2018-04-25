@@ -145,13 +145,13 @@ class Connection extends AbstractConnection
     {
         if ( empty( $this->queriesResultCache[ 'tableNames' ] ) ) {
 
-            $sqlStatement = 'SELECT "NAME" FROM "SQLITE_MASTER" WHERE "TYPE" = \'table\'';
+            $SqlStatement = 'SELECT "NAME" FROM "SQLITE_MASTER" WHERE "TYPE" = \'table\'';
 
             if ( $prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '' ) {
-                $sqlStatement .= ' AND "NAME" LIKE \'' . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%' ";
+                $SqlStatement .= ' AND "NAME" LIKE \'' . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%' ";
             }
 
-            $result = $this->query( $sqlStatement );
+            $result = $this->query( $SqlStatement );
 
             if ( $result->count() ) {
                 foreach ( $result as $row ) {
@@ -418,20 +418,20 @@ class Connection extends AbstractConnection
      *
      * Platform preparing a Sql statement.
      *
-     * @param string $sqlStatement Sql Statement to be prepared.
+     * @param string $SqlStatement Sql Statement to be prepared.
      * @param array  $options      Preparing Sql statement options.
      *
      * @return string
      */
-    protected function platformPrepareSqlStatement( $sqlStatement, array $options = [] )
+    protected function platformPrepareSqlStatement( $SqlStatement, array $options = [] )
     {
         // Sqlite3::changes() returns 0 for "DELETE FROM TABLE" queries. This hack
         // modifies the query so that it a proper number of affected rows is returned.
-        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $sqlStatement ) ) {
-            return trim( $sqlStatement ) . ' WHERE 1=1';
+        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $SqlStatement ) ) {
+            return trim( $SqlStatement ) . ' WHERE 1=1';
         }
 
-        return $sqlStatement;
+        return $SqlStatement;
     }
 
     // ------------------------------------------------------------------------

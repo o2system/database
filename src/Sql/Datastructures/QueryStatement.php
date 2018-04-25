@@ -22,13 +22,13 @@ namespace O2System\Database\Sql\Datastructures;
 class QueryStatement
 {
     /**
-     * QueryStatement::$sqlStatement
+     * QueryStatement::$SqlStatement
      *
      * The Sql Statement.
      *
      * @var string
      */
-    private $sqlStatement;
+    private $SqlStatement;
 
     /**
      * QueryStatement::$SqlBinds
@@ -37,7 +37,7 @@ class QueryStatement
      *
      * @var array
      */
-    private $sqlBinds = [];
+    private $SqlBinds = [];
 
 
     /**
@@ -47,7 +47,7 @@ class QueryStatement
      *
      * @var string
      */
-    private $sqlFinalStatement;
+    private $SqlFinalStatement;
 
     /**
      * QueryStatement::$startExecutionTime
@@ -68,8 +68,6 @@ class QueryStatement
      * @var float
      */
     private $endExecutionTime;
-
-    private $hits = 0;
 
     /**
      * QueryStatement::$affectedRows
@@ -105,15 +103,15 @@ class QueryStatement
      *
      * Sets the raw query string to use for this statement.
      *
-     * @param string $sqlStatement The Sql Statement.
+     * @param string $SqlStatement The Sql Statement.
      * @param array  $SqlBinds     The Sql Statement bindings.
      *
      * @return static
      */
-    public function setSqlStatement( $sqlStatement, array $SqlBinds = [] )
+    public function setSqlStatement( $SqlStatement, array $SqlBinds = [] )
     {
-        $this->sqlStatement = $sqlStatement;
-        $this->sqlBinds = $SqlBinds;
+        $this->SqlStatement = $SqlStatement;
+        $this->SqlBinds = $SqlBinds;
 
         return $this;
     }
@@ -131,7 +129,7 @@ class QueryStatement
      */
     public function setBinds( array $SqlBinds )
     {
-        $this->sqlBinds = $SqlBinds;
+        $this->SqlBinds = $SqlBinds;
 
         return $this;
     }
@@ -140,7 +138,7 @@ class QueryStatement
 
     public function getBinds()
     {
-        return $this->sqlBinds;
+        return $this->SqlBinds;
     }
 
     //--------------------------------------------------------------------
@@ -304,7 +302,7 @@ class QueryStatement
      */
     public function getAffectedRows()
     {
-        return (int) $this->affectedRows;
+        return $this->affectedRows;
     }
 
     //--------------------------------------------------------------------
@@ -350,7 +348,7 @@ class QueryStatement
     {
         return (bool)preg_match(
             '/^\s*"?(SET|INSERT|UPDATE|DELETE|REPLACE|CREATE|DROP|TRUNCATE|LOAD|COPY|ALTER|RENAME|GRANT|REVOKE|LOCK|UNLOCK|REINDEX)\s/i',
-            $this->sqlStatement
+            $this->SqlStatement
         );
     }
 
@@ -368,9 +366,9 @@ class QueryStatement
      */
     public function swapTablePrefix( $search, $replace )
     {
-        $Sql = empty( $this->sqlFinalStatement ) ? $this->sqlStatement : $this->sqlFinalStatement;
+        $Sql = empty( $this->SqlFinalStatement ) ? $this->SqlStatement : $this->SqlFinalStatement;
 
-        $this->sqlFinalStatement = preg_replace( '/(\W)' . $search . '(\S+?)/', '\\1' . $replace . '\\2', $Sql );
+        $this->SqlFinalStatement = preg_replace( '/(\W)' . $search . '(\S+?)/', '\\1' . $replace . '\\2', $Sql );
 
         return $this;
     }
@@ -386,14 +384,14 @@ class QueryStatement
      */
     public function getSqlStatement()
     {
-        return $this->sqlStatement;
+        return $this->SqlStatement;
     }
 
     //--------------------------------------------------------------------
 
     public function setSqlFinalStatement( $finalStatement )
     {
-        $this->sqlFinalStatement = $finalStatement;
+        $this->SqlFinalStatement = $finalStatement;
 
         return $this;
     }
@@ -410,29 +408,10 @@ class QueryStatement
      */
     public function getSqlFinalStatement()
     {
-        return $this->sqlFinalStatement;
+        return $this->SqlFinalStatement;
     }
 
     //--------------------------------------------------------------------
-
-    public function getKey()
-    {
-        return md5($this->getSqlFinalStatement());
-    }
-
-    //--------------------------------------------------------------------
-
-    public function getHits()
-    {
-        return $this->hits;
-    }
-
-    public function addHit($hit = 1)
-    {
-        $this->hits = $this->hits + (int)$hit;
-
-        return $this;
-    }
 
     /**
      * QueryStatement::__toString
