@@ -14,15 +14,15 @@ namespace O2System\Database;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\Abstracts\AbstractConnection;
-use O2System\Psr\Patterns\AbstractObjectRegistryPattern;
+use O2System\Psr\Patterns\Structural\Provider\AbstractProvider;
+use O2System\Psr\Patterns\Structural\Provider\ValidationInterface;
 
 /**
  * Class Connections
  *
  * @package O2System\Database
  */
-class Connections extends AbstractObjectRegistryPattern
+class Connections extends AbstractProvider implements ValidationInterface
 {
     /**
      * Connections::$config
@@ -103,7 +103,7 @@ class Connections extends AbstractObjectRegistryPattern
     // ------------------------------------------------------------------------
 
     /**
-     * Connections::isValid
+     * Connections::validate
      *
      * Determine if value is meet requirement.
      *
@@ -111,7 +111,7 @@ class Connections extends AbstractObjectRegistryPattern
      *
      * @return bool
      */
-    public function isValid( $value )
+    public function validate( $value )
     {
         if ( $value instanceof \O2System\Database\Sql\Abstracts\AbstractConnection || $value instanceof \O2System\Database\NoSql\Abstracts\AbstractConnection ) {
             return true;
