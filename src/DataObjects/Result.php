@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\DataObjects;
@@ -34,7 +35,7 @@ class Result implements
 
     /**
      * Result::$position
-     * 
+     *
      * SeekableIterator Position
      *
      * @access  protected
@@ -44,7 +45,7 @@ class Result implements
 
     /**
      * Result::$rows
-     * 
+     *
      * List of Result Rows
      *
      * @access  private
@@ -54,7 +55,7 @@ class Result implements
 
     /**
      * Result::$numRows
-     * 
+     *
      * Number of rows
      *
      * @access private
@@ -64,7 +65,7 @@ class Result implements
 
     /**
      * Result::$totalRows
-     * 
+     *
      * Total of rows
      *
      * @access private
@@ -79,17 +80,20 @@ class Result implements
      *
      * @param array $rows
      */
-    public function __construct( array $rows )
+    public function __construct(array $rows)
     {
-        foreach( $rows as $row ) {
-            $this->rows[] = new Result\Row( $row );
+        $this->totalRows = $this->numRows = count($rows);
+
+        $this->rows = new \SplFixedArray($this->numRows);
+
+        foreach ($rows as $key => $row) {
+            $this->rows[ $key ] = new Result\Row($row);
         }
-        $this->totalRows = $this->numRows = count( $rows );
     }
 
     // ------------------------------------------------------------------------
 
-    public function setTotalRows( $totalRows )
+    public function setTotalRows($totalRows)
     {
         $this->totalRows = (int)$totalRows;
     }
@@ -105,7 +109,7 @@ class Result implements
      */
     public function first()
     {
-        $this->seek( 0 );
+        $this->seek(0);
 
         return $this->rows[ $this->position ];
     }
@@ -126,15 +130,15 @@ class Result implements
      * @return void
      * @since 5.1.0
      */
-    public function seek( $position )
+    public function seek($position)
     {
-        if ( $position < 0 ) {
+        if ($position < 0) {
             $position = 0;
-        } elseif ( $position > $this->count() ) {
+        } elseif ($position > $this->count()) {
             $position = $this->count();
         }
 
-        if ( isset( $this->rows[ $position ] ) ) {
+        if (isset($this->rows[ $position ])) {
             $this->position = $position;
         }
     }
@@ -161,24 +165,6 @@ class Result implements
     // ------------------------------------------------------------------------
 
     /**
-     * $result::countAll
-     *
-     * Count all elements
-     * 
-     * @return int Total row as an integer.
-     *        </p>
-     *        <p>
-     *        The return value is cast to an integer.
-     * 
-     */
-    public function countAll()
-    {
-        return $this->totalRows;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * Result::last
      *
      * Gets last result row data.
@@ -187,7 +173,7 @@ class Result implements
      */
     public function last()
     {
-        $this->seek( $this->count() - 1 );
+        $this->seek($this->count() - 1);
 
         return $this->rows[ $this->position ];
     }
@@ -205,7 +191,7 @@ class Result implements
      */
     public function current()
     {
-        $this->seek( $this->position );
+        $this->seek($this->position);
 
         return $this->rows[ $this->position ];
     }
@@ -224,7 +210,7 @@ class Result implements
     public function next()
     {
         ++$this->position;
-        $this->seek( $this->position );
+        $this->seek($this->position);
     }
 
     // ------------------------------------------------------------------------
@@ -240,7 +226,7 @@ class Result implements
     public function previous()
     {
         --$this->position;
-        $this->seek( $this->position );
+        $this->seek($this->position);
     }
 
     // ------------------------------------------------------------------------
@@ -273,7 +259,7 @@ class Result implements
      */
     public function valid()
     {
-        return isset( $this->rows[ $this->position ] );
+        return isset($this->rows[ $this->position ]);
     }
 
     // ------------------------------------------------------------------------
@@ -289,7 +275,7 @@ class Result implements
      */
     public function rewind()
     {
-        $this->seek( 0 );
+        $this->seek(0);
     }
 
     // ------------------------------------------------------------------------
@@ -303,7 +289,7 @@ class Result implements
      */
     public function isEmpty()
     {
-        return ( $this->count() == 0 ? true : false );
+        return ($this->count() == 0 ? true : false);
     }
 
     // ------------------------------------------------------------------------
@@ -324,7 +310,7 @@ class Result implements
 
     /**
      * Result::offsetExists
-     * 
+     *
      * Whether a offset exists
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetexists.php
@@ -339,16 +325,16 @@ class Result implements
      * The return value will be casted to boolean if non-boolean was returned.
      * @since 5.0.0
      */
-    public function offsetExists( $offset )
+    public function offsetExists($offset)
     {
-        return (bool)isset( $this->rows[ $offset ] );
+        return (bool)isset($this->rows[ $offset ]);
     }
 
     // ------------------------------------------------------------------------
 
     /**
      * Result::offsetGet
-     * 
+     *
      * Offset to retrieve
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetget.php
@@ -360,9 +346,9 @@ class Result implements
      * @return mixed Can return all value types.
      * @since 5.0.0
      */
-    public function offsetGet( $offset )
+    public function offsetGet($offset)
     {
-        if ( isset( $this->rows[ $offset ] ) ) {
+        if (isset($this->rows[ $offset ])) {
             return $this->rows[ $offset ];
         }
 
@@ -373,7 +359,7 @@ class Result implements
 
     /**
      * Result::offsetSet
-     * 
+     *
      * Offset to set
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetset.php
@@ -388,9 +374,9 @@ class Result implements
      * @return void
      * @since 5.0.0
      */
-    public function offsetSet( $offset, $value )
+    public function offsetSet($offset, $value)
     {
-        if ( $value instanceof Row ) {
+        if ($value instanceof Row) {
             $this->rows[ $offset ] = $value;
         }
     }
@@ -399,7 +385,7 @@ class Result implements
 
     /**
      * Result::offsetUnset
-     * 
+     *
      * Offset to unset
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetunset.php
@@ -411,10 +397,10 @@ class Result implements
      * @return void
      * @since 5.0.0
      */
-    public function offsetUnset( $offset )
+    public function offsetUnset($offset)
     {
-        if ( isset( $this->rows[ $offset ] ) ) {
-            unset( $this->rows[ $offset ] );
+        if (isset($this->rows[ $offset ])) {
+            unset($this->rows[ $offset ]);
         }
     }
 
@@ -422,7 +408,7 @@ class Result implements
 
     /**
      * Result::serialize
-     * 
+     *
      * String representation of object
      *
      * @link  http://php.net/manual/en/serializable.serialize.php
@@ -431,14 +417,14 @@ class Result implements
      */
     public function serialize()
     {
-        return serialize( $this->rows );
+        return serialize($this->rows);
     }
 
     // ------------------------------------------------------------------------
 
     /**
      * Result::unserialize
-     * 
+     *
      * Constructs the object
      *
      * @link  http://php.net/manual/en/serializable.unserialize.php
@@ -450,16 +436,16 @@ class Result implements
      * @return void
      * @since 5.1.0
      */
-    public function unserialize( $serialized )
+    public function unserialize($serialized)
     {
-        $this->rows = unserialize( $serialized );
+        $this->rows = unserialize($serialized);
     }
 
     // ------------------------------------------------------------------------
 
     /**
      * Result::jsonSerialize
-     * 
+     *
      * Specify data which should be serialized to JSON
      *
      * @link  http://php.net/manual/en/jsonserializable.jsonserialize.php
@@ -482,8 +468,26 @@ class Result implements
     public function getInfo()
     {
         return new Info([
-            'rows' => $this->countAll(),
+            'rows'   => $this->countAll(),
             'founds' => $this->count(),
         ]);
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * $result::countAll
+     *
+     * Count all elements
+     *
+     * @return int Total row as an integer.
+     *        </p>
+     *        <p>
+     *        The return value is cast to an integer.
+     *
+     */
+    public function countAll()
+    {
+        return $this->totalRows;
     }
 }

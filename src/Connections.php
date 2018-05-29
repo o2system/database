@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database;
@@ -38,31 +39,31 @@ class Connections extends AbstractProvider implements ValidationInterface
      *
      * @return Connections
      */
-    public function __construct( Datastructures\Config $config )
+    public function __construct(Datastructures\Config $config)
     {
         $this->config = $config;
     }
 
     // ------------------------------------------------------------------------
 
-    public function &loadConnection( $connectionOffset )
+    public function &loadConnection($connectionOffset)
     {
         $loadConnection[ $connectionOffset ] = false;
 
-        if ( ! $this->exists( $connectionOffset ) and $this->config->offsetExists( $connectionOffset ) ) {
+        if ( ! $this->exists($connectionOffset) and $this->config->offsetExists($connectionOffset)) {
 
-            $connectionConfig = $this->config->offsetGet( $connectionOffset );
+            $connectionConfig = $this->config->offsetGet($connectionOffset);
 
-            if ( is_array( $connectionConfig ) ) {
-                new Datastructures\Config( $this->config[ $connectionOffset ] );
+            if (is_array($connectionConfig)) {
+                new Datastructures\Config($this->config[ $connectionOffset ]);
             }
 
-            $this->createConnection( $connectionOffset, $connectionConfig );
+            $this->createConnection($connectionOffset, $connectionConfig);
 
-            return $this->getObject( $connectionOffset );
+            return $this->getObject($connectionOffset);
 
-        } elseif ( $this->exists( $connectionOffset ) ) {
-            return $this->getObject( $connectionOffset );
+        } elseif ($this->exists($connectionOffset)) {
+            return $this->getObject($connectionOffset);
         }
 
         return $loadConnection;
@@ -80,7 +81,7 @@ class Connections extends AbstractProvider implements ValidationInterface
      *
      * @return bool|\O2System\Database\Sql\Abstracts\AbstractConnection|\O2System\Database\NoSql\Abstracts\AbstractConnection
      */
-    public function &createConnection( $connectionOffset, Datastructures\Config $connectionConfig )
+    public function &createConnection($connectionOffset, Datastructures\Config $connectionConfig)
     {
         $driverMaps = [
             'mongodb' => '\O2System\Database\NoSql\Drivers\MongoDb\Connection',
@@ -88,13 +89,13 @@ class Connections extends AbstractProvider implements ValidationInterface
             'sqlite'  => '\O2System\Database\Sql\Drivers\Sqlite\Connection',
         ];
 
-        if ( array_key_exists( $connectionConfig->driver, $driverMaps ) ) {
-            if ( class_exists( $driverClassName = $driverMaps[ $connectionConfig->driver ] ) ) {
-                $driverInstance = new $driverClassName( $connectionConfig );
-                $this->register( $driverInstance, $connectionOffset );
+        if (array_key_exists($connectionConfig->driver, $driverMaps)) {
+            if (class_exists($driverClassName = $driverMaps[ $connectionConfig->driver ])) {
+                $driverInstance = new $driverClassName($connectionConfig);
+                $this->register($driverInstance, $connectionOffset);
             }
 
-            return $this->getObject( $connectionOffset );
+            return $this->getObject($connectionOffset);
         }
 
         return false;
@@ -111,9 +112,9 @@ class Connections extends AbstractProvider implements ValidationInterface
      *
      * @return bool
      */
-    public function validate( $value )
+    public function validate($value)
     {
-        if ( $value instanceof \O2System\Database\Sql\Abstracts\AbstractConnection || $value instanceof \O2System\Database\NoSql\Abstracts\AbstractConnection ) {
+        if ($value instanceof \O2System\Database\Sql\Abstracts\AbstractConnection || $value instanceof \O2System\Database\NoSql\Abstracts\AbstractConnection) {
             return true;
         }
 

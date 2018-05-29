@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\Datastructures;
@@ -26,14 +27,14 @@ class Config extends \O2System\Kernel\Datastructures\Config
      *
      * @param array $config
      */
-    public function __construct( array $config )
+    public function __construct(array $config)
     {
-        if ( isset( $config[ 'default' ] ) ) {
-            foreach ( $config as $poolOffset => $poolConfig ) {
-                $config[ $poolOffset ] = new self( $poolConfig );
+        if (isset($config[ 'default' ])) {
+            foreach ($config as $poolOffset => $poolConfig) {
+                $config[ $poolOffset ] = new self($poolConfig);
             }
         }
 
-        parent::__construct( $config );
+        parent::__construct($config);
     }
 }

@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\Sql\Datastructures;
@@ -101,26 +102,6 @@ class QueryStatement
     //--------------------------------------------------------------------
 
     /**
-     * QueryStatement::setStatement
-     *
-     * Sets the raw query string to use for this statement.
-     *
-     * @param string $sqlStatement The Sql Statement.
-     * @param array  $SqlBinds     The Sql Statement bindings.
-     *
-     * @return static
-     */
-    public function setSqlStatement( $sqlStatement, array $SqlBinds = [] )
-    {
-        $this->sqlStatement = $sqlStatement;
-        $this->sqlBinds = $SqlBinds;
-
-        return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
      * QueryStatement::setBinds
      *
      * Will store the variables to bind into the query later.
@@ -129,7 +110,7 @@ class QueryStatement
      *
      * @return static
      */
-    public function setBinds( array $SqlBinds )
+    public function setBinds(array $SqlBinds)
     {
         $this->sqlBinds = $SqlBinds;
 
@@ -157,12 +138,12 @@ class QueryStatement
      *
      * @return static
      */
-    public function setDuration( $start, $end = null )
+    public function setDuration($start, $end = null)
     {
         $this->startExecutionTime = $start;
 
-        if ( is_null( $end ) ) {
-            $end = microtime( true );
+        if (is_null($end)) {
+            $end = microtime(true);
         }
 
         $this->endExecutionTime = $end;
@@ -182,13 +163,13 @@ class QueryStatement
      *
      * @return mixed
      */
-    public function getStartExecutionTime( $numberFormat = false, $decimals = 6 )
+    public function getStartExecutionTime($numberFormat = false, $decimals = 6)
     {
-        if ( ! $numberFormat ) {
+        if ( ! $numberFormat) {
             return $this->startExecutionTime;
         }
 
-        return number_format( $this->startExecutionTime, $decimals );
+        return number_format($this->startExecutionTime, $decimals);
     }
 
     //--------------------------------------------------------------------
@@ -203,9 +184,9 @@ class QueryStatement
      *
      * @return mixed
      */
-    public function getExecutionDuration( $decimals = 6 )
+    public function getExecutionDuration($decimals = 6)
     {
-        return number_format( ( $this->endExecutionTime - $this->startExecutionTime ), $decimals );
+        return number_format(($this->endExecutionTime - $this->startExecutionTime), $decimals);
     }
 
     //--------------------------------------------------------------------
@@ -220,7 +201,7 @@ class QueryStatement
      *
      * @return static
      */
-    public function setError( $errorCode, $errorMessage )
+    public function setError($errorCode, $errorMessage)
     {
         $this->error[ $errorCode ] = $errorMessage;
 
@@ -238,8 +219,8 @@ class QueryStatement
      */
     public function getErrorCode()
     {
-        if ( $this->hasError() ) {
-            return key( $this->error );
+        if ($this->hasError()) {
+            return key($this->error);
         }
 
         return false;
@@ -256,7 +237,7 @@ class QueryStatement
      */
     public function hasError()
     {
-        return ! empty( $this->error );
+        return ! empty($this->error);
     }
 
     //--------------------------------------------------------------------
@@ -270,27 +251,11 @@ class QueryStatement
      */
     public function getErrorMessage()
     {
-        if ( $this->hasError() ) {
-            return (string)reset( $this->error );
+        if ($this->hasError()) {
+            return (string)reset($this->error);
         }
 
         return false;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * QueryStatement::setAffectedRows
-     *
-     * Sets numbers of affected rows.
-     *
-     * @param int $affectedRows Numbers of affected rows,
-     */
-    public function setAffectedRows( $affectedRows )
-    {
-        $this->affectedRows = $affectedRows;
-
-        return $this;
     }
 
     //--------------------------------------------------------------------
@@ -304,7 +269,7 @@ class QueryStatement
      */
     public function getAffectedRows()
     {
-        return (int) $this->affectedRows;
+        return (int)$this->affectedRows;
     }
 
     //--------------------------------------------------------------------
@@ -316,7 +281,7 @@ class QueryStatement
      *
      * @param int $affectedRows Numbers of affected rows,
      */
-    public function setLastInsertId( $affectedRows )
+    public function setAffectedRows($affectedRows)
     {
         $this->affectedRows = $affectedRows;
 
@@ -335,6 +300,22 @@ class QueryStatement
     public function getLastInsertId()
     {
         return $this->affectedRows;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryStatement::setAffectedRows
+     *
+     * Sets numbers of affected rows.
+     *
+     * @param int $affectedRows Numbers of affected rows,
+     */
+    public function setLastInsertId($affectedRows)
+    {
+        $this->affectedRows = $affectedRows;
+
+        return $this;
     }
 
     //--------------------------------------------------------------------
@@ -366,11 +347,11 @@ class QueryStatement
      *
      * @return mixed
      */
-    public function swapTablePrefix( $search, $replace )
+    public function swapTablePrefix($search, $replace)
     {
-        $Sql = empty( $this->sqlFinalStatement ) ? $this->sqlStatement : $this->sqlFinalStatement;
+        $Sql = empty($this->sqlFinalStatement) ? $this->sqlStatement : $this->sqlFinalStatement;
 
-        $this->sqlFinalStatement = preg_replace( '/(\W)' . $search . '(\S+?)/', '\\1' . $replace . '\\2', $Sql );
+        $this->sqlFinalStatement = preg_replace('/(\W)' . $search . '(\S+?)/', '\\1' . $replace . '\\2', $Sql);
 
         return $this;
     }
@@ -391,11 +372,29 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
-    public function setSqlFinalStatement( $finalStatement )
+    /**
+     * QueryStatement::setStatement
+     *
+     * Sets the raw query string to use for this statement.
+     *
+     * @param string $sqlStatement The Sql Statement.
+     * @param array  $SqlBinds     The Sql Statement bindings.
+     *
+     * @return static
+     */
+    public function setSqlStatement($sqlStatement, array $SqlBinds = [])
     {
-        $this->sqlFinalStatement = $finalStatement;
+        $this->sqlStatement = $sqlStatement;
+        $this->sqlBinds = $SqlBinds;
 
         return $this;
+    }
+
+    //--------------------------------------------------------------------
+
+    public function getKey()
+    {
+        return md5($this->getSqlFinalStatement());
     }
 
     //--------------------------------------------------------------------
@@ -415,9 +414,11 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
-    public function getKey()
+    public function setSqlFinalStatement($finalStatement)
     {
-        return md5($this->getSqlFinalStatement());
+        $this->sqlFinalStatement = $finalStatement;
+
+        return $this;
     }
 
     //--------------------------------------------------------------------

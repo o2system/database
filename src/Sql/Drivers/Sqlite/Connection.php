@@ -8,17 +8,18 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\Sql\Drivers\Sqlite;
 
 // ------------------------------------------------------------------------
 
+use O2System\Database\Datastructures\Config;
+use O2System\Database\Sql\Abstracts\AbstractConnection;
 use O2System\Database\Sql\Datastructures\QueryStatement;
 use O2System\Spl\Datastructures\SplArrayObject;
 use O2System\Spl\Exceptions\RuntimeException;
-use O2System\Database\Datastructures\Config;
-use O2System\Database\Sql\Abstracts\AbstractConnection;
 
 /**
  * Class Connection
@@ -59,7 +60,7 @@ class Connection extends AbstractConnection
     protected $config
         = [
             'escapeCharacter'     => '`',
-            'reservedIdentifiers' => [ '*' ],
+            'reservedIdentifiers' => ['*'],
             'likeEscapeStatement' => ' ESCAPE \'%s\' ',
             'likeEscapeCharacter' => '!',
         ];
@@ -84,7 +85,7 @@ class Connection extends AbstractConnection
      */
     public function isSupported()
     {
-        return extension_loaded( 'Sqlite3' );
+        return extension_loaded('Sqlite3');
     }
 
     // ------------------------------------------------------------------------
@@ -98,14 +99,14 @@ class Connection extends AbstractConnection
      *
      * @return static
      */
-    public function setDatabase( $database )
+    public function setDatabase($database)
     {
-        $database = empty( $database )
+        $database = empty($database)
             ? $this->database
             : $database;
 
-        if ( is_file( $database ) ) {
-            $this->handle->open( $database );
+        if (is_file($database)) {
+            $this->handle->open($database);
             $this->database = $database;
         }
 
@@ -124,7 +125,7 @@ class Connection extends AbstractConnection
      */
     public function getDatabases()
     {
-        $this->queriesResultCache[ 'databaseNames' ][] = pathinfo( $this->database, PATHINFO_FILENAME );
+        $this->queriesResultCache[ 'databaseNames' ][] = pathinfo($this->database, PATHINFO_FILENAME);
 
         return $this->queriesResultCache[ 'databaseNames' ];
     }
@@ -141,25 +142,25 @@ class Connection extends AbstractConnection
      * @return array Returns an array
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function getTables( $prefixLimit = false )
+    public function getTables($prefixLimit = false)
     {
-        if ( empty( $this->queriesResultCache[ 'tableNames' ] ) ) {
+        if (empty($this->queriesResultCache[ 'tableNames' ])) {
 
             $sqlStatement = 'SELECT "NAME" FROM "SQLITE_MASTER" WHERE "TYPE" = \'table\'';
 
-            if ( $prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '' ) {
-                $sqlStatement .= ' AND "NAME" LIKE \'' . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%' ";
+            if ($prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '') {
+                $sqlStatement .= ' AND "NAME" LIKE \'' . $this->escapeLikeString($this->config[ 'tablePrefix' ]) . "%' ";
             }
 
-            $result = $this->query( $sqlStatement );
+            $result = $this->query($sqlStatement);
 
-            if ( $result->count() ) {
-                foreach ( $result as $row ) {
+            if ($result->count()) {
+                foreach ($result as $row) {
                     // Do we know from which column to get the table name?
-                    if ( ! isset( $key ) ) {
-                        if ( isset( $row[ 'table_name' ] ) ) {
+                    if ( ! isset($key)) {
+                        if (isset($row[ 'table_name' ])) {
                             $key = 'table_name';
-                        } elseif ( isset( $row[ 'TABLE_NAME' ] ) ) {
+                        } elseif (isset($row[ 'TABLE_NAME' ])) {
                             $key = 'TABLE_NAME';
                         } else {
                             /* We have no other choice but to just get the first element's key.
@@ -167,12 +168,12 @@ class Connection extends AbstractConnection
                              * E_STRICT is on, this would trigger a warning. So we'll have to
                              * assign it first.
                              */
-                            $key = array_keys( $row->getArrayCopy() );
-                            $key = array_shift( $key );
+                            $key = array_keys($row->getArrayCopy());
+                            $key = array_shift($key);
                         }
                     }
 
-                    $this->queriesResultCache[ 'tableNames' ][] = $row->offsetGet( $key );
+                    $this->queriesResultCache[ 'tableNames' ][] = $row->offsetGet($key);
                 }
             }
         }
@@ -190,141 +191,28 @@ class Connection extends AbstractConnection
      * @return array
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function getColumns( $table )
+    public function getColumns($table)
     {
-        $table = $this->prefixTable( $table );
+        $table = $this->prefixTable($table);
 
-        if ( empty( $this->queriesResultCache[ 'tableColumns' ][ $table ] ) ) {
-            $result = $this->query( 'PRAGMA TABLE_INFO(' . $this->protectIdentifiers( $table, true, null, false ) . ')' );
+        if (empty($this->queriesResultCache[ 'tableColumns' ][ $table ])) {
+            $result = $this->query('PRAGMA TABLE_INFO(' . $this->protectIdentifiers($table, true, null, false) . ')');
 
-            if ( $result->count() ) {
-                foreach ( $result as $row ) {
+            if ($result->count()) {
+                foreach ($result as $row) {
                     // Do we know from where to get the column's name?
-                    if ( ! isset( $key ) ) {
-                        if ( isset( $row[ 'name' ] ) ) {
+                    if ( ! isset($key)) {
+                        if (isset($row[ 'name' ])) {
                             $key = 'name';
                         }
                     }
 
-                    $this->queriesResultCache[ 'tableColumns' ][ $table ][ $row->offsetGet( $key ) ] = $row;
+                    $this->queriesResultCache[ 'tableColumns' ][ $table ][ $row->offsetGet($key) ] = $row;
                 }
             }
         }
 
         return $this->queriesResultCache[ 'tableColumns' ][ $table ];
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::platformGetPlatformVersionHandler
-     *
-     * Platform getting version handler.
-     *
-     * @return SplArrayObject
-     */
-    protected function platformGetPlatformInfoHandler()
-    {
-        return new SplArrayObject( \Sqlite3::version() );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::platformConnectHandler
-     *
-     * Establish the connection.
-     *
-     * @param Config $config
-     *
-     * @return void
-     * @throws RuntimeException
-     */
-    protected function platformConnectHandler( Config $config )
-    {
-        $this->database = $config->database;
-
-        if ( $config->readOnly === true ) {
-            $this->handle = new \Sqlite3( $config->database, SQLITE3_OPEN_READONLY );
-        } else {
-            $this->handle = new \Sqlite3( $config->database, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE );
-        }
-
-        // Enable throwing exceptions
-        $this->handle->enableExceptions( true );
-
-        // Set busy timeout
-        if ( $config->offsetExists( 'busyTimeout' ) ) {
-            if ( $config->busyTimeout != 0 ) {
-                $this->handle->busyTimeout( $config->busyTimeout );
-            }
-        }
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * Connection::executeHandler
-     *
-     * Driver dependent way method for execute the Sql statement.
-     *
-     * @param QueryStatement $queryStatement Query object.
-     *
-     * @return bool
-     */
-    protected function platformExecuteHandler( QueryStatement &$queryStatement )
-    {
-        if ( false !== $this->handle->exec( $queryStatement->getSqlFinalStatement() ) ) {
-            return true;
-        }
-
-        // Set query error information
-        $queryStatement->setError( $this->handle->lastErrorCode(), $this->handle->lastErrorMsg() );
-
-        return false;
-
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::platformQueryHandler
-     *
-     * Driver dependent way method for execute the Sql statement.
-     *
-     * @param QueryStatement $queryStatement Query object.
-     *
-     * @return array
-     */
-    protected function platformQueryHandler( QueryStatement &$queryStatement )
-    {
-        $rows = [];
-
-        if ( false !== ( $result = $this->handle->query( $queryStatement->getSqlFinalStatement() ) ) ) {
-            $i = 0;
-            while ( $row = $result->fetchArray( SQLITE3_ASSOC ) ) {
-                $rows[ $i ] = $row;
-                $i++;
-            }
-        } else {
-            $queryStatement->setError( $this->handle->lastErrorCode(), $this->handle->lastErrorMsg() );
-        }
-
-        return $rows;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::disconnectHandler
-     *
-     * Driver dependent way method for closing the connection.
-     *
-     * @return mixed
-     */
-    protected function platformDisconnectHandler()
-    {
-        $this->handle->close();
     }
 
     // ------------------------------------------------------------------------
@@ -355,6 +243,119 @@ class Connection extends AbstractConnection
         return $this->handle->lastInsertRowID();
     }
 
+    //--------------------------------------------------------------------
+
+    /**
+     * Connection::platformGetPlatformVersionHandler
+     *
+     * Platform getting version handler.
+     *
+     * @return SplArrayObject
+     */
+    protected function platformGetPlatformInfoHandler()
+    {
+        return new SplArrayObject(\Sqlite3::version());
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::platformConnectHandler
+     *
+     * Establish the connection.
+     *
+     * @param Config $config
+     *
+     * @return void
+     * @throws RuntimeException
+     */
+    protected function platformConnectHandler(Config $config)
+    {
+        $this->database = $config->database;
+
+        if ($config->readOnly === true) {
+            $this->handle = new \Sqlite3($config->database, SQLITE3_OPEN_READONLY);
+        } else {
+            $this->handle = new \Sqlite3($config->database, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE);
+        }
+
+        // Enable throwing exceptions
+        $this->handle->enableExceptions(true);
+
+        // Set busy timeout
+        if ($config->offsetExists('busyTimeout')) {
+            if ($config->busyTimeout != 0) {
+                $this->handle->busyTimeout($config->busyTimeout);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::executeHandler
+     *
+     * Driver dependent way method for execute the Sql statement.
+     *
+     * @param QueryStatement $queryStatement Query object.
+     *
+     * @return bool
+     */
+    protected function platformExecuteHandler(QueryStatement &$queryStatement)
+    {
+        if (false !== $this->handle->exec($queryStatement->getSqlFinalStatement())) {
+            return true;
+        }
+
+        // Set query error information
+        $queryStatement->setError($this->handle->lastErrorCode(), $this->handle->lastErrorMsg());
+
+        return false;
+
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::platformQueryHandler
+     *
+     * Driver dependent way method for execute the Sql statement.
+     *
+     * @param QueryStatement $queryStatement Query object.
+     *
+     * @return array
+     */
+    protected function platformQueryHandler(QueryStatement &$queryStatement)
+    {
+        $rows = [];
+
+        if (false !== ($result = $this->handle->query($queryStatement->getSqlFinalStatement()))) {
+            $i = 0;
+            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                $rows[ $i ] = $row;
+                $i++;
+            }
+        } else {
+            $queryStatement->setError($this->handle->lastErrorCode(), $this->handle->lastErrorMsg());
+        }
+
+        return $rows;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::disconnectHandler
+     *
+     * Driver dependent way method for closing the connection.
+     *
+     * @return mixed
+     */
+    protected function platformDisconnectHandler()
+    {
+        $this->handle->close();
+    }
+
     // ------------------------------------------------------------------------
 
     /**
@@ -368,7 +369,7 @@ class Connection extends AbstractConnection
     {
         $this->transactionInProgress = true;
 
-        return $this->handle->exec( 'BEGIN;' );
+        return $this->handle->exec('BEGIN;');
     }
 
     // ------------------------------------------------------------------------
@@ -382,7 +383,7 @@ class Connection extends AbstractConnection
      */
     protected function platformTransactionCommitHandler()
     {
-        if ( $this->handle->exec( 'COMMIT;' ) ) {
+        if ($this->handle->exec('COMMIT;')) {
             $this->transactionInProgress = false;
 
             return true;
@@ -402,7 +403,7 @@ class Connection extends AbstractConnection
      */
     protected function platformTransactionRollBackHandler()
     {
-        if ( $this->handle->exec( 'ROLLBACK;' ) ) {
+        if ($this->handle->exec('ROLLBACK;')) {
             $this->transactionInProgress = false;
 
             return true;
@@ -423,12 +424,12 @@ class Connection extends AbstractConnection
      *
      * @return string
      */
-    protected function platformPrepareSqlStatement( $sqlStatement, array $options = [] )
+    protected function platformPrepareSqlStatement($sqlStatement, array $options = [])
     {
         // Sqlite3::changes() returns 0 for "DELETE FROM TABLE" queries. This hack
         // modifies the query so that it a proper number of affected rows is returned.
-        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $sqlStatement ) ) {
-            return trim( $sqlStatement ) . ' WHERE 1=1';
+        if ($this->isDeleteHack === true && preg_match('/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $sqlStatement)) {
+            return trim($sqlStatement) . ' WHERE 1=1';
         }
 
         return $sqlStatement;
@@ -445,9 +446,9 @@ class Connection extends AbstractConnection
      *
      * @return string
      */
-    protected function platformEscapeStringHandler( $string )
+    protected function platformEscapeStringHandler($string)
     {
 
-        return \Sqlite3::escapeString( $string );
+        return \Sqlite3::escapeString($string);
     }
 }

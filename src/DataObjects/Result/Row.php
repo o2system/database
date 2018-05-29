@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\DataObjects\Result;
@@ -35,7 +36,7 @@ class Row implements
 
     /**
      * Row::$columns
-     * 
+     *
      * List of result row fields
      *
      * @access  protected
@@ -50,7 +51,7 @@ class Row implements
      *
      * @param array $columns
      */
-    public function __construct( array $columns = [] )
+    public function __construct(array $columns = [])
     {
         $this->columns = $columns;
     }
@@ -66,7 +67,7 @@ class Row implements
      */
     public function count()
     {
-        return count( $this->columns );
+        return count($this->columns);
     }
 
     // ------------------------------------------------------------------------
@@ -80,7 +81,7 @@ class Row implements
      */
     public function getColumns()
     {
-        return array_keys( $this->columns );
+        return array_keys($this->columns);
     }
 
     // ------------------------------------------------------------------------
@@ -94,45 +95,143 @@ class Row implements
      * @return object
      * @throws \O2System\Spl\Exceptions\Logic\InvalidArgumentException
      */
-    public function fetchFieldsInto( $className, array $classArgs = [] )
+    public function fetchFieldsInto($className, array $classArgs = [])
     {
-        if ( is_string( $className ) ) {
-            if ( ! class_exists( $className ) ) {
-                throw new InvalidArgumentException( 'E_DB_FETCH_FIELDS_INTO_CLASS_NOT_FOUND', 0, [ $className ] );
+        if (is_string($className)) {
+            if ( ! class_exists($className)) {
+                throw new InvalidArgumentException('E_DB_FETCH_FIELDS_INTO_CLASS_NOT_FOUND', 0, [$className]);
             }
         }
 
         $classObject = $className;
-        $reflection = new \ReflectionClass( $className );
+        $reflection = new \ReflectionClass($className);
 
-        if ( count( $classArgs ) ) {
+        if (count($classArgs)) {
             $constructor = $reflection->getConstructor();
-            $classObject = is_null( $constructor )
+            $classObject = is_null($constructor)
                 ? $reflection->newInstance()
                 : $reflection->newInstanceArgs(
                     $classArgs
                 );
-        } elseif ( is_string( $className ) ) {
+        } elseif (is_string($className)) {
             $classObject = new $className;
         }
 
-        foreach ( $this->columns as $fieldName => $fieldValue ) {
-            if ( method_exists( $classObject, $setFieldMethod = 'set' . studlycase( $fieldName ) ) ) {
-                call_user_func_array( [ &$classObject, $setFieldMethod ], [ $fieldValue ] );
-            } elseif ( method_exists( $classObject, '__set' ) ) {
-                $classObject->__set( $fieldName, $fieldValue );
+        foreach ($this->columns as $fieldName => $fieldValue) {
+            if (method_exists($classObject, $setFieldMethod = 'set' . studlycase($fieldName))) {
+                call_user_func_array([&$classObject, $setFieldMethod], [$fieldValue]);
+            } elseif (method_exists($classObject, '__set')) {
+                $classObject->__set($fieldName, $fieldValue);
             } else {
-                if ( $this->isJSON( $fieldValue ) ) {
-                    $classObject->{camelcase( $fieldName )} = new Columns\DataJSON( json_decode( $fieldValue, true ) );
-                } elseif ( $this->isSerialized( $fieldValue ) ) {
-                    $classObject->{camelcase( $fieldName )} = new Columns\DataSerialize( unserialize( $fieldValue ) );
+                if ($this->isJSON($fieldValue)) {
+                    $classObject->{camelcase($fieldName)} = new Columns\DataJSON(json_decode($fieldValue, true));
+                } elseif ($this->isSerialized($fieldValue)) {
+                    $classObject->{camelcase($fieldName)} = new Columns\DataSerialize(unserialize($fieldValue));
                 } else {
-                    $classObject->{camelcase( $fieldName )} = $fieldValue;
+                    $classObject->{camelcase($fieldName)} = $fieldValue;
                 }
             }
         }
 
         return $classObject;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Row::isJSON
+     *
+     * Checks if field value is JSON format.
+     *
+     * @param string $string
+     *
+     * @return bool
+     */
+    protected function isJSON($string)
+    {
+        // make sure provided input is of type string
+        if ( ! is_string($string)) {
+            return false;
+        }
+
+        // trim white spaces
+        $string = trim($string);
+
+        // get first character
+        $first_char = substr($string, 0, 1);
+
+        // get last character
+        $last_char = substr($string, -1);
+
+        // check if there is a first and last character
+        if ( ! $first_char || ! $last_char) {
+            return false;
+        }
+
+        // make sure first character is either { or [
+        if ($first_char !== '{' && $first_char !== '[') {
+            return false;
+        }
+
+        // make sure last character is either } or ]
+        if ($last_char !== '}' && $last_char !== ']') {
+            return false;
+        }
+
+        // let's leave the rest to PHP.
+        // try to decode string
+        json_decode($string);
+
+        // check if error occurred
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Row::isSerialized
+     *
+     * Checks if field value is PHP serialize format.
+     *
+     * @param $string
+     *
+     * @return bool
+     */
+    protected function isSerialized($string)
+    {
+        // if it isn't a string, it isn't serialized
+        if ( ! is_string($string)) {
+            return false;
+        }
+        $string = trim($string);
+        if ('N;' == $string) {
+            return true;
+        }
+        if ( ! preg_match('/^([adObis]):/', $string, $matches)) {
+            return false;
+        }
+        switch ($matches[ 1 ]) {
+            case 'a' :
+            case 'O' :
+            case 's' :
+                if (preg_match("/^{$matches[1]}:[0-9]+:.*[;}]\$/s", $string)) {
+                    return true;
+                }
+                break;
+            case 'b' :
+            case 'i' :
+            case 'd' :
+                if (preg_match("/^{$matches[1]}:[0-9.E-]+;\$/", $string)) {
+                    return true;
+                }
+                break;
+        }
+
+        return false;
     }
 
     // ------------------------------------------------------------------------
@@ -148,11 +247,11 @@ class Row implements
     {
         $fields = $this->columns;
 
-        foreach ( $fields as $fieldName => $fieldValue ) {
-            if ( $this->isJSON( $fieldValue ) ) {
-                $fields[ $fieldName ] = new Columns\DataJSON( json_decode( $fieldValue, true ) );
-            } elseif ( $this->isSerialized( $fieldValue ) ) {
-                $fields[ $fieldName ] = new Columns\DataSerialize( unserialize( $fieldValue ) );
+        foreach ($fields as $fieldName => $fieldValue) {
+            if ($this->isJSON($fieldValue)) {
+                $fields[ $fieldName ] = new Columns\DataJSON(json_decode($fieldValue, true));
+            } elseif ($this->isSerialized($fieldValue)) {
+                $fields[ $fieldName ] = new Columns\DataSerialize(unserialize($fieldValue));
             } else {
                 $fields[ $fieldName ] = $fieldValue;
             }
@@ -172,7 +271,7 @@ class Row implements
      */
     public function getValues()
     {
-        return array_values( $this->columns );
+        return array_values($this->columns);
     }
 
     // ------------------------------------------------------------------------
@@ -186,9 +285,9 @@ class Row implements
      *
      * @return mixed|null
      */
-    public function __get( $field )
+    public function __get($field)
     {
-        return $this->offsetGet( $field );
+        return $this->offsetGet($field);
     }
 
     // ------------------------------------------------------------------------
@@ -201,9 +300,9 @@ class Row implements
      * @param string $field Input name
      * @param mixed  $value Input value
      */
-    public function __set( $field, $value )
+    public function __set($field, $value)
     {
-        $this->offsetSet( $field, $value );
+        $this->offsetSet($field, $value);
     }
 
     // ------------------------------------------------------------------------
@@ -222,120 +321,22 @@ class Row implements
      * @return mixed Can return all value types.
      * @since 5.0.0
      */
-    public function offsetGet( $offset )
+    public function offsetGet($offset)
     {
-        if ( isset( $this->columns[ $offset ] ) ) {
+        if (isset($this->columns[ $offset ])) {
 
             $data = $this->columns[ $offset ];
 
-            if ( $this->isJSON( $data ) ) {
-                return new Columns\DataJSON( json_decode( $data, true ) );
-            } elseif ( $this->isSerialized( $data ) ) {
-                return new Columns\DataSerialize( unserialize( $data ) );
+            if ($this->isJSON($data)) {
+                return new Columns\DataJSON(json_decode($data, true));
+            } elseif ($this->isSerialized($data)) {
+                return new Columns\DataSerialize(unserialize($data));
             } else {
                 return $data;
             }
         }
 
         return null;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Row::isJSON
-     *
-     * Checks if field value is JSON format.
-     *
-     * @param string $string
-     *
-     * @return bool
-     */
-    protected function isJSON( $string )
-    {
-        // make sure provided input is of type string
-        if ( ! is_string( $string ) ) {
-            return false;
-        }
-
-        // trim white spaces
-        $string = trim( $string );
-
-        // get first character
-        $first_char = substr( $string, 0, 1 );
-
-        // get last character
-        $last_char = substr( $string, -1 );
-
-        // check if there is a first and last character
-        if ( ! $first_char || ! $last_char ) {
-            return false;
-        }
-
-        // make sure first character is either { or [
-        if ( $first_char !== '{' && $first_char !== '[' ) {
-            return false;
-        }
-
-        // make sure last character is either } or ]
-        if ( $last_char !== '}' && $last_char !== ']' ) {
-            return false;
-        }
-
-        // let's leave the rest to PHP.
-        // try to decode string
-        json_decode( $string );
-
-        // check if error occurred
-        if ( json_last_error() === JSON_ERROR_NONE ) {
-            return true;
-        }
-
-        return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Row::isSerialized
-     *
-     * Checks if field value is PHP serialize format.
-     *
-     * @param $string
-     *
-     * @return bool
-     */
-    protected function isSerialized( $string )
-    {
-        // if it isn't a string, it isn't serialized
-        if ( ! is_string( $string ) ) {
-            return false;
-        }
-        $string = trim( $string );
-        if ( 'N;' == $string ) {
-            return true;
-        }
-        if ( ! preg_match( '/^([adObis]):/', $string, $matches ) ) {
-            return false;
-        }
-        switch ( $matches[ 1 ] ) {
-            case 'a' :
-            case 'O' :
-            case 's' :
-                if ( preg_match( "/^{$matches[1]}:[0-9]+:.*[;}]\$/s", $string ) ) {
-                    return true;
-                }
-                break;
-            case 'b' :
-            case 'i' :
-            case 'd' :
-                if ( preg_match( "/^{$matches[1]}:[0-9.E-]+;\$/", $string ) ) {
-                    return true;
-                }
-                break;
-        }
-
-        return false;
     }
 
     // ------------------------------------------------------------------------
@@ -357,7 +358,7 @@ class Row implements
      * @return void
      * @since 5.0.0
      */
-    public function offsetSet( $offset, $value )
+    public function offsetSet($offset, $value)
     {
         $this->columns[ $offset ] = $value;
     }
@@ -376,7 +377,7 @@ class Row implements
      */
     public function getIterator()
     {
-        return new ArrayIterator( $this->columns );
+        return new ArrayIterator($this->columns);
     }
 
     // ------------------------------------------------------------------------
@@ -398,9 +399,9 @@ class Row implements
      * The return value will be casted to boolean if non-boolean was returned.
      * @since 5.0.0
      */
-    public function offsetExists( $offset )
+    public function offsetExists($offset)
     {
-        return isset( $this->columns[ $offset ] );
+        return isset($this->columns[ $offset ]);
     }
 
     // ------------------------------------------------------------------------
@@ -419,9 +420,9 @@ class Row implements
      * @return void
      * @since 5.0.0
      */
-    public function offsetUnset( $field )
+    public function offsetUnset($field)
     {
-        unset( $this->columns[ $field ] );
+        unset($this->columns[ $field ]);
     }
 
     // ------------------------------------------------------------------------
@@ -435,7 +436,7 @@ class Row implements
      */
     public function serialize()
     {
-        return serialize( $this->rows );
+        return serialize($this->rows);
     }
 
     // ------------------------------------------------------------------------
@@ -452,13 +453,13 @@ class Row implements
      * @return void
      * @since 5.1.0
      */
-    public function unserialize( $serialized )
+    public function unserialize($serialized)
     {
-        $this->rows = unserialize( $serialized );
+        $this->rows = unserialize($serialized);
     }
 
     // ------------------------------------------------------------------------
-    
+
     /**
      * Specify data which should be serialized to JSON
      *

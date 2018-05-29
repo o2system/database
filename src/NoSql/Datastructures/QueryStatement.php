@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\NoSql\Datastructures;
@@ -118,12 +119,12 @@ class QueryStatement
      *
      * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
      */
-    public function __construct( QueryBuilderCache $queryBuilderCache )
+    public function __construct(QueryBuilderCache $queryBuilderCache)
     {
         $this->builderCache = $queryBuilderCache;
-        $this->setCollection( $queryBuilderCache->from );
+        $this->setCollection($queryBuilderCache->from);
 
-        if( count( $queryBuilderCache->sets ) ) {
+        if (count($queryBuilderCache->sets)) {
             $this->document = $queryBuilderCache->sets;
         }
     }
@@ -132,7 +133,7 @@ class QueryStatement
 
     /**
      * QueryStatement::getBuilderCache
-     * 
+     *
      * @return void
      */
     public function getBuilderCache()
@@ -141,27 +142,10 @@ class QueryStatement
     }
 
     /**
-     * QueryStatement::setCollection
-     *
-     * Set Query Collection name
-     * 
-     * @param   string $collection
-     * 
-     */
-    public function setCollection( $collection )
-    {
-        $this->collection = trim( $collection );
-
-        return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
      * QueryStatement::getCollection
      *
      * Get Query Collection name
-     * 
+     *
      * @return string
      */
     public function getCollection()
@@ -172,15 +156,16 @@ class QueryStatement
     //--------------------------------------------------------------------
 
     /**
-     * QueryStatement::setFilter
+     * QueryStatement::setCollection
      *
-     * Set Query Filter Array
-     * 
-     * @param array $filter
+     * Set Query Collection name
+     *
+     * @param   string $collection
+     *
      */
-    public function setFilter( array $filter )
+    public function setCollection($collection)
     {
-        $this->filter = $filter;
+        $this->collection = trim($collection);
 
         return $this;
     }
@@ -190,12 +175,12 @@ class QueryStatement
     /**
      * QueryStatement::addFilter
      *
-     * Add Query Filter 
-     * 
-     * @param string    $field
-     * @param int       $value
+     * Add Query Filter
+     *
+     * @param string $field
+     * @param int    $value
      */
-    public function addFilter( $field, $value )
+    public function addFilter($field, $value)
     {
         $this->filter[ $field ] = $value;
 
@@ -208,7 +193,7 @@ class QueryStatement
      * QueryStatement::getFilter
      *
      * Get Query Filter
-     * 
+     *
      * @return array
      */
     public function getFilter()
@@ -219,16 +204,15 @@ class QueryStatement
     //--------------------------------------------------------------------
 
     /**
-     * QueryStatement::setOptions
+     * QueryStatement::setFilter
      *
-     * Set Query Options
-     * 
-     * @param array $options
-     * @return static
+     * Set Query Filter Array
+     *
+     * @param array $filter
      */
-    public function setOptions( array $options )
+    public function setFilter(array $filter)
     {
-        $this->options = $options;
+        $this->filter = $filter;
 
         return $this;
     }
@@ -239,13 +223,13 @@ class QueryStatement
      * QueryStatement::addOption
      *
      * Add Query Option
-     * 
+     *
      * @param string $option
      * @param mixed  $value
      *
      * @return  static
      */
-    public function addOption( $option, $value )
+    public function addOption($option, $value)
     {
         $this->options[ $option ] = $value;
 
@@ -258,7 +242,7 @@ class QueryStatement
      * QueryStatement::getOptions
      *
      * Get Query Options
-     * 
+     *
      * @return array
      */
     public function getOptions()
@@ -269,10 +253,28 @@ class QueryStatement
     //--------------------------------------------------------------------
 
     /**
+     * QueryStatement::setOptions
+     *
+     * Set Query Options
+     *
+     * @param array $options
+     *
+     * @return static
+     */
+    public function setOptions(array $options)
+    {
+        $this->options = $options;
+
+        return $this;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
      * QueryStatement::getDocument
      *
      * Get Query Document
-     *  
+     *
      * @return array
      */
     public function getDocument()
@@ -294,12 +296,12 @@ class QueryStatement
      *
      * @return static
      */
-    public function setDuration( $start, $end = null )
+    public function setDuration($start, $end = null)
     {
         $this->startExecutionTime = $start;
 
-        if ( is_null( $end ) ) {
-            $end = microtime( true );
+        if (is_null($end)) {
+            $end = microtime(true);
         }
 
         $this->endExecutionTime = $end;
@@ -319,13 +321,13 @@ class QueryStatement
      *
      * @return mixed
      */
-    public function getStartExecutionTime( $numberFormat = false, $decimals = 6 )
+    public function getStartExecutionTime($numberFormat = false, $decimals = 6)
     {
-        if ( ! $numberFormat ) {
+        if ( ! $numberFormat) {
             return $this->startExecutionTime;
         }
 
-        return number_format( $this->startExecutionTime, $decimals );
+        return number_format($this->startExecutionTime, $decimals);
     }
 
     //--------------------------------------------------------------------
@@ -340,9 +342,9 @@ class QueryStatement
      *
      * @return mixed
      */
-    public function getExecutionDuration( $decimals = 6 )
+    public function getExecutionDuration($decimals = 6)
     {
-        return number_format( ( $this->endExecutionTime - $this->startExecutionTime ), $decimals );
+        return number_format(($this->endExecutionTime - $this->startExecutionTime), $decimals);
     }
 
     //--------------------------------------------------------------------
@@ -357,7 +359,7 @@ class QueryStatement
      *
      * @return static
      */
-    public function setError( $errorCode, $errorMessage )
+    public function setError($errorCode, $errorMessage)
     {
         $this->error[ $errorCode ] = $errorMessage;
 
@@ -375,8 +377,8 @@ class QueryStatement
      */
     public function getErrorCode()
     {
-        if ( $this->hasError() ) {
-            return key( $this->error );
+        if ($this->hasError()) {
+            return key($this->error);
         }
 
         return false;
@@ -393,7 +395,7 @@ class QueryStatement
      */
     public function hasError()
     {
-        return ! empty( $this->error );
+        return ! empty($this->error);
     }
 
     //--------------------------------------------------------------------
@@ -407,27 +409,11 @@ class QueryStatement
      */
     public function getErrorMessage()
     {
-        if ( $this->hasError() ) {
-            return (string)reset( $this->error );
+        if ($this->hasError()) {
+            return (string)reset($this->error);
         }
 
         return false;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * QueryStatement::setAffectedRows
-     *
-     * Sets numbers of affected rows.
-     *
-     * @param int $affectedDocuments Numbers of affected rows,
-     */
-    public function setAffectedDocuments( $affectedDocuments )
-    {
-        $this->affectedDocuments = $affectedDocuments;
-
-        return $this;
     }
 
     //--------------------------------------------------------------------
@@ -449,13 +435,13 @@ class QueryStatement
     /**
      * QueryStatement::setAffectedRows
      *
-     * Sets query last insert id.
+     * Sets numbers of affected rows.
      *
-     * @param string|int
+     * @param int $affectedDocuments Numbers of affected rows,
      */
-    public function setLastInsertId( $lastInsertId )
+    public function setAffectedDocuments($affectedDocuments)
     {
-        $this->lastInsertId = $lastInsertId;
+        $this->affectedDocuments = $affectedDocuments;
 
         return $this;
     }
@@ -472,5 +458,21 @@ class QueryStatement
     public function getLastInsertId()
     {
         return $this->lastInsertId;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryStatement::setAffectedRows
+     *
+     * Sets query last insert id.
+     *
+     * @param string|int
+     */
+    public function setLastInsertId($lastInsertId)
+    {
+        $this->lastInsertId = $lastInsertId;
+
+        return $this;
     }
 }

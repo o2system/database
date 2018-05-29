@@ -16,10 +16,10 @@ namespace O2System\Database\Sql\Abstracts;
 // ------------------------------------------------------------------------
 
 use O2System\Cache\Item;
+use O2System\Database\DataObjects\Result;
+use O2System\Database\Datastructures\Config;
 use O2System\Database\Sql\Datastructures\QueryStatement;
 use O2System\Spl\Exceptions\RuntimeException;
-use O2System\Database\Datastructures\Config;
-use O2System\Database\DataObjects\Result;
 use O2System\Spl\Traits\Collectors\ConfigCollectorTrait;
 
 /**
@@ -48,16 +48,6 @@ abstract class AbstractConnection
      * @var bool
      */
     public $transactionEnable = false;
-
-    /**
-     * AbstractConnection::$cacheEnable
-     *
-     * Connection cache mode flag.
-     *
-     * @var bool
-     */
-    protected $cacheEnable = false;
-
     /**
      * AbstractConnection::$database
      *
@@ -66,7 +56,6 @@ abstract class AbstractConnection
      * @var string
      */
     public $database;
-
     /**
      * AbstractConnection::$swapTablePrefix
      *
@@ -75,7 +64,6 @@ abstract class AbstractConnection
      * @var string
      */
     public $swapTablePrefix;
-
     /**
      * AbstractConnection::$isProtectIdentifiers
      *
@@ -84,7 +72,6 @@ abstract class AbstractConnection
      * @var bool
      */
     public $isProtectIdentifiers = true;
-
     /**
      * AbstractConnection::$disableQueryExecution
      *
@@ -93,7 +80,6 @@ abstract class AbstractConnection
      * @var bool
      */
     public $disableQueryExecution = false;
-
     /**
      * AbstractConnection::$queriesResultCache
      *
@@ -103,7 +89,14 @@ abstract class AbstractConnection
      * @var array
      */
     public $queriesResultCache = [];
-
+    /**
+     * AbstractConnection::$cacheEnable
+     *
+     * Connection cache mode flag.
+     *
+     * @var bool
+     */
+    protected $cacheEnable = false;
     /**
      * AbstractConnection::$platform
      *
@@ -299,22 +292,6 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::cache
-     *
-     * @param  boolean $mode
-     *
-     * @return static
-     */
-    public function cache($mode = true)
-    {
-        $this->cacheEnable = (bool)$mode;
-
-        return $this;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * AbstractConnection::platformConnectHandler
      *
      * Driver dependent way method for open the connection.
@@ -325,7 +302,7 @@ abstract class AbstractConnection
      */
     abstract protected function platformConnectHandler(Config $config);
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::isSupported
@@ -368,7 +345,7 @@ abstract class AbstractConnection
         return $this->queriesResultCache[ 'platformInfo' ] = $this->platformGetPlatformInfoHandler();
     }
 
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * AbstractConnection::platformGetPlatformVersionHandler
@@ -412,7 +389,7 @@ abstract class AbstractConnection
             : true);
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::disconnect
@@ -429,7 +406,7 @@ abstract class AbstractConnection
         }
     }
 
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * AbstractConnection::disconnectHandler
@@ -440,7 +417,7 @@ abstract class AbstractConnection
      */
     abstract protected function platformDisconnectHandler();
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::getConnectionTimeStart
@@ -457,7 +434,7 @@ abstract class AbstractConnection
         return (int)$this->connectTimeStart;
     }
 
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * AbstractConnection::getConnectTimeDuration
@@ -490,7 +467,7 @@ abstract class AbstractConnection
         return $this->queriesCache;
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::getQueriesCount
@@ -540,18 +517,6 @@ abstract class AbstractConnection
     //--------------------------------------------------------------------
 
     /**
-     * AbstractConnection::getDatabases
-     *
-     * Get list of current connection databases.
-     *
-     * @return array Returns an array.
-     * @throws \O2System\Spl\Exceptions\RuntimeException
-     */
-    abstract public function getDatabases();
-
-    // ------------------------------------------------------------------------
-
-    /**
      * AbstractConnection::hasDatabase
      *
      * Check if the database exists or not.
@@ -569,6 +534,18 @@ abstract class AbstractConnection
         return (bool)in_array($databaseName, $this->queriesResultCache[ 'databaseNames' ]);
     }
 
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::getDatabases
+     *
+     * Get list of current connection databases.
+     *
+     * @return array Returns an array.
+     * @throws \O2System\Spl\Exceptions\RuntimeException
+     */
+    abstract public function getDatabases();
+
     // ------------------------------------------------------------------------
 
     /**
@@ -581,6 +558,28 @@ abstract class AbstractConnection
     final public function setTablePrefix($tablePrefix)
     {
         return $this->config[ 'tablePrefix' ] = $tablePrefix;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::hasTable
+     *
+     * Check if table exists at current connection database.
+     *
+     * @param $table
+     *
+     * @return bool
+     */
+    public function hasTable($table)
+    {
+        $table = $this->prefixTable($table);
+
+        if (empty($this->queriesResultCache[ 'tableNames' ])) {
+            $this->getTables();
+        }
+
+        return (bool)in_array($table, $this->queriesResultCache[ 'tableNames' ]);
     }
 
     // ------------------------------------------------------------------------
@@ -620,40 +619,6 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::hasTable
-     *
-     * Check if table exists at current connection database.
-     *
-     * @param $table
-     *
-     * @return bool
-     */
-    public function hasTable($table)
-    {
-        $table = $this->prefixTable($table);
-
-        if (empty($this->queriesResultCache[ 'tableNames' ])) {
-            $this->getTables();
-        }
-
-        return (bool)in_array($table, $this->queriesResultCache[ 'tableNames' ]);
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::getColumns
-     *
-     * @param string $table The database table name.
-     *
-     * @return array
-     * @throws \O2System\Spl\Exceptions\RuntimeException
-     */
-    abstract public function getColumns($table);
-
-    // ------------------------------------------------------------------------
-
-    /**
      * AbstractConnection::hasColumn
      *
      * Check if table exists at current connection database.
@@ -677,24 +642,14 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::getLastInsertId
+     * AbstractConnection::getColumns
      *
-     * Get last insert id from the last insert query execution.
+     * @param string $table The database table name.
      *
-     * @return int  Returns total number of affected rows
+     * @return array
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    abstract public function getLastInsertId();
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::getAffectedRows
-     *
-     * Get the total number of affected rows from the last query execution.
-     *
-     * @return int  Returns total number of affected rows
-     */
-    abstract public function getAffectedRows();
+    abstract public function getColumns($table);
 
     // ------------------------------------------------------------------------
 
@@ -742,6 +697,28 @@ abstract class AbstractConnection
      * @return bool
      */
     abstract protected function platformExecuteHandler(QueryStatement &$queryStatement);
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::getAffectedRows
+     *
+     * Get the total number of affected rows from the last query execution.
+     *
+     * @return int  Returns total number of affected rows
+     */
+    abstract public function getAffectedRows();
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::getLastInsertId
+     *
+     * Get last insert id from the last insert query execution.
+     *
+     * @return int  Returns total number of affected rows
+     */
+    abstract public function getLastInsertId();
 
     // ------------------------------------------------------------------------
 
@@ -845,137 +822,6 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::platformQueryHandler
-     *
-     * Driver dependent way method for execute the Sql statement.
-     *
-     * @param QueryStatement $queryStatement Query object.
-     *
-     * @return array
-     */
-    abstract protected function platformQueryHandler(QueryStatement &$queryStatement);
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::getTransactionStatus
-     *
-     * Get transaction status.
-     *
-     * @return bool
-     */
-    public function getTransactionStatus()
-    {
-        return (bool)$this->transactionStatus;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::transactionBegin
-     *
-     * Starting a transaction.
-     *
-     * @param bool $testMode Testing mode flag.
-     *
-     * @return bool
-     */
-    public function transactionBegin()
-    {
-        /**
-         * checks if the transaction already started
-         * then we only increment the transaction depth.
-         */
-        if ($this->transactionDepth > 0) {
-            $this->transactionDepth++;
-
-            return true;
-        }
-
-        if ($this->platformTransactionBeginHandler()) {
-            $this->transactionInProgress = true;
-            $this->transactionDepth++;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::platformTransactionBeginHandler
-     *
-     * Platform beginning a transaction handler.
-     *
-     * @return bool
-     */
-    abstract protected function platformTransactionBeginHandler();
-
-    /**
-     * AbstractConnection::transactionRollBack
-     *
-     * RollBack a transaction.
-     *
-     * @return bool
-     */
-    public function transactionRollBack()
-    {
-        if ($this->transactionInProgress) {
-            return $this->platformTransactionRollBackHandler();
-        }
-
-        return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::platformTransactionRollBackHandler
-     *
-     * Platform rolling back a transaction handler.
-     *
-     * @return bool
-     */
-    abstract protected function platformTransactionRollBackHandler();
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::transactionCommit
-     *
-     * Commit a transaction.
-     *
-     * @return bool
-     */
-    public function transactionCommit()
-    {
-        if ($this->transactionInProgress) {
-            if ($this->transactionStatus) {
-                $this->platformTransactionCommitHandler();
-
-                return true;
-            }
-        }
-
-        return $this->transactionRollBack();
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::platformTransactionCommitHandler
-     *
-     * Platform committing a transaction handler.
-     *
-     * @return bool
-     */
-    abstract protected function platformTransactionCommitHandler();
-
-    // ------------------------------------------------------------------------
-
-    /**
      * QueryStatement::compileSqlBinds
      *
      * Escapes and inserts any binds into the final Sql statement object.
@@ -1019,7 +865,7 @@ abstract class AbstractConnection
         return $sqlStatement . ';';
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * QueryStatement::replaceNamedBinds
@@ -1061,7 +907,100 @@ abstract class AbstractConnection
         return $sqlStatement;
     }
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::escape
+     *
+     * Escape string
+     *
+     * @param $string
+     *
+     * @return int|string
+     */
+    final public function escape($string)
+    {
+        if (is_array($string)) {
+            $string = array_map([&$this, 'escape'], $string);
+
+            return $string;
+        } else {
+            if (is_string($string) OR (is_object($string) && method_exists($string, '__toString'))) {
+                return "'" . $this->escapeString($string) . "'";
+            } else {
+                if (is_bool($string)) {
+                    return ($string === false)
+                        ? 0
+                        : 1;
+                } else {
+                    if ($string === null) {
+                        return 'NULL';
+                    }
+                }
+            }
+        }
+
+        return $string;
+    }
+
     //--------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::escapeString
+     *
+     * Escape String
+     *
+     * @param string|\string[] $string
+     * @param bool             $like
+     *
+     * @return array|string|\string[]
+     */
+    final public function escapeString($string, $like = false)
+    {
+        if (is_array($string)) {
+            foreach ($string as $key => $value) {
+                $string[ $key ] = $this->escapeString($value, $like);
+            }
+
+            return $string;
+        }
+
+        $string = $this->platformEscapeStringHandler($string);
+
+        // escape LIKE condition wildcards
+        if ($like === true) {
+            $string = str_replace(
+                [$this->config[ 'likeEscapeCharacter' ], '%', '_'],
+                [
+                    $this->config[ 'likeEscapeCharacter' ] . $this->config[ 'likeEscapeCharacter' ],
+                    $this->config[ 'likeEscapeCharacter' ] . '%',
+                    $this->config[ 'likeEscapeCharacter' ] . '_',
+                ],
+                $string
+            );
+        }
+
+        // fixed escaping string bugs !_
+        $string = str_replace('!_', '_', $string);
+
+        return $string;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::platformEscapeStringHandler
+     *
+     * Platform escape string handler.
+     *
+     * @param string $string
+     *
+     * @return string
+     */
+    protected function platformEscapeStringHandler($string)
+    {
+        return str_replace("'", "''", remove_invisible_characters($string));
+    }
 
     /**
      * QueryStatement::replaceSimpleBinds
@@ -1123,84 +1062,151 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::escapeIdentifiers
+     * AbstractConnection::platformQueryHandler
      *
-     * Escape the Sql Identifiers
+     * Driver dependent way method for execute the Sql statement.
      *
-     * This function escapes column and table names
+     * @param QueryStatement $queryStatement Query object.
      *
-     * @param    mixed
-     *
-     * @return    mixed
+     * @return array
      */
-    final public function escapeIdentifiers($item)
+    abstract protected function platformQueryHandler(QueryStatement &$queryStatement);
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::cache
+     *
+     * @param  boolean $mode
+     *
+     * @return static
+     */
+    public function cache($mode = true)
     {
-        if ($this->config[ 'escapeCharacter' ] === '' OR empty($item) OR in_array(
-                $item,
-                $this->config[ 'reservedIdentifiers' ]
-            )
-        ) {
-            return $item;
-        } elseif (is_array($item)) {
-            foreach ($item as $key => $value) {
-                $item[ $key ] = $this->escapeIdentifiers($value);
-            }
+        $this->cacheEnable = (bool)$mode;
 
-            return $item;
-        } // Avoid breaking functions and literal values inside queries
-        elseif (ctype_digit(
-                $item
-            ) OR $item[ 0 ] === "'" OR ($this->config[ 'escapeCharacter' ] !== '"' && $item[ 0 ] === '"') OR
-            strpos($item, '(') !== false
-        ) {
-            return $item;
-        }
-
-        static $pregEscapeCharacters = [];
-
-        if (empty($pregEscapeCharacters)) {
-            if (is_array($this->config[ 'escapeCharacter' ])) {
-                $pregEscapeCharacters = [
-                    preg_quote($this->config[ 'escapeCharacter' ][ 0 ], '/'),
-                    preg_quote($this->config[ 'escapeCharacter' ][ 1 ], '/'),
-                    $this->config[ 'escapeCharacter' ][ 0 ],
-                    $this->config[ 'escapeCharacter' ][ 1 ],
-                ];
-            } else {
-                $pregEscapeCharacters[ 0 ]
-                    = $pregEscapeCharacters[ 1 ] = preg_quote($this->config[ 'escapeCharacter' ], '/');
-                $pregEscapeCharacters[ 2 ] = $pregEscapeCharacters[ 3 ] = $this->config[ 'escapeCharacter' ];
-            }
-        }
-
-        foreach ($this->config[ 'reservedIdentifiers' ] as $id) {
-            if (strpos($item, '.' . $id) !== false) {
-                return preg_replace(
-                    '/'
-                    . $pregEscapeCharacters[ 0 ]
-                    . '?([^'
-                    . $pregEscapeCharacters[ 1 ]
-                    . '\.]+)'
-                    . $pregEscapeCharacters[ 1 ]
-                    . '?\./i',
-                    $pregEscapeCharacters[ 2 ] . '$1' . $pregEscapeCharacters[ 3 ] . '.',
-                    $item
-                );
-            }
-        }
-
-        return preg_replace(
-            '/'
-            . $pregEscapeCharacters[ 0 ]
-            . '?([^'
-            . $pregEscapeCharacters[ 1 ]
-            . '\.]+)'
-            . $pregEscapeCharacters[ 1 ]
-            . '?(\.)?/i',
-            $pregEscapeCharacters[ 2 ] . '$1' . $pregEscapeCharacters[ 3 ] . '$2',
-            $item
-        );
+        return $this;
     }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::transactionRollBack
+     *
+     * RollBack a transaction.
+     *
+     * @return bool
+     */
+    public function transactionRollBack()
+    {
+        if ($this->transactionInProgress) {
+            return $this->platformTransactionRollBackHandler();
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::platformTransactionRollBackHandler
+     *
+     * Platform rolling back a transaction handler.
+     *
+     * @return bool
+     */
+    abstract protected function platformTransactionRollBackHandler();
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::getTransactionStatus
+     *
+     * Get transaction status.
+     *
+     * @return bool
+     */
+    public function getTransactionStatus()
+    {
+        return (bool)$this->transactionStatus;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::transactionBegin
+     *
+     * Starting a transaction.
+     *
+     * @param bool $testMode Testing mode flag.
+     *
+     * @return bool
+     */
+    public function transactionBegin()
+    {
+        /**
+         * checks if the transaction already started
+         * then we only increment the transaction depth.
+         */
+        if ($this->transactionDepth > 0) {
+            $this->transactionDepth++;
+
+            return true;
+        }
+
+        if ($this->platformTransactionBeginHandler()) {
+            $this->transactionInProgress = true;
+            $this->transactionDepth++;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::platformTransactionBeginHandler
+     *
+     * Platform beginning a transaction handler.
+     *
+     * @return bool
+     */
+    abstract protected function platformTransactionBeginHandler();
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::transactionCommit
+     *
+     * Commit a transaction.
+     *
+     * @return bool
+     */
+    public function transactionCommit()
+    {
+        if ($this->transactionInProgress) {
+            if ($this->transactionStatus) {
+                $this->platformTransactionCommitHandler();
+
+                return true;
+            }
+        }
+
+        return $this->transactionRollBack();
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::platformTransactionCommitHandler
+     *
+     * Platform committing a transaction handler.
+     *
+     * @return bool
+     */
+    abstract protected function platformTransactionCommitHandler();
 
     // ------------------------------------------------------------------------
 
@@ -1216,65 +1222,6 @@ abstract class AbstractConnection
     final public function escapeLikeString($string)
     {
         return $this->escapeString($string, true);
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::escapeString
-     *
-     * Escape String
-     *
-     * @param string|\string[] $string
-     * @param bool             $like
-     *
-     * @return array|string|\string[]
-     */
-    final public function escapeString($string, $like = false)
-    {
-        if (is_array($string)) {
-            foreach ($string as $key => $value) {
-                $string[ $key ] = $this->escapeString($value, $like);
-            }
-
-            return $string;
-        }
-
-        $string = $this->platformEscapeStringHandler($string);
-
-        // escape LIKE condition wildcards
-        if ($like === true) {
-            $string = str_replace(
-                [$this->config[ 'likeEscapeCharacter' ], '%', '_'],
-                [
-                    $this->config[ 'likeEscapeCharacter' ] . $this->config[ 'likeEscapeCharacter' ],
-                    $this->config[ 'likeEscapeCharacter' ] . '%',
-                    $this->config[ 'likeEscapeCharacter' ] . '_',
-                ],
-                $string
-            );
-        }
-
-        // fixed escaping string bugs !_
-        $string = str_replace('!_', '_', $string);
-
-        return $string;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::platformEscapeStringHandler
-     *
-     * Platform escape string handler.
-     *
-     * @param string $string
-     *
-     * @return string
-     */
-    protected function platformEscapeStringHandler($string)
-    {
-        return str_replace("'", "''", remove_invisible_characters($string));
     }
 
     // ------------------------------------------------------------------------
@@ -1469,52 +1416,98 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::escape
+     * AbstractConnection::escapeIdentifiers
      *
-     * Escape string
+     * Escape the Sql Identifiers
      *
-     * @param $string
+     * This function escapes column and table names
      *
-     * @return int|string
+     * @param    mixed
+     *
+     * @return    mixed
      */
-    final public function escape($string)
+    final public function escapeIdentifiers($item)
     {
-        if (is_array($string)) {
-            $string = array_map([&$this, 'escape'], $string);
+        if ($this->config[ 'escapeCharacter' ] === '' OR empty($item) OR in_array(
+                $item,
+                $this->config[ 'reservedIdentifiers' ]
+            )
+        ) {
+            return $item;
+        } elseif (is_array($item)) {
+            foreach ($item as $key => $value) {
+                $item[ $key ] = $this->escapeIdentifiers($value);
+            }
 
-            return $string;
-        } else {
-            if (is_string($string) OR (is_object($string) && method_exists($string, '__toString'))) {
-                return "'" . $this->escapeString($string) . "'";
+            return $item;
+        } // Avoid breaking functions and literal values inside queries
+        elseif (ctype_digit(
+                $item
+            ) OR $item[ 0 ] === "'" OR ($this->config[ 'escapeCharacter' ] !== '"' && $item[ 0 ] === '"') OR
+            strpos($item, '(') !== false
+        ) {
+            return $item;
+        }
+
+        static $pregEscapeCharacters = [];
+
+        if (empty($pregEscapeCharacters)) {
+            if (is_array($this->config[ 'escapeCharacter' ])) {
+                $pregEscapeCharacters = [
+                    preg_quote($this->config[ 'escapeCharacter' ][ 0 ], '/'),
+                    preg_quote($this->config[ 'escapeCharacter' ][ 1 ], '/'),
+                    $this->config[ 'escapeCharacter' ][ 0 ],
+                    $this->config[ 'escapeCharacter' ][ 1 ],
+                ];
             } else {
-                if (is_bool($string)) {
-                    return ($string === false)
-                        ? 0
-                        : 1;
-                } else {
-                    if ($string === null) {
-                        return 'NULL';
-                    }
-                }
+                $pregEscapeCharacters[ 0 ]
+                    = $pregEscapeCharacters[ 1 ] = preg_quote($this->config[ 'escapeCharacter' ], '/');
+                $pregEscapeCharacters[ 2 ] = $pregEscapeCharacters[ 3 ] = $this->config[ 'escapeCharacter' ];
             }
         }
 
-        return $string;
+        foreach ($this->config[ 'reservedIdentifiers' ] as $id) {
+            if (strpos($item, '.' . $id) !== false) {
+                return preg_replace(
+                    '/'
+                    . $pregEscapeCharacters[ 0 ]
+                    . '?([^'
+                    . $pregEscapeCharacters[ 1 ]
+                    . '\.]+)'
+                    . $pregEscapeCharacters[ 1 ]
+                    . '?\./i',
+                    $pregEscapeCharacters[ 2 ] . '$1' . $pregEscapeCharacters[ 3 ] . '.',
+                    $item
+                );
+            }
+        }
+
+        return preg_replace(
+            '/'
+            . $pregEscapeCharacters[ 0 ]
+            . '?([^'
+            . $pregEscapeCharacters[ 1 ]
+            . '\.]+)'
+            . $pregEscapeCharacters[ 1 ]
+            . '?(\.)?/i',
+            $pregEscapeCharacters[ 2 ] . '$1' . $pregEscapeCharacters[ 3 ] . '$2',
+            $item
+        );
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::prepareSqlStatement
+     * AbstractConnection::table
      *
-     * Platform preparing a Sql statement.
+     * Get connection query builder.
      *
-     * @param string $sqlStatement Sql Statement to be prepared.
-     * @param array  $options      Preparing Sql statement options.
-     *
-     * @return string
+     * @return AbstractQueryBuilder
      */
-    abstract protected function platformPrepareSqlStatement($sqlStatement, array $options = []);
+    public function table($tableName)
+    {
+        return $this->getQueryBuilder()->from($tableName);
+    }
 
     // ------------------------------------------------------------------------
 
@@ -1541,14 +1534,14 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::table
+     * AbstractConnection::prepareSqlStatement
      *
-     * Get connection query builder.
+     * Platform preparing a Sql statement.
      *
-     * @return AbstractQueryBuilder
+     * @param string $sqlStatement Sql Statement to be prepared.
+     * @param array  $options      Preparing Sql statement options.
+     *
+     * @return string
      */
-    public function table($tableName)
-    {
-        return $this->getQueryBuilder()->from($tableName);
-    }
+    abstract protected function platformPrepareSqlStatement($sqlStatement, array $options = []);
 }

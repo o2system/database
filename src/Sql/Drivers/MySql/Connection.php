@@ -8,17 +8,18 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\Sql\Drivers\MySql;
 
 // ------------------------------------------------------------------------
 
+use O2System\Database\Datastructures\Config;
+use O2System\Database\Sql\Abstracts\AbstractConnection;
 use O2System\Database\Sql\Datastructures\QueryStatement;
 use O2System\Spl\Datastructures\SplArrayObject;
 use O2System\Spl\Exceptions\RuntimeException;
-use O2System\Database\Datastructures\Config;
-use O2System\Database\Sql\Abstracts\AbstractConnection;
 
 /**
  * Class Connection
@@ -59,7 +60,7 @@ class Connection extends AbstractConnection
     protected $config
         = [
             'escapeCharacter'     => '`',
-            'reservedIdentifiers' => [ '*' ],
+            'reservedIdentifiers' => ['*'],
             'likeEscapeStatement' => ' ESCAPE \'%s\' ',
             'likeEscapeCharacter' => '!',
         ];
@@ -84,7 +85,7 @@ class Connection extends AbstractConnection
      */
     public function isSupported()
     {
-        return extension_loaded( 'mysqli' );
+        return extension_loaded('mysqli');
     }
 
     // ------------------------------------------------------------------------
@@ -98,13 +99,13 @@ class Connection extends AbstractConnection
      *
      * @return static
      */
-    public function setDatabase( $database )
+    public function setDatabase($database)
     {
-        $database = empty( $database )
+        $database = empty($database)
             ? $this->database
             : $database;
 
-        if ( $this->handle->select_db( $database ) ) {
+        if ($this->handle->select_db($database)) {
             $this->database = $database;
         }
 
@@ -123,18 +124,18 @@ class Connection extends AbstractConnection
      */
     public function getDatabases()
     {
-        if ( empty( $this->queriesResultCache[ 'databaseNames' ] ) ) {
-            $result = $this->query( 'SHOW DATABASES' );
+        if (empty($this->queriesResultCache[ 'databaseNames' ])) {
+            $result = $this->query('SHOW DATABASES');
 
-            if ( $result->count() ) {
-                foreach ( $result as $row ) {
+            if ($result->count()) {
+                foreach ($result as $row) {
 
-                    if ( ! isset( $key ) ) {
-                        if ( isset( $row[ 'database' ] ) ) {
+                    if ( ! isset($key)) {
+                        if (isset($row[ 'database' ])) {
                             $key = 'database';
-                        } elseif ( isset( $row[ 'Database' ] ) ) {
+                        } elseif (isset($row[ 'Database' ])) {
                             $key = 'Database';
-                        } elseif ( isset( $row[ 'DATABASE' ] ) ) {
+                        } elseif (isset($row[ 'DATABASE' ])) {
                             $key = 'DATABASE';
                         } else {
                             /* We have no other choice but to just get the first element's key.
@@ -142,12 +143,12 @@ class Connection extends AbstractConnection
                              * E_STRICT is on, this would trigger a warning. So we'll have to
                              * assign it first.
                              */
-                            $key = array_keys( $row );
-                            $key = array_shift( $key );
+                            $key = array_keys($row);
+                            $key = array_shift($key);
                         }
                     }
 
-                    $this->queriesResultCache[ 'databaseNames' ][] = $row->offsetGet( $key );
+                    $this->queriesResultCache[ 'databaseNames' ][] = $row->offsetGet($key);
                 }
             }
         }
@@ -167,25 +168,25 @@ class Connection extends AbstractConnection
      * @return array Returns an array
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function getTables( $prefixLimit = false )
+    public function getTables($prefixLimit = false)
     {
-        if ( empty( $this->queriesResultCache[ 'tableNames' ] ) ) {
+        if (empty($this->queriesResultCache[ 'tableNames' ])) {
 
-            $sqlStatement = 'SHOW TABLES FROM ' . $this->escapeIdentifiers( $this->config[ 'database' ] );
+            $sqlStatement = 'SHOW TABLES FROM ' . $this->escapeIdentifiers($this->config[ 'database' ]);
 
-            if ( $prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '' ) {
-                $sqlStatement .= " LIKE '" . $this->escapeLikeString( $this->config[ 'tablePrefix' ] ) . "%'";
+            if ($prefixLimit !== false && $this->config[ 'tablePrefix' ] !== '') {
+                $sqlStatement .= " LIKE '" . $this->escapeLikeString($this->config[ 'tablePrefix' ]) . "%'";
             }
 
-            $result = $this->query( $sqlStatement );
+            $result = $this->query($sqlStatement);
 
-            if ( $result->count() ) {
-                foreach ( $result as $row ) {
+            if ($result->count()) {
+                foreach ($result as $row) {
                     // Do we know from which column to get the table name?
-                    if ( ! isset( $key ) ) {
-                        if ( isset( $row[ 'table_name' ] ) ) {
+                    if ( ! isset($key)) {
+                        if (isset($row[ 'table_name' ])) {
                             $key = 'table_name';
-                        } elseif ( isset( $row[ 'TABLE_NAME' ] ) ) {
+                        } elseif (isset($row[ 'TABLE_NAME' ])) {
                             $key = 'TABLE_NAME';
                         } else {
                             /* We have no other choice but to just get the first element's key.
@@ -193,12 +194,12 @@ class Connection extends AbstractConnection
                              * E_STRICT is on, this would trigger a warning. So we'll have to
                              * assign it first.
                              */
-                            $key = array_keys( $row->getArrayCopy() );
-                            $key = array_shift( $key );
+                            $key = array_keys($row->getArrayCopy());
+                            $key = array_shift($key);
                         }
                     }
 
-                    $this->queriesResultCache[ 'tableNames' ][] = $row->offsetGet( $key );
+                    $this->queriesResultCache[ 'tableNames' ][] = $row->offsetGet($key);
                 }
             }
         }
@@ -216,20 +217,20 @@ class Connection extends AbstractConnection
      * @return array
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function getColumns( $table )
+    public function getColumns($table)
     {
-        $table = $this->prefixTable( $table );
+        $table = $this->prefixTable($table);
 
-        if ( empty( $this->queriesResultCache[ 'tableColumns' ][ $table ] ) ) {
-            $result = $this->query( 'SHOW COLUMNS FROM ' . $this->protectIdentifiers( $table, true, null, false ) );
+        if (empty($this->queriesResultCache[ 'tableColumns' ][ $table ])) {
+            $result = $this->query('SHOW COLUMNS FROM ' . $this->protectIdentifiers($table, true, null, false));
 
-            if ( $result->count() ) {
-                foreach ( $result as $row ) {
+            if ($result->count()) {
+                foreach ($result as $row) {
                     // Do we know from where to get the column's name?
-                    if ( ! isset( $key ) ) {
-                        if ( isset( $row[ 'column_name' ] ) ) {
+                    if ( ! isset($key)) {
+                        if (isset($row[ 'column_name' ])) {
                             $key = 'column_name';
-                        } elseif ( isset( $row[ 'COLUMN_NAME' ] ) ) {
+                        } elseif (isset($row[ 'COLUMN_NAME' ])) {
                             $key = 'COLUMN_NAME';
                         } else {
                             /* We have no other choice but to just get the first element's key.
@@ -237,206 +238,17 @@ class Connection extends AbstractConnection
                              * E_STRICT is on, this would trigger a warning. So we'll have to
                              * assign it first.
                              */
-                            $key = array_keys( $row->getArrayCopy() );
-                            $key = array_shift( $key );
+                            $key = array_keys($row->getArrayCopy());
+                            $key = array_shift($key);
                         }
                     }
 
-                    $this->queriesResultCache[ 'tableColumns' ][ $table ][ $row->offsetGet( $key ) ] = $row;
+                    $this->queriesResultCache[ 'tableColumns' ][ $table ][ $row->offsetGet($key) ] = $row;
                 }
             }
         }
 
         return $this->queriesResultCache[ 'tableColumns' ][ $table ];
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::platformGetPlatformVersionHandler
-     *
-     * Platform getting version handler.
-     *
-     * @return SplArrayObject
-     */
-    protected function platformGetPlatformInfoHandler()
-    {
-        $server[ 'version' ][ 'string' ] = $this->handle->server_info;
-        $server[ 'version' ][ 'number' ] = $this->handle->server_version;
-        $server[ 'stats' ] = $this->handle->get_connection_stats();
-
-        $client[ 'version' ][ 'string' ] = $this->handle->client_info;
-        $client[ 'version' ][ 'number' ] = $this->handle->client_version;
-        $client[ 'stats' ] = mySqli_get_client_stats();
-
-        return new SplArrayObject( [
-            'name'     => $this->getPlatform(),
-            'host'     => $this->handle->host_info,
-            'state' => $this->handle->sqlstate,
-            'protocol' => $this->handle->protocol_version,
-            'server'   => $server,
-            'client'   => $client,
-        ] );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::platformConnectHandler
-     *
-     * Establish the connection.
-     *
-     * @param Config $config
-     *
-     * @return void
-     * @throws RuntimeException
-     */
-    protected function platformConnectHandler( Config $config )
-    {
-        // Do we have a socket path?
-        if ( $config->hostname[ 0 ] === '/' ) {
-            $hostname = null;
-            $port = null;
-            $socket = $config->hostname;
-        } else {
-            $hostname = ( $config->persistent === true )
-                ? 'p:' . $config->hostname
-                : $config->hostname;
-            $port = empty( $config->port )
-                ? null
-                : $config->port;
-            $socket = null;
-        }
-
-        $flags = ( $config->compress === true )
-            ? MYSQLI_CLIENT_COMPRESS
-            : 0;
-        $this->handle = mysqli_init();
-        //$this->handle->autocommit( ( $this->transactionEnable ? true : false ) );
-
-        $this->handle->options( MYSQLI_OPT_CONNECT_TIMEOUT, 10 );
-
-        if ( isset( $config->strictOn ) ) {
-            if ( $config->strictOn ) {
-                $this->handle->options(
-                    MYSQLI_INIT_COMMAND,
-                    'SET SESSION Sql_mode = CONCAT(@@Sql_mode, ",", "STRICT_ALL_TABLES")'
-                );
-            } else {
-                $this->handle->options(
-                    MYSQLI_INIT_COMMAND,
-                    'SET SESSION Sql_mode =
-					REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
-					@@Sql_mode,
-					"STRICT_ALL_TABLES,", ""),
-					",STRICT_ALL_TABLES", ""),
-					"STRICT_ALL_TABLES", ""),
-					"STRICT_TRANS_TABLES,", ""),
-					",STRICT_TRANS_TABLES", ""),
-					"STRICT_TRANS_TABLES", "")'
-                );
-            }
-        }
-
-        if ( is_array( $config->encrypt ) ) {
-            $ssl = [];
-            empty( $config->encrypt[ 'ssl_key' ] ) OR $ssl[ 'key' ] = $config->encrypt[ 'ssl_key' ];
-            empty( $config->encrypt[ 'ssl_cert' ] ) OR $ssl[ 'cert' ] = $config->encrypt[ 'ssl_cert' ];
-            empty( $config->encrypt[ 'ssl_ca' ] ) OR $ssl[ 'ca' ] = $config->encrypt[ 'ssl_ca' ];
-            empty( $config->encrypt[ 'ssl_capath' ] ) OR $ssl[ 'capath' ] = $config->encrypt[ 'ssl_capath' ];
-            empty( $config->encrypt[ 'ssl_cipher' ] ) OR $ssl[ 'cipher' ] = $config->encrypt[ 'ssl_cipher' ];
-
-            if ( ! empty( $ssl ) ) {
-                if ( isset( $config->encrypt[ 'ssl_verify' ] ) ) {
-                    if ( $config->encrypt[ 'ssl_verify' ] ) {
-                        defined( 'MYSQLI_OPT_SSL_VERIFY_SERVER_CERT' )
-                        && $this->handle->options( MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, true );
-                    }
-                    // Apparently (when it exists), setting MYSQLI_OPT_SSL_VERIFY_SERVER_CERT
-                    // to FALSE didn't do anything, so PHP 5.6.16 introduced yet another
-                    // constant ...
-                    //
-                    // https://secure.php.net/ChangeLog-5.php#5.6.16
-                    // https://bugs.php.net/bug.php?id=68344
-                    elseif ( defined( 'MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT' ) ) {
-                        $this->handle->options( MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT, true );
-                    }
-                }
-
-                $flags |= MYSQLI_CLIENT_SSL;
-                $this->handle->ssl_set(
-                    isset( $ssl[ 'key' ] )
-                        ? $ssl[ 'key' ]
-                        : null,
-                    isset( $ssl[ 'cert' ] )
-                        ? $ssl[ 'cert' ]
-                        : null,
-                    isset( $ssl[ 'ca' ] )
-                        ? $ssl[ 'ca' ]
-                        : null,
-                    isset( $ssl[ 'capath' ] )
-                        ? $ssl[ 'capath' ]
-                        : null,
-                    isset( $ssl[ 'cipher' ] )
-                        ? $ssl[ 'cipher' ]
-                        : null
-                );
-            }
-        }
-
-        if ( $this->handle->real_connect(
-            $hostname,
-            $config->username,
-            $config->password,
-            $config->database,
-            $port,
-            $socket,
-            $flags
-        )
-        ) {
-            // Prior to version 5.7.3, MySql silently downgrades to an unencrypted connection if SSL setup fails
-            if (
-                ( $flags & MYSQLI_CLIENT_SSL )
-                AND version_compare( $this->handle->client_info, '5.7.3', '<=' )
-                AND empty( $this->handle->query( "SHOW STATUS LIKE 'ssl_cipher'" )
-                    ->fetch_object()->Value )
-            ) {
-                $this->handle->close();
-                // 'MySqli was configured for an SSL connection, but got an unencrypted connection instead!';
-                logger()->error( 'E_DB_CONNECTION_SSL', [ $this->platform ] );
-
-                if ( $config->debugEnable ) {
-                    throw new RuntimeException( 'E_DB_CONNECTION_SSL' );
-                }
-
-                return;
-            }
-
-            if ( ! $this->handle->set_charset( $config->charset ) ) {
-                // "Database: Unable to set the configured connection charset ('{$this->charset}')."
-                logger()->error( 'E_DB_CONNECTION_CHARSET', [ $config->charset ] );
-                $this->handle->close();
-
-                if ( $config->debugEnable ) {
-                    // 'Unable to set client connection character set: ' . $this->charset
-                    throw new RuntimeException( 'E_DB_CONNECTION_CHARSET', [ $config->charset ] );
-                }
-            }
-        }
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * Connection::disconnectHandler
-     *
-     * Driver dependent way method for closing the connection.
-     *
-     * @return mixed
-     */
-    protected function platformDisconnectHandler()
-    {
-        $this->handle->close();
     }
 
     // ------------------------------------------------------------------------
@@ -451,57 +263,9 @@ class Connection extends AbstractConnection
      */
     public function reconnect()
     {
-        if ( $this->handle !== false && $this->handle->ping() === false ) {
+        if ($this->handle !== false && $this->handle->ping() === false) {
             $this->handle = false;
         }
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * Connection::executeHandler
-     *
-     * Driver dependent way method for execute the Sql statement.
-     *
-     * @param QueryStatement $queryStatement Query object.
-     *
-     * @return bool
-     */
-    protected function platformExecuteHandler( QueryStatement &$queryStatement )
-    {
-        if ( false !== $this->handle->query( $queryStatement->getSqlFinalStatement() ) ) {
-            return true;
-        }
-
-        // Set query error information
-        $queryStatement->setError( $this->handle->errno, $this->handle->error );
-
-        return false;
-
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Connection::platformQueryHandler
-     *
-     * Driver dependent way method for execute the Sql statement.
-     *
-     * @param QueryStatement $queryStatement Query object.
-     *
-     * @return array
-     */
-    protected function platformQueryHandler( QueryStatement &$queryStatement )
-    {
-        $rows = [];
-
-        if ( false !== ( $result = $this->handle->query( $queryStatement->getSqlFinalStatement() ) ) ) {
-            $rows = $result->fetch_all( MYSQLI_ASSOC );
-        } else {
-            $queryStatement->setError( $this->handle->errno, $this->handle->error );
-        }
-
-        return $rows;
     }
 
     // ------------------------------------------------------------------------
@@ -518,7 +282,7 @@ class Connection extends AbstractConnection
         return $this->handle->affected_rows;
     }
 
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * Connection::getLastInsertId
@@ -543,13 +307,250 @@ class Connection extends AbstractConnection
      */
     public function getLastQuery()
     {
-        $last = end( $this->queriesCache );
+        $last = end($this->queriesCache);
 
-        if( $last->getSqlStatement() === 'SELECT FOUND_ROWS() AS numrows;' ) {
-            $last = prev( $this->queriesCache );
+        if ($last->getSqlStatement() === 'SELECT FOUND_ROWS() AS numrows;') {
+            $last = prev($this->queriesCache);
         }
 
         return $last;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * Connection::platformGetPlatformVersionHandler
+     *
+     * Platform getting version handler.
+     *
+     * @return SplArrayObject
+     */
+    protected function platformGetPlatformInfoHandler()
+    {
+        $server[ 'version' ][ 'string' ] = $this->handle->server_info;
+        $server[ 'version' ][ 'number' ] = $this->handle->server_version;
+        $server[ 'stats' ] = $this->handle->get_connection_stats();
+
+        $client[ 'version' ][ 'string' ] = $this->handle->client_info;
+        $client[ 'version' ][ 'number' ] = $this->handle->client_version;
+        $client[ 'stats' ] = mySqli_get_client_stats();
+
+        return new SplArrayObject([
+            'name'     => $this->getPlatform(),
+            'host'     => $this->handle->host_info,
+            'state'    => $this->handle->sqlstate,
+            'protocol' => $this->handle->protocol_version,
+            'server'   => $server,
+            'client'   => $client,
+        ]);
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::platformConnectHandler
+     *
+     * Establish the connection.
+     *
+     * @param Config $config
+     *
+     * @return void
+     * @throws RuntimeException
+     */
+    protected function platformConnectHandler(Config $config)
+    {
+        // Do we have a socket path?
+        if ($config->hostname[ 0 ] === '/') {
+            $hostname = null;
+            $port = null;
+            $socket = $config->hostname;
+        } else {
+            $hostname = ($config->persistent === true)
+                ? 'p:' . $config->hostname
+                : $config->hostname;
+            $port = empty($config->port)
+                ? null
+                : $config->port;
+            $socket = null;
+        }
+
+        $flags = ($config->compress === true)
+            ? MYSQLI_CLIENT_COMPRESS
+            : 0;
+        $this->handle = mysqli_init();
+        //$this->handle->autocommit( ( $this->transactionEnable ? true : false ) );
+
+        $this->handle->options(MYSQLI_OPT_CONNECT_TIMEOUT, 10);
+
+        if (isset($config->strictOn)) {
+            if ($config->strictOn) {
+                $this->handle->options(
+                    MYSQLI_INIT_COMMAND,
+                    'SET SESSION Sql_mode = CONCAT(@@Sql_mode, ",", "STRICT_ALL_TABLES")'
+                );
+            } else {
+                $this->handle->options(
+                    MYSQLI_INIT_COMMAND,
+                    'SET SESSION Sql_mode =
+					REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+					@@Sql_mode,
+					"STRICT_ALL_TABLES,", ""),
+					",STRICT_ALL_TABLES", ""),
+					"STRICT_ALL_TABLES", ""),
+					"STRICT_TRANS_TABLES,", ""),
+					",STRICT_TRANS_TABLES", ""),
+					"STRICT_TRANS_TABLES", "")'
+                );
+            }
+        }
+
+        if (is_array($config->encrypt)) {
+            $ssl = [];
+            empty($config->encrypt[ 'ssl_key' ]) OR $ssl[ 'key' ] = $config->encrypt[ 'ssl_key' ];
+            empty($config->encrypt[ 'ssl_cert' ]) OR $ssl[ 'cert' ] = $config->encrypt[ 'ssl_cert' ];
+            empty($config->encrypt[ 'ssl_ca' ]) OR $ssl[ 'ca' ] = $config->encrypt[ 'ssl_ca' ];
+            empty($config->encrypt[ 'ssl_capath' ]) OR $ssl[ 'capath' ] = $config->encrypt[ 'ssl_capath' ];
+            empty($config->encrypt[ 'ssl_cipher' ]) OR $ssl[ 'cipher' ] = $config->encrypt[ 'ssl_cipher' ];
+
+            if ( ! empty($ssl)) {
+                if (isset($config->encrypt[ 'ssl_verify' ])) {
+                    if ($config->encrypt[ 'ssl_verify' ]) {
+                        defined('MYSQLI_OPT_SSL_VERIFY_SERVER_CERT')
+                        && $this->handle->options(MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, true);
+                    }
+                    // Apparently (when it exists), setting MYSQLI_OPT_SSL_VERIFY_SERVER_CERT
+                    // to FALSE didn't do anything, so PHP 5.6.16 introduced yet another
+                    // constant ...
+                    //
+                    // https://secure.php.net/ChangeLog-5.php#5.6.16
+                    // https://bugs.php.net/bug.php?id=68344
+                    elseif (defined('MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT')) {
+                        $this->handle->options(MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT, true);
+                    }
+                }
+
+                $flags |= MYSQLI_CLIENT_SSL;
+                $this->handle->ssl_set(
+                    isset($ssl[ 'key' ])
+                        ? $ssl[ 'key' ]
+                        : null,
+                    isset($ssl[ 'cert' ])
+                        ? $ssl[ 'cert' ]
+                        : null,
+                    isset($ssl[ 'ca' ])
+                        ? $ssl[ 'ca' ]
+                        : null,
+                    isset($ssl[ 'capath' ])
+                        ? $ssl[ 'capath' ]
+                        : null,
+                    isset($ssl[ 'cipher' ])
+                        ? $ssl[ 'cipher' ]
+                        : null
+                );
+            }
+        }
+
+        if ($this->handle->real_connect(
+            $hostname,
+            $config->username,
+            $config->password,
+            $config->database,
+            $port,
+            $socket,
+            $flags
+        )
+        ) {
+            // Prior to version 5.7.3, MySql silently downgrades to an unencrypted connection if SSL setup fails
+            if (
+                ($flags & MYSQLI_CLIENT_SSL)
+                AND version_compare($this->handle->client_info, '5.7.3', '<=')
+                AND empty($this->handle->query("SHOW STATUS LIKE 'ssl_cipher'")
+                    ->fetch_object()->Value)
+            ) {
+                $this->handle->close();
+                // 'MySqli was configured for an SSL connection, but got an unencrypted connection instead!';
+                logger()->error('E_DB_CONNECTION_SSL', [$this->platform]);
+
+                if ($config->debugEnable) {
+                    throw new RuntimeException('E_DB_CONNECTION_SSL');
+                }
+
+                return;
+            }
+
+            if ( ! $this->handle->set_charset($config->charset)) {
+                // "Database: Unable to set the configured connection charset ('{$this->charset}')."
+                logger()->error('E_DB_CONNECTION_CHARSET', [$config->charset]);
+                $this->handle->close();
+
+                if ($config->debugEnable) {
+                    // 'Unable to set client connection character set: ' . $this->charset
+                    throw new RuntimeException('E_DB_CONNECTION_CHARSET', [$config->charset]);
+                }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::disconnectHandler
+     *
+     * Driver dependent way method for closing the connection.
+     *
+     * @return mixed
+     */
+    protected function platformDisconnectHandler()
+    {
+        $this->handle->close();
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::executeHandler
+     *
+     * Driver dependent way method for execute the Sql statement.
+     *
+     * @param QueryStatement $queryStatement Query object.
+     *
+     * @return bool
+     */
+    protected function platformExecuteHandler(QueryStatement &$queryStatement)
+    {
+        if (false !== $this->handle->query($queryStatement->getSqlFinalStatement())) {
+            return true;
+        }
+
+        // Set query error information
+        $queryStatement->setError($this->handle->errno, $this->handle->error);
+
+        return false;
+
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Connection::platformQueryHandler
+     *
+     * Driver dependent way method for execute the Sql statement.
+     *
+     * @param QueryStatement $queryStatement Query object.
+     *
+     * @return array
+     */
+    protected function platformQueryHandler(QueryStatement &$queryStatement)
+    {
+        $rows = [];
+
+        if (false !== ($result = $this->handle->query($queryStatement->getSqlFinalStatement()))) {
+            $rows = $result->fetch_all(MYSQLI_ASSOC);
+        } else {
+            $queryStatement->setError($this->handle->errno, $this->handle->error);
+        }
+
+        return $rows;
     }
 
     //--------------------------------------------------------------------
@@ -563,10 +564,10 @@ class Connection extends AbstractConnection
      */
     protected function platformTransactionBeginHandler()
     {
-        $this->handle->autocommit( false );
+        $this->handle->autocommit(false);
         $this->transactionInProgress = true;
 
-        return $this->handle->begin_transaction( MYSQLI_TRANS_START_READ_WRITE );
+        return $this->handle->begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
     }
 
     // ------------------------------------------------------------------------
@@ -580,8 +581,8 @@ class Connection extends AbstractConnection
      */
     protected function platformTransactionCommitHandler()
     {
-        if ( $this->handle->commit() ) {
-            $this->handle->autocommit( ( $this->transactionInProgress ? false : true ) );
+        if ($this->handle->commit()) {
+            $this->handle->autocommit(($this->transactionInProgress ? false : true));
 
             return true;
         }
@@ -600,9 +601,9 @@ class Connection extends AbstractConnection
      */
     protected function platformTransactionRollBackHandler()
     {
-        if ( $this->handle->rollback() ) {
+        if ($this->handle->rollback()) {
             $this->transactionInProgress = false;
-            $this->handle->autocommit( true );
+            $this->handle->autocommit(true);
 
             return true;
         }
@@ -622,12 +623,12 @@ class Connection extends AbstractConnection
      *
      * @return string
      */
-    protected function platformPrepareSqlStatement( $sqlStatement, array $options = [] )
+    protected function platformPrepareSqlStatement($sqlStatement, array $options = [])
     {
         // mySqli_affected_rows() returns 0 for "DELETE FROM TABLE" queries. This hack
         // modifies the query so that it a proper number of affected rows is returned.
-        if ( $this->isDeleteHack === true && preg_match( '/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $sqlStatement ) ) {
-            return trim( $sqlStatement ) . ' WHERE 1=1';
+        if ($this->isDeleteHack === true && preg_match('/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $sqlStatement)) {
+            return trim($sqlStatement) . ' WHERE 1=1';
         }
 
         return $sqlStatement;
@@ -644,8 +645,8 @@ class Connection extends AbstractConnection
      *
      * @return string
      */
-    protected function platformEscapeStringHandler( $string )
+    protected function platformEscapeStringHandler($string)
     {
-        return $this->handle->real_escape_string( $string );
+        return $this->handle->real_escape_string($string);
     }
 }

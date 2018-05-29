@@ -48,6 +48,18 @@ class Info
     // ------------------------------------------------------------------------
 
     /**
+     * Info::getEntries
+     *
+     * @return \O2System\Spl\Datastructures\SplArrayObject
+     */
+    public function getEntries()
+    {
+        return $this->entries;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * Info::setEntries
      *
      * @param int $entries
@@ -68,18 +80,6 @@ class Info
         ]);
 
         return $this;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Info::getEntries
-     *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
-     */
-    public function getEntries()
-    {
-        return $this->entries;
     }
 
     // ------------------------------------------------------------------------

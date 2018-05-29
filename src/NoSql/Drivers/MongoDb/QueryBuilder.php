@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\NoSql\Drivers\MongoDb;
@@ -25,58 +26,6 @@ use O2System\Database\NoSql\Datastructures\QueryBuilderCache;
 class QueryBuilder extends AbstractQueryBuilder
 {
     /**
-     * QueryBuilder::prepareWhereIn
-     *
-     * @param string|array $field
-     * @param null|mixed   $value
-     * @param string       $cacheKey
-     */
-    protected function prepareWhere( $field, $value = null, $cacheKey )
-    {
-        if ( is_array( $field ) ) {
-            foreach ( $field as $name => $value ) {
-                $this->prepareWhere( $name, $value, $cacheKey );
-            }
-        } elseif ( isset( $value ) ) {
-
-            if ( $field === '_id' ) {
-                $value = new \MongoDb\BSON\ObjectID( $value );
-            }
-
-            $this->builderCache->store( $cacheKey, [ $field => $value ] );
-        }
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * QueryBuilder::prepareWhereIn
-     *
-     * @param       $field
-     * @param array $values
-     * @param       $cacheKey
-     */
-    protected function prepareWhereIn( $field, array $values = [], $cacheKey )
-    {
-        if ( is_array( $field ) ) {
-            foreach ( $field as $name => $values ) {
-                $this->prepareWhereIn( $name, $values, $cacheKey );
-            }
-        } elseif ( count( $values ) ) {
-
-            if ( $field === '_id' ) {
-                foreach ( $values as $key => $value ) {
-                    $values[ $key ] = new \MongoDb\BSON\ObjectID( $value );
-                }
-            }
-
-            $this->builderCache->store( $cacheKey, [ $field => $values ] );
-        }
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
      * QueryBuilder::countAll
      *
      * Returns numbers of query result.
@@ -89,9 +38,9 @@ class QueryBuilder extends AbstractQueryBuilder
     {
         $totalDocuments = 0;
 
-        $result = $this->conn->query( $this->builderCache );
+        $result = $this->conn->query($this->builderCache);
 
-        if ( $result->count() ) {
+        if ($result->count()) {
             $totalDocuments = $result->count();
         }
 
@@ -111,20 +60,72 @@ class QueryBuilder extends AbstractQueryBuilder
      * @throws \O2System\Spl\Exceptions\RuntimeException
      * @access   public
      */
-    public function countAllResults( $reset = true )
+    public function countAllResults($reset = true)
     {
-        $cursor = $this->conn->server->executeCommand( 'neo_app',
-            new \MongoDb\Driver\Command( [ 'count' => 'posts' ] ) );
+        $cursor = $this->conn->server->executeCommand('neo_app',
+            new \MongoDb\Driver\Command(['count' => 'posts']));
 
-        $result = current( $cursor->toArray() );
+        $result = current($cursor->toArray());
 
         $totalDocuments = 0;
 
-        if ( isset( $result->n ) ) {
+        if (isset($result->n)) {
             $totalDocuments = (int)$result->n;
         }
 
         return $totalDocuments;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryBuilder::prepareWhereIn
+     *
+     * @param string|array $field
+     * @param null|mixed   $value
+     * @param string       $cacheKey
+     */
+    protected function prepareWhere($field, $value = null, $cacheKey)
+    {
+        if (is_array($field)) {
+            foreach ($field as $name => $value) {
+                $this->prepareWhere($name, $value, $cacheKey);
+            }
+        } elseif (isset($value)) {
+
+            if ($field === '_id') {
+                $value = new \MongoDb\BSON\ObjectID($value);
+            }
+
+            $this->builderCache->store($cacheKey, [$field => $value]);
+        }
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryBuilder::prepareWhereIn
+     *
+     * @param       $field
+     * @param array $values
+     * @param       $cacheKey
+     */
+    protected function prepareWhereIn($field, array $values = [], $cacheKey)
+    {
+        if (is_array($field)) {
+            foreach ($field as $name => $values) {
+                $this->prepareWhereIn($name, $values, $cacheKey);
+            }
+        } elseif (count($values)) {
+
+            if ($field === '_id') {
+                foreach ($values as $key => $value) {
+                    $values[ $key ] = new \MongoDb\BSON\ObjectID($value);
+                }
+            }
+
+            $this->builderCache->store($cacheKey, [$field => $values]);
+        }
     }
 
     //--------------------------------------------------------------------
@@ -136,10 +137,10 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return bool
      */
-    protected function platformInsertHandler( QueryBuilderCache $queryBuilderCache )
+    protected function platformInsertHandler(QueryBuilderCache $queryBuilderCache)
     {
-        if ( $queryBuilderCache->from ) {
-            return $this->conn->execute( $queryBuilderCache, [ 'method' => 'insert' ] );
+        if ($queryBuilderCache->from) {
+            return $this->conn->execute($queryBuilderCache, ['method' => 'insert']);
         }
 
         return false;
@@ -154,10 +155,10 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return bool
      */
-    protected function platformInsertBatchHandler( QueryBuilderCache $queryBuilderCache )
+    protected function platformInsertBatchHandler(QueryBuilderCache $queryBuilderCache)
     {
-        if ( $queryBuilderCache->from ) {
-            return $this->conn->execute( $queryBuilderCache, [ 'method' => 'insert' ] );
+        if ($queryBuilderCache->from) {
+            return $this->conn->execute($queryBuilderCache, ['method' => 'insert']);
         }
 
         return false;
@@ -172,9 +173,9 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return bool
      */
-    protected function platformUpdateHandler( QueryBuilderCache $queryBuilderCache )
+    protected function platformUpdateHandler(QueryBuilderCache $queryBuilderCache)
     {
-        if ( $queryBuilderCache->from ) {
+        if ($queryBuilderCache->from) {
 
             // New sets document
             $collection = $queryBuilderCache->from;
@@ -183,14 +184,14 @@ class QueryBuilder extends AbstractQueryBuilder
             // Get old document
             $document = $this->get()->first();
             $newQueryBuilderCache = new QueryBuilderCache();
-            $newQueryBuilderCache->store( 'from', $collection );
-            $newQueryBuilderCache->store( 'where', [ '_id' => $document->_id ] );
+            $newQueryBuilderCache->store('from', $collection);
+            $newQueryBuilderCache->store('where', ['_id' => $document->_id]);
             $document = $document->getArrayCopy();
-            unset( $document[ '_id' ] );
+            unset($document[ '_id' ]);
 
-            $newQueryBuilderCache->store( 'sets', array_merge( $document, $sets ) );
+            $newQueryBuilderCache->store('sets', array_merge($document, $sets));
 
-            return $this->conn->execute( $newQueryBuilderCache, [ 'method' => 'update' ] );
+            return $this->conn->execute($newQueryBuilderCache, ['method' => 'update']);
         }
 
         return false;
@@ -205,9 +206,9 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return bool
      */
-    protected function platformUpdateBatchHandler( QueryBuilderCache $queryBuilderCache )
+    protected function platformUpdateBatchHandler(QueryBuilderCache $queryBuilderCache)
     {
-        if ( $queryBuilderCache->from ) {
+        if ($queryBuilderCache->from) {
 
             // New sets document
             $collection = $queryBuilderCache->from;
@@ -217,22 +218,22 @@ class QueryBuilder extends AbstractQueryBuilder
             $result = $this->get();
 
             $newQueryBuilderCache = new QueryBuilderCache();
-            $newQueryBuilderCache->store( 'from', $collection );
+            $newQueryBuilderCache->store('from', $collection);
 
             $documentIds = [];
-            foreach ( $result as $document ) {
+            foreach ($result as $document) {
                 $document = $this->get()->first();
                 $documentIds[] = $document->_id;
                 $document = $document->getArrayCopy();
-                unset( $document[ '_id' ] );
+                unset($document[ '_id' ]);
 
-                $documents[] = array_merge( $document, $sets );
+                $documents[] = array_merge($document, $sets);
             }
 
-            $newQueryBuilderCache->store( 'whereIn', [ '_id' => $documentIds ] );
-            $newQueryBuilderCache->store( 'sets', $documents );
+            $newQueryBuilderCache->store('whereIn', ['_id' => $documentIds]);
+            $newQueryBuilderCache->store('sets', $documents);
 
-            return $this->conn->execute( $newQueryBuilderCache, [ 'method' => 'update' ] );
+            return $this->conn->execute($newQueryBuilderCache, ['method' => 'update']);
         }
 
         return false;
@@ -247,11 +248,11 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return bool
      */
-    protected function platformReplaceHandler( QueryBuilderCache $queryBuilderCache )
+    protected function platformReplaceHandler(QueryBuilderCache $queryBuilderCache)
     {
-        if ( $queryBuilderCache->from ) {
+        if ($queryBuilderCache->from) {
 
-            return $this->conn->execute( $queryBuilderCache, [ 'method' => 'update' ] );
+            return $this->conn->execute($queryBuilderCache, ['method' => 'update']);
         }
 
         return false;
@@ -266,11 +267,11 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return bool
      */
-    protected function platformReplaceBatchHandler( QueryBuilderCache $queryBuilderCache )
+    protected function platformReplaceBatchHandler(QueryBuilderCache $queryBuilderCache)
     {
-        if ( $queryBuilderCache->from ) {
+        if ($queryBuilderCache->from) {
 
-            return $this->conn->execute( $queryBuilderCache, [ 'method' => 'update' ] );
+            return $this->conn->execute($queryBuilderCache, ['method' => 'update']);
         }
 
         return false;
@@ -285,10 +286,10 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return bool
      */
-    protected function platformDeleteHandler( QueryBuilderCache $queryBuilderCache )
+    protected function platformDeleteHandler(QueryBuilderCache $queryBuilderCache)
     {
-        if ( $queryBuilderCache->from ) {
-            return $this->conn->execute( $queryBuilderCache, [ 'method' => 'delete' ] );
+        if ($queryBuilderCache->from) {
+            return $this->conn->execute($queryBuilderCache, ['method' => 'delete']);
         }
 
         return false;
@@ -303,10 +304,10 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return bool
      */
-    protected function platformDeleteBatchHandler( QueryBuilderCache $queryBuilderCache )
+    protected function platformDeleteBatchHandler(QueryBuilderCache $queryBuilderCache)
     {
-        if ( $queryBuilderCache->from ) {
-            return $this->conn->execute( $queryBuilderCache, [ 'method' => 'delete' ] );
+        if ($queryBuilderCache->from) {
+            return $this->conn->execute($queryBuilderCache, ['method' => 'delete']);
         }
 
         return false;

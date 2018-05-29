@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\NoSql\Datastructures;
@@ -63,11 +64,12 @@ class QueryBuilderCache
     /**
      * QueryBuilderCache::__get
      *
-     * 
+     *
      * @param  string $property
+     *
      * @return array
      */
-    public function &__get( $property )
+    public function &__get($property)
     {
         return $this->storage[ $property ];
     }
@@ -76,21 +78,22 @@ class QueryBuilderCache
 
     /**
      * QueryBuilderCache::store
-     * 
+     *
      * @param  string|bool $index
-     * @param  array|bool $value
+     * @param  array|bool  $value
+     *
      * @return array
      */
-    public function store( $index, $value )
+    public function store($index, $value)
     {
-        if ( array_key_exists( $index, $this->storage ) ) {
-            if ( is_array( $this->storage[ $index ] ) ) {
-                if ( is_array( $value ) ) {
-                    $this->storage[ $index ] = array_merge( $this->storage[ $index ], $value );
+        if (array_key_exists($index, $this->storage)) {
+            if (is_array($this->storage[ $index ])) {
+                if (is_array($value)) {
+                    $this->storage[ $index ] = array_merge($this->storage[ $index ], $value);
                 } else {
-                    array_push( $this->storage[ $index ], $value );
+                    array_push($this->storage[ $index ], $value);
                 }
-            } elseif ( is_bool( $this->storage[ $index ] ) ) {
+            } elseif (is_bool($this->storage[ $index ])) {
                 $this->storage[ $index ] = (bool)$value;
             } else {
                 $this->storage[ $index ] = $value;
@@ -106,12 +109,12 @@ class QueryBuilderCache
      * QueryBuilderCache::setStatement
      *
      * Set Statement Query Builder cache
-     * 
+     *
      * @param string $statement
      */
-    public function setStatement( $statement )
+    public function setStatement($statement)
     {
-        $this->statement = trim( $statement );
+        $this->statement = trim($statement);
     }
 
     // ------------------------------------------------------------------------
@@ -189,6 +192,24 @@ class QueryBuilderCache
     // ------------------------------------------------------------------------
 
     /**
+     * QueryBuilderCache::resetRun
+     *
+     * Resets the query builder values.  Called by the get() function
+     *
+     * @param   array $cacheKeys An array of fields to reset
+     *
+     * @return  void
+     */
+    protected function resetRun(array $cacheKeys)
+    {
+        foreach ($cacheKeys as $cacheKey => $cacheDefaultValue) {
+            $this->storage[ $cacheKey ] = $cacheDefaultValue;
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * QueryBuilderCache::resetModifier
      *
      * Resets the query builder "modifier" values.
@@ -225,23 +246,5 @@ class QueryBuilderCache
                 'sets'         => [],
             ]
         );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * QueryBuilderCache::resetRun
-     *
-     * Resets the query builder values.  Called by the get() function
-     *
-     * @param   array $cacheKeys An array of fields to reset
-     *
-     * @return  void
-     */
-    protected function resetRun( array $cacheKeys )
-    {
-        foreach ( $cacheKeys as $cacheKey => $cacheDefaultValue ) {
-            $this->storage[ $cacheKey ] = $cacheDefaultValue;
-        }
     }
 }

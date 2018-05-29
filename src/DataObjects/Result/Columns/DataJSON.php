@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\DataObjects\Result\Columns;
@@ -25,18 +26,18 @@ class DataJSON extends SplArrayObject
 {
     /**
      * DataJSON::__construct
-     * 
+     *
      * SimpleJSONField constructor.
      *
      * @param array $data
      */
-    public function __construct( $data = [] )
+    public function __construct($data = [])
     {
-        parent::__construct( [] );
+        parent::__construct([]);
 
-        if ( ! empty( $data ) ) {
-            foreach ( $data as $key => $value ) {
-                $this->__set( $key, $value );
+        if ( ! empty($data)) {
+            foreach ($data as $key => $value) {
+                $this->__set($key, $value);
             }
         }
     }
@@ -45,27 +46,27 @@ class DataJSON extends SplArrayObject
 
     /**
      * DataJSON::__set
-     * 
+     *
      * Magic Method __set
      *
      * @param string $index
      *
      * @param int    $value
      */
-    public function __set( $index, $value )
+    public function __set($index, $value)
     {
-        if ( is_array( $value ) ) {
-            $value = new self( $value );
+        if (is_array($value)) {
+            $value = new self($value);
         }
 
-        $this->offsetSet( $index, $value );
+        $this->offsetSet($index, $value);
     }
 
     // ------------------------------------------------------------------------
 
     /**
      * DataJSON__toArray
-     * 
+     *
      * Magic Method __toArray
      *
      * @return array

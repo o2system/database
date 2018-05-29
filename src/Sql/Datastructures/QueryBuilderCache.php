@@ -24,11 +24,11 @@ class QueryBuilderCache extends \ArrayObject
 {
     /**
      * QueryBuilderCache::__construct
-     * 
+     *
      */
     public function __construct()
     {
-        parent::__construct( [
+        parent::__construct([
             'select'        => [],
             'union'         => [],
             'unionAll'      => [],
@@ -52,7 +52,7 @@ class QueryBuilderCache extends \ArrayObject
             'bracketOpen'   => false,
             'bracketCount'  => 0,
             'statement'     => null,
-        ], \ArrayObject::ARRAY_AS_PROPS );
+        ], \ArrayObject::ARRAY_AS_PROPS);
     }
 
     // ------------------------------------------------------------------------
@@ -61,12 +61,12 @@ class QueryBuilderCache extends \ArrayObject
      * QueryBuilderCache::setStatement
      *
      * Set Statement Query Builder cache
-     * 
+     *
      * @param string $statement
      */
-    public function setStatement( $statement )
+    public function setStatement($statement)
     {
-        $this->offsetSet( 'statement', trim( $statement ) );
+        $this->offsetSet('statement', trim($statement));
     }
 
     // ------------------------------------------------------------------------
@@ -75,12 +75,12 @@ class QueryBuilderCache extends \ArrayObject
      * QueryBuilderCache::getStatement
      *
      * Get Statement Query Builder cache
-     * 
+     *
      * @return string
      */
     public function getStatement()
     {
-        return $this->offsetGet( 'statement' );
+        return $this->offsetGet('statement');
     }
 
     // ------------------------------------------------------------------------
@@ -142,6 +142,46 @@ class QueryBuilderCache extends \ArrayObject
     // ------------------------------------------------------------------------
 
     /**
+     * QueryBuilderCache::resetRun
+     *
+     * Resets the query builder values.  Called by the get() function
+     *
+     * @param   array $cacheKeys An array of fields to reset
+     *
+     * @return  void
+     */
+    protected function resetRun(array $cacheKeys)
+    {
+        parent::__construct(array_merge([
+            'select'        => [],
+            'union'         => [],
+            'unionAll'      => [],
+            'into'          => false,
+            'distinct'      => false,
+            'from'          => [],
+            'join'          => [],
+            'where'         => [],
+            'having'        => [],
+            'between'       => [],
+            'notBetween'    => [],
+            'limit'         => false,
+            'offset'        => false,
+            'groupBy'       => [],
+            'orderBy'       => [],
+            'keys'          => [],
+            'sets'          => [],
+            'binds'         => [],
+            'aliasedTables' => [],
+            'noEscape'      => [],
+            'bracketOpen'   => false,
+            'bracketCount'  => 0,
+            'statement'     => null,
+        ], $cacheKeys), \ArrayObject::ARRAY_AS_PROPS);
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * QueryBuilderCache::resetModifier
      *
      * Resets the query builder "modifier" values.
@@ -171,45 +211,5 @@ class QueryBuilderCache extends \ArrayObject
                 'statement'     => null,
             ]
         );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * QueryBuilderCache::resetRun
-     *
-     * Resets the query builder values.  Called by the get() function
-     *
-     * @param   array $cacheKeys An array of fields to reset
-     *
-     * @return  void
-     */
-    protected function resetRun( array $cacheKeys )
-    {
-        parent::__construct( array_merge( [
-            'select'        => [],
-            'union'         => [],
-            'unionAll'      => [],
-            'into'          => false,
-            'distinct'      => false,
-            'from'          => [],
-            'join'          => [],
-            'where'         => [],
-            'having'        => [],
-            'between'       => [],
-            'notBetween'    => [],
-            'limit'         => false,
-            'offset'        => false,
-            'groupBy'       => [],
-            'orderBy'       => [],
-            'keys'          => [],
-            'sets'          => [],
-            'binds'         => [],
-            'aliasedTables' => [],
-            'noEscape'      => [],
-            'bracketOpen'   => false,
-            'bracketCount'  => 0,
-            'statement'     => null,
-        ], $cacheKeys ), \ArrayObject::ARRAY_AS_PROPS );
     }
 }

@@ -8,17 +8,18 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\NoSql\Abstracts;
 
 // ------------------------------------------------------------------------
 
+use O2System\Database\DataObjects\Result;
+use O2System\Database\Datastructures\Config;
 use O2System\Database\NoSql\Datastructures\QueryBuilderCache;
 use O2System\Database\NoSql\Datastructures\QueryStatement;
 use O2System\Spl\Exceptions\RuntimeException;
-use O2System\Database\Datastructures\Config;
-use O2System\Database\DataObjects\Result;
 use O2System\Spl\Traits\Collectors\ConfigCollectorTrait;
 
 /**
@@ -75,16 +76,6 @@ abstract class AbstractConnection
      * @var array
      */
     public $queriesResultCache = [];
-
-    /**
-     * AbstractConnection::$platform
-     *
-     * Database driver platform name.
-     *
-     * @var string
-     */
-    protected $platform;
-
     /**
      * AbstractConnection::$handle
      *
@@ -93,7 +84,14 @@ abstract class AbstractConnection
      * @var mixed
      */
     public $handle;
-
+    /**
+     * AbstractConnection::$platform
+     *
+     * Database driver platform name.
+     *
+     * @var string
+     */
+    protected $platform;
     /**
      * AbstractConnection::$connectTimeStart
      *
@@ -171,17 +169,17 @@ abstract class AbstractConnection
      *
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function __construct( Config $config )
+    public function __construct(Config $config)
     {
         language()
-            ->addFilePath( str_replace( 'NoSql' . DIRECTORY_SEPARATOR . 'Abstracts', '', __DIR__ ) . DIRECTORY_SEPARATOR )
-            ->loadFile( 'database' );
+            ->addFilePath(str_replace('NoSql' . DIRECTORY_SEPARATOR . 'Abstracts', '', __DIR__) . DIRECTORY_SEPARATOR)
+            ->loadFile('database');
 
         $config->merge(
             array_merge(
                 [
                     'escapeCharacter'     => '"',
-                    'reservedIdentifiers' => [ '*' ],
+                    'reservedIdentifiers' => ['*'],
                     'likeEscapeStatement' => ' ESCAPE \'%s\' ',
                     'likeEscapeCharacter' => '!',
                 ],
@@ -191,9 +189,9 @@ abstract class AbstractConnection
 
         $this->config = $config;
 
-        $this->debugEnabled = $config->offsetGet( 'debugEnabled' );
-        $this->transactionEnabled = $config->offsetGet( 'transEnabled' );
-        $this->database = $config->offsetGet( 'database' );
+        $this->debugEnabled = $config->offsetGet('debugEnabled');
+        $this->transactionEnabled = $config->offsetGet('transEnabled');
+        $this->database = $config->offsetGet('database');
 
         $this->connect();
     }
@@ -216,29 +214,29 @@ abstract class AbstractConnection
          * Depending on the database driver, conn_id can be either
          * boolean TRUE, a resource or an object.
          */
-        if ( $this->handle ) {
+        if ($this->handle) {
             return;
         }
 
         //--------------------------------------------------------------------
 
-        $this->connectTimeStart = microtime( true );
+        $this->connectTimeStart = microtime(true);
 
         // Connect to the database and set the connection ID
-        $this->platformConnectHandler( $this->config );
+        $this->platformConnectHandler($this->config);
 
         // No connection resource? Check if there is a failover else throw an error
-        if ( ! $this->handle ) {
+        if ( ! $this->handle) {
             // Check if there is a failover set
-            if ( ! empty( $this->config[ 'failover' ] ) && is_array( $this->config[ 'failover' ] ) ) {
+            if ( ! empty($this->config[ 'failover' ]) && is_array($this->config[ 'failover' ])) {
                 // Go over all the failovers
-                foreach ( $this->config[ 'failover' ] as $failover ) {
+                foreach ($this->config[ 'failover' ] as $failover) {
 
                     // Try to connect
-                    $this->platformConnectHandler( $failover = new Config( $failover ) );
+                    $this->platformConnectHandler($failover = new Config($failover));
 
                     // If a connection is made break the foreach loop
-                    if ( $this->handle ) {
+                    if ($this->handle) {
                         $this->config = $failover;
                         break;
                     }
@@ -246,12 +244,12 @@ abstract class AbstractConnection
             }
 
             // We still don't have a connection?
-            if ( ! $this->handle ) {
-                throw new RuntimeException( 'DB_E_UNABLE_TO_CONNECT', 0, [ $this->platform ] );
+            if ( ! $this->handle) {
+                throw new RuntimeException('DB_E_UNABLE_TO_CONNECT', 0, [$this->platform]);
             }
         }
 
-        $this->connectTimeDuration = microtime( true ) - $this->connectTimeStart;
+        $this->connectTimeDuration = microtime(true) - $this->connectTimeStart;
     }
 
     // ------------------------------------------------------------------------
@@ -265,7 +263,7 @@ abstract class AbstractConnection
      *
      * @return mixed
      */
-    abstract protected function platformConnectHandler( Config $config );
+    abstract protected function platformConnectHandler(Config $config);
 
     //--------------------------------------------------------------------
 
@@ -303,7 +301,7 @@ abstract class AbstractConnection
      */
     public function getPlatformInfo()
     {
-        if ( isset( $this->queriesResultCache[ 'platformInfo' ] ) ) {
+        if (isset($this->queriesResultCache[ 'platformInfo' ])) {
             return $this->queriesResultCache[ 'platformInfo' ];
         }
 
@@ -324,23 +322,6 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::reconnect
-     *
-     * Keep or establish the connection if no queries have been sent for
-     * a length of time exceeding the server's idle timeout.
-     *
-     * @return void
-     */
-    public function reconnect()
-    {
-        if( empty( $this->handle) ) {
-            $this->platformConnectHandler( $this->config );
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * AbstractConnection::connected
      *
      * Determine if the connection is connected
@@ -349,12 +330,12 @@ abstract class AbstractConnection
      */
     final public function connected()
     {
-        return (bool)( $this->handle === false
+        return (bool)($this->handle === false
             ? false
-            : true );
+            : true);
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::disconnect
@@ -365,13 +346,13 @@ abstract class AbstractConnection
      */
     final public function disconnect()
     {
-        if ( $this->handle ) {
+        if ($this->handle) {
             $this->platformDisconnectHandler();
             $this->handle = false;
         }
     }
 
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * AbstractConnection::disconnectHandler
@@ -382,7 +363,7 @@ abstract class AbstractConnection
      */
     abstract protected function platformDisconnectHandler();
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::getConnectionTimeStart
@@ -399,7 +380,7 @@ abstract class AbstractConnection
         return (int)$this->connectTimeStart;
     }
 
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * AbstractConnection::getConnectTimeDuration
@@ -413,9 +394,9 @@ abstract class AbstractConnection
      *
      * @return mixed
      */
-    final public function getConnectTimeDuration( $decimals = 6 )
+    final public function getConnectTimeDuration($decimals = 6)
     {
-        return number_format( $this->connectTimeDuration, $decimals );
+        return number_format($this->connectTimeDuration, $decimals);
     }
 
     // ------------------------------------------------------------------------
@@ -432,7 +413,7 @@ abstract class AbstractConnection
         return $this->queriesCache;
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::getQueriesCount
@@ -444,7 +425,7 @@ abstract class AbstractConnection
      */
     final public function getQueriesCount()
     {
-        return (int)count( $this->queriesCache );
+        return (int)count($this->queriesCache);
     }
 
     //--------------------------------------------------------------------
@@ -458,7 +439,7 @@ abstract class AbstractConnection
      */
     final public function getLatestQuery()
     {
-        return end( $this->queriesCache );
+        return end($this->queriesCache);
     }
 
     //--------------------------------------------------------------------
@@ -472,11 +453,31 @@ abstract class AbstractConnection
      *
      * @return static
      */
-    public function setDatabase( $database )
+    public function setDatabase($database)
     {
         $this->database = $database;
 
         return $this;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::hasDatabase
+     *
+     * Check if the database exists or not.
+     *
+     * @param string $databaseName The database name.
+     *
+     * @return bool Returns false if database doesn't exists.
+     */
+    final public function hasDatabase($databaseName)
+    {
+        if (empty($this->queriesResultCache[ 'databaseNames' ])) {
+            $this->getDatabases();
+        }
+
+        return (bool)in_array($databaseName, $this->queriesResultCache[ 'databaseNames' ]);
     }
 
     //--------------------------------------------------------------------
@@ -494,21 +495,21 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::hasDatabase
+     * AbstractConnection::hasCollection
      *
-     * Check if the database exists or not.
+     * Check if collection exists at current connection database.
      *
-     * @param string $databaseName The database name.
+     * @param $collection
      *
-     * @return bool Returns false if database doesn't exists.
+     * @return bool
      */
-    final public function hasDatabase( $databaseName )
+    public function hasCollection($collection)
     {
-        if ( empty( $this->queriesResultCache[ 'databaseNames' ] ) ) {
-            $this->getDatabases();
+        if (empty($this->queriesResultCache[ 'collectionNames' ])) {
+            $this->getCollections();
         }
 
-        return (bool)in_array( $databaseName, $this->queriesResultCache[ 'databaseNames' ] );
+        return (bool)in_array($collection, $this->queriesResultCache[ 'collectionNames' ]);
     }
 
     // ------------------------------------------------------------------------
@@ -534,13 +535,13 @@ abstract class AbstractConnection
      *
      * @return bool
      */
-    public function hasCollection( $collection )
+    public function hasKey($key, $collection)
     {
-        if ( empty( $this->queriesResultCache[ 'collectionNames' ] ) ) {
-            $this->getCollections();
+        if (empty($this->queriesResultCache[ 'collectionKeys' ][ $collection ])) {
+            $this->getKeys($collection);
         }
 
-        return (bool)in_array( $collection, $this->queriesResultCache[ 'collectionNames' ] );
+        return (bool)in_array($key, $this->queriesResultCache[ 'collectionKeys' ][ $collection ]);
     }
 
     // ------------------------------------------------------------------------
@@ -555,39 +556,7 @@ abstract class AbstractConnection
      * @return array Returns an array
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    abstract public function getKeys( $collection );
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::hasCollection
-     *
-     * Check if collection exists at current connection database.
-     *
-     * @param $collection
-     *
-     * @return bool
-     */
-    public function hasKey( $key, $collection )
-    {
-        if ( empty( $this->queriesResultCache[ 'collectionKeys' ][ $collection ] ) ) {
-            $this->getKeys( $collection );
-        }
-
-        return (bool)in_array( $key, $this->queriesResultCache[ 'collectionKeys' ][ $collection ] );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::getIndexes
-     *
-     * @param string $collection The database table name.
-     *
-     * @return array
-     * @throws \O2System\Spl\Exceptions\RuntimeException
-     */
-    abstract public function getIndexes( $collection );
+    abstract public function getKeys($collection);
 
     // ------------------------------------------------------------------------
 
@@ -601,14 +570,26 @@ abstract class AbstractConnection
      *
      * @return bool
      */
-    public function hasIndex( $index, $collection )
+    public function hasIndex($index, $collection)
     {
-        if ( empty( $this->queriesResultCache[ 'collectionIndexes' ][ $collection ] ) ) {
-            $this->getIndexes( $collection );
+        if (empty($this->queriesResultCache[ 'collectionIndexes' ][ $collection ])) {
+            $this->getIndexes($collection);
         }
 
-        return (bool)in_array( $index, $this->queriesResultCache[ 'collectionIndexes' ][ $collection ] );
+        return (bool)in_array($index, $this->queriesResultCache[ 'collectionIndexes' ][ $collection ]);
     }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::getIndexes
+     *
+     * @param string $collection The database table name.
+     *
+     * @return array
+     * @throws \O2System\Spl\Exceptions\RuntimeException
+     */
+    abstract public function getIndexes($collection);
 
     // ------------------------------------------------------------------------
 
@@ -622,26 +603,26 @@ abstract class AbstractConnection
      * @return mixed
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function execute( QueryBuilderCache $queryBuilderCache, array $options = [] )
+    public function execute(QueryBuilderCache $queryBuilderCache, array $options = [])
     {
         // Reconnect the connection in case isn't connected yet.
         $this->reconnect();
 
-        $queryStatement = new QueryStatement( $queryBuilderCache );
+        $queryStatement = new QueryStatement($queryBuilderCache);
 
-        if( $queryStatement->getCollection() ) {
-            $startTime = microtime( true );
-            $result = $this->platformExecuteHandler( $queryStatement, $options );
+        if ($queryStatement->getCollection()) {
+            $startTime = microtime(true);
+            $result = $this->platformExecuteHandler($queryStatement, $options);
 
-            $queryStatement->setDuration( $startTime );
-            $queryStatement->setAffectedDocuments( $this->getAffectedDocuments() );
-            $queryStatement->setLastInsertId( $this->getLastInsertId() );
+            $queryStatement->setDuration($startTime);
+            $queryStatement->setAffectedDocuments($this->getAffectedDocuments());
+            $queryStatement->setLastInsertId($this->getLastInsertId());
 
             $this->queriesCache[] = $queryStatement;
 
-            if( $queryStatement->hasError() ) {
-                if ( $this->debugEnabled ) {
-                    throw new RuntimeException( $queryStatement->getErrorMessage(), $queryStatement->getErrorCode() );
+            if ($queryStatement->hasError()) {
+                if ($this->debugEnabled) {
+                    throw new RuntimeException($queryStatement->getErrorMessage(), $queryStatement->getErrorCode());
                 }
             }
 
@@ -649,6 +630,23 @@ abstract class AbstractConnection
         }
 
         return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::reconnect
+     *
+     * Keep or establish the connection if no queries have been sent for
+     * a length of time exceeding the server's idle timeout.
+     *
+     * @return void
+     */
+    public function reconnect()
+    {
+        if (empty($this->handle)) {
+            $this->platformConnectHandler($this->config);
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -662,7 +660,29 @@ abstract class AbstractConnection
      *
      * @return bool
      */
-    abstract protected function platformExecuteHandler( QueryStatement &$queryStatement, array $options = [] );
+    abstract protected function platformExecuteHandler(QueryStatement &$queryStatement, array $options = []);
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::getAffectedDocuments
+     *
+     * Get the total number of affected rows from the last query execution.
+     *
+     * @return int  Returns total number of affected rows
+     */
+    abstract public function getAffectedDocuments();
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::getLastInsertId
+     *
+     * Get last insert id from the last insert query execution.
+     *
+     * @return int  Returns total number of affected rows
+     */
+    abstract public function getLastInsertId();
 
     // ------------------------------------------------------------------------
 
@@ -674,36 +694,36 @@ abstract class AbstractConnection
      * @return bool|\O2System\Database\DataObjects\Result Returns boolean if the query is contains writing syntax
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function query( QueryBuilderCache $queryBuilderCache )
+    public function query(QueryBuilderCache $queryBuilderCache)
     {
         // Reconnect the connection in case isn't connected yet.
         $this->reconnect();
 
         $result = false;
-        $queryStatement = new QueryStatement( $queryBuilderCache );
+        $queryStatement = new QueryStatement($queryBuilderCache);
 
-        $startTime = microtime( true );
+        $startTime = microtime(true);
 
         // Run the query for real
-        if ( $this->disableQueryExecution === false ) {
-            $rows = $this->platformQueryHandler( $queryStatement );
-            $result = new Result( $rows );
+        if ($this->disableQueryExecution === false) {
+            $rows = $this->platformQueryHandler($queryStatement);
+            $result = new Result($rows);
 
-            if ( $this->transactionInProgress ) {
-                $this->transactionStatus = ( $queryStatement->hasError() ? false : true );
+            if ($this->transactionInProgress) {
+                $this->transactionStatus = ($queryStatement->hasError() ? false : true);
             }
         }
 
-        $queryStatement->setDuration( $startTime );
+        $queryStatement->setDuration($startTime);
 
         $this->queriesCache[] = $queryStatement;
 
-        if ( $queryStatement->hasError() ) {
-            if ( $this->debugEnabled ) {
-                throw new RuntimeException( $queryStatement->getErrorMessage(), $queryStatement->getErrorCode() );
+        if ($queryStatement->hasError()) {
+            if ($this->debugEnabled) {
+                throw new RuntimeException($queryStatement->getErrorMessage(), $queryStatement->getErrorCode());
             }
 
-            if ( $this->transactionInProgress ) {
+            if ($this->transactionInProgress) {
                 $this->transactionStatus = false;
                 $this->transactionInProgress = false;
             }
@@ -725,29 +745,21 @@ abstract class AbstractConnection
      *
      * @return array
      */
-    abstract protected function platformQueryHandler( QueryStatement &$queryStatement );
+    abstract protected function platformQueryHandler(QueryStatement &$queryStatement);
 
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractConnection::getLastInsertId
+     * AbstractConnection::collection
      *
-     * Get last insert id from the last insert query execution.
+     * Get connection query builder.
      *
-     * @return int  Returns total number of affected rows
+     * @return AbstractQueryBuilder
      */
-    abstract public function getLastInsertId();
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::getAffectedDocuments
-     *
-     * Get the total number of affected rows from the last query execution.
-     *
-     * @return int  Returns total number of affected rows
-     */
-    abstract public function getAffectedDocuments();
+    public function collection($collectionName)
+    {
+        return $this->getQueryBuilder()->collection($collectionName);
+    }
 
     // ------------------------------------------------------------------------
 
@@ -760,28 +772,14 @@ abstract class AbstractConnection
      */
     public function getQueryBuilder()
     {
-        if ( ! $this->queryBuilder instanceof AbstractQueryBuilder ) {
-            $className = str_replace( 'Connection', 'QueryBuilder', get_called_class() );
+        if ( ! $this->queryBuilder instanceof AbstractQueryBuilder) {
+            $className = str_replace('Connection', 'QueryBuilder', get_called_class());
 
-            if ( class_exists( $className ) ) {
-                $this->queryBuilder = new $className( $this );
+            if (class_exists($className)) {
+                $this->queryBuilder = new $className($this);
             }
         }
 
         return $this->queryBuilder;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::collection
-     *
-     * Get connection query builder.
-     *
-     * @return AbstractQueryBuilder
-     */
-    public function collection( $collectionName )
-    {
-        return $this->getQueryBuilder()->collection( $collectionName );
     }
 }

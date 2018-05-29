@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\Sql\Drivers\MySql;
@@ -23,6 +24,43 @@ use O2System\Database\Sql\Abstracts\AbstractQueryBuilder;
  */
 class QueryBuilder extends AbstractQueryBuilder
 {
+    /**
+     * AbstractQueryBuilder::countAllResult
+     *
+     * Perform execution of count all result from Query Builder along with WHERE, LIKE, HAVING, GROUP BY, and LIMIT Sql
+     * statement.
+     *
+     * @param bool $reset Whether perform reset Query Builder or not
+     *
+     * @return int
+     * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @access   public
+     */
+    public function countAllResults($reset = true)
+    {
+        // generate Sql statement
+        $sqlStatement = $this->getSqlStatement();
+
+        if ($this->testMode) {
+            return $sqlStatement;
+        }
+
+        $this->conn->query($sqlStatement, $this->builderCache->binds);
+        $result = $this->conn->query('SELECT FOUND_ROWS() AS numrows;');
+
+        if ($reset === true) {
+            $this->builderCache->reset();
+        }
+
+        if ($result->count() == 0) {
+            return 0;
+        }
+
+        return (int)$result->first()->numrows;
+    }
+
+    //--------------------------------------------------------------------
+
     /**
      * Platform independent LIKE statement builder.
      *
@@ -43,7 +81,7 @@ class QueryBuilder extends AbstractQueryBuilder
     ) {
         $likeStatement = "{$prefix} {$column} {$not} LIKE :{$bind}";
 
-        if ( $caseSensitive === true ) {
+        if ($caseSensitive === true) {
             $likeStatement = "{$prefix} LOWER({$column}) {$not} LIKE :{$bind}";
         }
 
@@ -63,28 +101,28 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return string
      */
-    protected function platformInsertStatement( $table, array $keys, array $values )
+    protected function platformInsertStatement($table, array $keys, array $values)
     {
         return 'INSERT INTO '
             . $table
             . ' ('
-            . implode( ', ', $keys )
+            . implode(', ', $keys)
             . ') VALUES ('
-            . implode( ', ', $values )
+            . implode(', ', $values)
             . ')';
     }
 
-    //--------------------------------------------------------------------
-
-    protected function platformInsertBatchStatement( $table, array $keys, array $values )
+    protected function platformInsertBatchStatement($table, array $keys, array $values)
     {
         return 'INSERT INTO '
             . $table
             . ' ('
-            . implode( ', ', $keys )
+            . implode(', ', $keys)
             . ') VALUES '
-            . implode( ', ', $values );
+            . implode(', ', $values);
     }
+
+    //--------------------------------------------------------------------
 
     /**
      * QueryBuilder::platformReplaceStatement
@@ -97,9 +135,9 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return string
      */
-    protected function platformReplaceStatement( $table, array $keys, array $values )
+    protected function platformReplaceStatement($table, array $keys, array $values)
     {
-        return 'REPLACE INTO ' . $table . ' (' . implode( ', ', $keys ) . ') VALUES (' . implode( ', ', $values ) . ')';
+        return 'REPLACE INTO ' . $table . ' (' . implode(', ', $keys) . ') VALUES (' . implode(', ', $values) . ')';
     }
 
     //--------------------------------------------------------------------
@@ -115,16 +153,16 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return string
      */
-    protected function platformUpdateStatement( $table, array $sets )
+    protected function platformUpdateStatement($table, array $sets)
     {
         $columns = [];
 
-        foreach ( $sets as $key => $val ) {
+        foreach ($sets as $key => $val) {
             $columns[] = $key . ' = ' . $val;
         }
 
-        return 'UPDATE ' . $table . ' SET ' . implode( ', ', $columns )
-            . $this->compileWhereHavingStatement( 'where' )
+        return 'UPDATE ' . $table . ' SET ' . implode(', ', $columns)
+            . $this->compileWhereHavingStatement('where')
             . $this->compileOrderByStatement()
             . $this->compileLimitStatement();
     }
@@ -142,31 +180,31 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return    string
      */
-    protected function platformUpdateBatchStatement( $table, $values, $index )
+    protected function platformUpdateBatchStatement($table, $values, $index)
     {
         $ids = [];
         $columns = [];
 
-        foreach ( $values as $key => $value ) {
+        foreach ($values as $key => $value) {
             $ids[] = $value[ $index ];
 
-            foreach ( array_keys( $value ) as $field ) {
-                if ( $field !== $index ) {
+            foreach (array_keys($value) as $field) {
+                if ($field !== $index) {
                     $columns[ $field ][] = 'WHEN ' . $index . ' = ' . $value[ $index ] . ' THEN ' . $value[ $field ];
                 }
             }
         }
 
         $cases = '';
-        foreach ( $columns as $key => $value ) {
+        foreach ($columns as $key => $value) {
             $cases .= $key . " = CASE \n"
-                . implode( "\n", $value ) . "\n"
+                . implode("\n", $value) . "\n"
                 . 'ELSE ' . $key . ' END, ';
         }
 
-        $this->where( $index . ' IN(' . implode( ',', $ids ) . ')', null, false );
+        $this->where($index . ' IN(' . implode(',', $ids) . ')', null, false);
 
-        return 'UPDATE ' . $table . ' SET ' . substr( $cases, 0, -2 ) . $this->compileWhereHavingStatement( 'where' );
+        return 'UPDATE ' . $table . ' SET ' . substr($cases, 0, -2) . $this->compileWhereHavingStatement('where');
     }
 
     //--------------------------------------------------------------------
@@ -180,10 +218,10 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return  string
      */
-    protected function platformDeleteStatement( $table )
+    protected function platformDeleteStatement($table)
     {
         return 'DELETE FROM ' . $table
-            . $this->compileWhereHavingStatement( 'where' )
+            . $this->compileWhereHavingStatement('where')
             . $this->compileLimitStatement();
     }
 
@@ -198,46 +236,9 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * @return  string
      */
-    protected function platformTruncateStatement( $table )
+    protected function platformTruncateStatement($table)
     {
         return 'TRUNCATE ' . $table;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractQueryBuilder::countAllResult
-     *
-     * Perform execution of count all result from Query Builder along with WHERE, LIKE, HAVING, GROUP BY, and LIMIT Sql
-     * statement.
-     *
-     * @param bool $reset Whether perform reset Query Builder or not
-     *
-     * @return int
-     * @throws \O2System\Spl\Exceptions\RuntimeException
-     * @access   public
-     */
-    public function countAllResults( $reset = true )
-    {
-        // generate Sql statement
-        $sqlStatement = $this->getSqlStatement();
-
-        if ( $this->testMode ) {
-            return $sqlStatement;
-        }
-
-        $this->conn->query( $sqlStatement, $this->builderCache->binds );
-        $result = $this->conn->query( 'SELECT FOUND_ROWS() AS numrows;' );
-
-        if ( $reset === true ) {
-            $this->builderCache->reset();
-        }
-
-        if ( $result->count() == 0 ) {
-            return 0;
-        }
-
-        return (int)$result->first()->numrows;
     }
 
     //--------------------------------------------------------------------

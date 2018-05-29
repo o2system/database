@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\NoSql\Abstracts;
@@ -58,7 +59,7 @@ abstract class AbstractQueryBuilder
      *
      * @param AbstractConnection $conn
      */
-    public function __construct( AbstractConnection $conn )
+    public function __construct(AbstractConnection $conn)
     {
         $this->conn = $conn;
         $this->builderCache = new QueryBuilderCache();
@@ -78,18 +79,18 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function select( $field )
+    public function select($field)
     {
-        if ( strpos( $field, ',' ) !== false ) {
-            $field = explode( ', ', $field );
+        if (strpos($field, ',') !== false) {
+            $field = explode(', ', $field);
         } else {
-            $field = [ $field ];
+            $field = [$field];
         }
 
-        $field = array_map( 'trim', $field );
+        $field = array_map('trim', $field);
 
-        foreach ( $field as $key ) {
-            $this->builderCache->store( 'select', $key );
+        foreach ($field as $key) {
+            $this->builderCache->store('select', $key);
         }
 
         return $this;
@@ -104,9 +105,9 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function collection( $collection )
+    public function collection($collection)
     {
-        $this->from( $collection );
+        $this->from($collection);
 
         return $this;
     }
@@ -122,9 +123,9 @@ abstract class AbstractQueryBuilder
      *
      * @return  static
      */
-    public function from( $collection )
+    public function from($collection)
     {
-        $this->builderCache->store( 'from', trim( $collection ) );
+        $this->builderCache->store('from', trim($collection));
 
         return $this;
     }
@@ -141,27 +142,8 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function join( $collection, $condition = null )
+    public function join($collection, $condition = null)
     {
-
-        return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractQueryBuilder::where
-     *
-     * Add WHERE Sql statement portions into Query Builder
-     *
-     * @param string|array $field Input name, array of [field => value] (grouped where)
-     * @param null|string  $value Input criteria or UPPERCASE grouped type AND|OR
-     *
-     * @return static
-     */
-    public function where( $field, $value = null )
-    {
-        $this->prepareWhere( $field, $value, 'where' );
 
         return $this;
     }
@@ -178,9 +160,9 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function orWhere( $field, $value = null )
+    public function orWhere($field, $value = null)
     {
-        $this->prepareWhere( $field, $value, 'orWhere' );
+        $this->prepareWhere($field, $value, 'orWhere');
 
         return $this;
     }
@@ -194,14 +176,14 @@ abstract class AbstractQueryBuilder
      * @param null|mixed   $value
      * @param string       $cacheKey
      */
-    protected function prepareWhere( $field, $value = null, $cacheKey )
+    protected function prepareWhere($field, $value = null, $cacheKey)
     {
-        if ( is_array( $field ) ) {
-            foreach ( $field as $name => $value ) {
-                $this->prepareWhere( $name, $value, $cacheKey );
+        if (is_array($field)) {
+            foreach ($field as $name => $value) {
+                $this->prepareWhere($name, $value, $cacheKey);
             }
-        } elseif ( isset( $value ) ) {
-            $this->builderCache->store( $cacheKey, [ $field => $value ] );
+        } elseif (isset($value)) {
+            $this->builderCache->store($cacheKey, [$field => $value]);
         }
     }
 
@@ -218,11 +200,31 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function whereIn( $field, array $values = [] )
+    public function whereIn($field, array $values = [])
     {
-        $this->prepareWhereIn( $field, $values, 'whereIn' );
+        $this->prepareWhereIn($field, $values, 'whereIn');
 
         return $this;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::prepareWhereIn
+     *
+     * @param       $field
+     * @param array $values
+     * @param       $cacheKey
+     */
+    protected function prepareWhereIn($field, array $values = [], $cacheKey)
+    {
+        if (is_array($field)) {
+            foreach ($field as $name => $values) {
+                $this->prepareWhereIn($name, $values, $cacheKey);
+            }
+        } elseif (count($values)) {
+            $this->builderCache->store($cacheKey, [$field => $values]);
+        }
     }
 
     //--------------------------------------------------------------------
@@ -238,9 +240,9 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function orWhereIn( $field, array $values = [] )
+    public function orWhereIn($field, array $values = [])
     {
-        $this->prepareWhereIn( $field, $values, 'orWhereIn' );
+        $this->prepareWhereIn($field, $values, 'orWhereIn');
 
         return $this;
     }
@@ -257,9 +259,9 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function whereNotIn( $field, array $values = [] )
+    public function whereNotIn($field, array $values = [])
     {
-        $this->prepareWhereIn( $field, $values, 'whereNotIn' );
+        $this->prepareWhereIn($field, $values, 'whereNotIn');
 
         return $this;
     }
@@ -276,31 +278,11 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function orWhereNotIn( $field, array $values = [] )
+    public function orWhereNotIn($field, array $values = [])
     {
-        $this->prepareWhereIn( $field, $values, 'orWhereNotIn' );
+        $this->prepareWhereIn($field, $values, 'orWhereNotIn');
 
         return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractQueryBuilder::prepareWhereIn
-     *
-     * @param       $field
-     * @param array $values
-     * @param       $cacheKey
-     */
-    protected function prepareWhereIn( $field, array $values = [], $cacheKey )
-    {
-        if ( is_array( $field ) ) {
-            foreach ( $field as $name => $values ) {
-                $this->prepareWhereIn( $name, $values, $cacheKey );
-            }
-        } elseif ( count( $values ) ) {
-            $this->builderCache->store( $cacheKey, [ $field => $values ] );
-        }
     }
 
     //--------------------------------------------------------------------
@@ -316,11 +298,31 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function whereBetween( $field, $start, $end )
+    public function whereBetween($field, $start, $end)
     {
-        $this->prepareWhereBetween( $field, $start, $end, 'between' );
+        $this->prepareWhereBetween($field, $start, $end, 'between');
 
         return $this;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::prepareWhereBetween
+     *
+     * @param $field
+     * @param $start
+     * @param $end
+     * @param $cacheKey
+     */
+    protected function prepareWhereBetween($field, $start, $end, $cacheKey)
+    {
+        $this->builderCache->store($cacheKey, [
+            $field => [
+                'start' => $start,
+                'end'   => $end,
+            ],
+        ]);
     }
 
     //--------------------------------------------------------------------
@@ -336,9 +338,9 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function orWhereBetween( $field, $start, $end )
+    public function orWhereBetween($field, $start, $end)
     {
-        $this->prepareWhereBetween( $field, $start, $end, 'orBetween' );
+        $this->prepareWhereBetween($field, $start, $end, 'orBetween');
 
         return $this;
     }
@@ -356,9 +358,9 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function whereNotBetween( $field, $start, $end )
+    public function whereNotBetween($field, $start, $end)
     {
-        $this->prepareWhereBetween( $field, $start, $end, 'notBetween' );
+        $this->prepareWhereBetween($field, $start, $end, 'notBetween');
 
         return $this;
     }
@@ -376,31 +378,11 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function orWhereNotBetween( $field, $start, $end )
+    public function orWhereNotBetween($field, $start, $end)
     {
-        $this->prepareWhereBetween( $field, $start, $end, 'orNotBetween' );
+        $this->prepareWhereBetween($field, $start, $end, 'orNotBetween');
 
         return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractQueryBuilder::prepareWhereBetween
-     *
-     * @param $field
-     * @param $start
-     * @param $end
-     * @param $cacheKey
-     */
-    protected function prepareWhereBetween( $field, $start, $end, $cacheKey )
-    {
-        $this->builderCache->store( $cacheKey, [
-            $field => [
-                'start' => $start,
-                'end'   => $end,
-            ],
-        ] );
     }
 
     //--------------------------------------------------------------------
@@ -418,11 +400,47 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function like( $field, $match = '', $wildcard = 'BOTH', $caseSensitive = true )
+    public function like($field, $match = '', $wildcard = 'BOTH', $caseSensitive = true)
     {
-        $this->prepareLike( $field, $match, $wildcard, $caseSensitive, 'like' );
+        $this->prepareLike($field, $match, $wildcard, $caseSensitive, 'like');
 
         return $this;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::prepareLike
+     *
+     * @param $field
+     * @param $match
+     * @param $wildcard
+     * @param $caseSensitive
+     * @param $cacheKey
+     */
+    protected function prepareLike($field, $match, $wildcard, $caseSensitive, $cacheKey)
+    {
+        $match = quotemeta(trim($match));
+
+        switch ($wildcard) {
+            default:
+            case 'BOTH':
+                $match = '^' . $match . '$';
+                break;
+            case 'BEFORE':
+                $match = '^' . $match;
+                break;
+            case 'AFTER':
+                $match = '^' . $match;
+                break;
+        }
+
+        $flags = 'm|x|s';
+        if ($caseSensitive === false) {
+            $flags .= '|i';
+        }
+
+        $this->builderCache->store($cacheKey, [$field => new \MongoDB\BSON\Regex($match, $flags)]);
     }
 
     //--------------------------------------------------------------------
@@ -439,9 +457,9 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function orLike( $field, $match = '', $wildcard = 'BOTH', $caseSensitive = true )
+    public function orLike($field, $match = '', $wildcard = 'BOTH', $caseSensitive = true)
     {
-        $this->prepareLike( $field, $match, $wildcard, $caseSensitive, 'orLike' );
+        $this->prepareLike($field, $match, $wildcard, $caseSensitive, 'orLike');
 
         return $this;
     }
@@ -460,9 +478,9 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function notLike( $field, $match = '', $wildcard = 'BOTH', $caseSensitive = true )
+    public function notLike($field, $match = '', $wildcard = 'BOTH', $caseSensitive = true)
     {
-        $this->prepareLike( $field, $match, $wildcard, $caseSensitive, 'notLike' );
+        $this->prepareLike($field, $match, $wildcard, $caseSensitive, 'notLike');
 
         return $this;
     }
@@ -481,47 +499,11 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function orNotLike( $field, $match = '', $wildcard = 'BOTH', $caseSensitive = true )
+    public function orNotLike($field, $match = '', $wildcard = 'BOTH', $caseSensitive = true)
     {
-        $this->prepareLike( $field, $match, $wildcard, $caseSensitive, 'orNotLike' );
+        $this->prepareLike($field, $match, $wildcard, $caseSensitive, 'orNotLike');
 
         return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractQueryBuilder::prepareLike
-     *
-     * @param $field
-     * @param $match
-     * @param $wildcard
-     * @param $caseSensitive
-     * @param $cacheKey
-     */
-    protected function prepareLike( $field, $match, $wildcard, $caseSensitive, $cacheKey )
-    {
-        $match = quotemeta( trim( $match ) );
-
-        switch ( $wildcard ) {
-            default:
-            case 'BOTH':
-                $match = '^' . $match . '$';
-                break;
-            case 'BEFORE':
-                $match = '^' . $match;
-                break;
-            case 'AFTER':
-                $match = '^' . $match;
-                break;
-        }
-
-        $flags = 'm|x|s';
-        if ( $caseSensitive === false ) {
-            $flags .= '|i';
-        }
-
-        $this->builderCache->store( $cacheKey, [ $field => new \MongoDB\BSON\Regex( $match, $flags ) ] );
     }
 
     //--------------------------------------------------------------------
@@ -535,7 +517,7 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function groupBy( $field )
+    public function groupBy($field)
     {
         return $this;
     }
@@ -552,9 +534,9 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function orderBy( $field, $direction = 'ASC' )
+    public function orderBy($field, $direction = 'ASC')
     {
-        $this->builderCache->store( 'orderBy', [ $field => strtoupper( $direction ) ] );
+        $this->builderCache->store('orderBy', [$field => strtoupper($direction)]);
 
         return $this;
     }
@@ -571,26 +553,26 @@ abstract class AbstractQueryBuilder
      *
      * @return static
      */
-    public function page( $page = 1, $entries = null )
+    public function page($page = 1, $entries = null)
     {
-        $page = (int)intval( $page );
+        $page = (int)intval($page);
 
-        $entries = (int)( isset( $entries )
+        $entries = (int)(isset($entries)
             ? $entries
-            : ( $this->builderCache->limit === false
+            : ($this->builderCache->limit === false
                 ? 5
                 : $this->builderCache->limit
             )
         );
 
-        $offset = ( $page - 1 ) * $entries;
+        $offset = ($page - 1) * $entries;
 
-        $this->limit( $entries, $offset );
+        $this->limit($entries, $offset);
 
         return $this;
     }
 
-    // --------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * AbstractQueryBuilder::limit
@@ -602,15 +584,15 @@ abstract class AbstractQueryBuilder
      *
      * @return    static
      */
-    public function limit( $limit, $offset = 0 )
+    public function limit($limit, $offset = 0)
     {
-        $this->builderCache->store( 'limit', $limit );
-        $this->offset( $offset );
+        $this->builderCache->store('limit', $limit);
+        $this->offset($offset);
 
         return $this;
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * AbstractQueryBuilder::offset
@@ -621,9 +603,9 @@ abstract class AbstractQueryBuilder
      *
      * @return    static
      */
-    public function offset( $offset )
+    public function offset($offset)
     {
-        $this->builderCache->store( 'offset', $offset );
+        $this->builderCache->store('offset', $offset);
 
         return $this;
     }
@@ -641,20 +623,35 @@ abstract class AbstractQueryBuilder
      * @return bool|\O2System\Database\DataObjects\Result
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function get( $limit = null, $offset = null )
+    public function get($limit = null, $offset = null)
     {
-        if ( isset( $limit ) ) {
-            $this->limit( $limit, $offset );
+        if (isset($limit)) {
+            $this->limit($limit, $offset);
         }
 
-        if ( false !== (  $result = $this->conn->query( $this->builderCache ) ) ) {
-            $result->setTotalRows( $this->countAllResults( true ) );
+        if (false !== ($result = $this->conn->query($this->builderCache))) {
+            $result->setTotalRows($this->countAllResults(true));
         }
 
         $this->builderCache->reset();
 
         return $result;
     }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::countAllResult
+     *
+     * Returns numbers of total documents.
+     *
+     * @param bool $reset Whether perform reset Query Builder or not
+     *
+     * @return int
+     * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @access   public
+     */
+    abstract public function countAllResults($reset = true);
 
     //--------------------------------------------------------------------
 
@@ -670,21 +667,40 @@ abstract class AbstractQueryBuilder
      * @return bool|\O2System\Database\DataObjects\Result
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function getWhere( array $where = [], $limit = null, $offset = null )
+    public function getWhere(array $where = [], $limit = null, $offset = null)
     {
-        $this->where( $where );
+        $this->where($where);
 
-        if ( isset( $limit ) ) {
-            $this->limit( $limit, $offset );
+        if (isset($limit)) {
+            $this->limit($limit, $offset);
         }
 
-        if ( false !== (  $result = $this->conn->query( $this->builderCache ) ) ) {
-            $result->setTotalRows( $this->countAllResults( true ) );
+        if (false !== ($result = $this->conn->query($this->builderCache))) {
+            $result->setTotalRows($this->countAllResults(true));
         }
 
         $this->builderCache->reset();
 
         return $result;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::where
+     *
+     * Add WHERE Sql statement portions into Query Builder
+     *
+     * @param string|array $field Input name, array of [field => value] (grouped where)
+     * @param null|string  $value Input criteria or UPPERCASE grouped type AND|OR
+     *
+     * @return static
+     */
+    public function where($field, $value = null)
+    {
+        $this->prepareWhere($field, $value, 'where');
+
+        return $this;
     }
 
     //--------------------------------------------------------------------
@@ -703,32 +719,17 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
-     * AbstractQueryBuilder::countAllResult
-     *
-     * Returns numbers of total documents.
-     *
-     * @param bool $reset Whether perform reset Query Builder or not
-     *
-     * @return int
-     * @throws \O2System\Spl\Exceptions\RuntimeException
-     * @access   public
-     */
-    abstract public function countAllResults( $reset = true );
-
-    //--------------------------------------------------------------------
-
-    /**
      * AbstractQueryBuilder::insert
      *
      * @param array $sets
      *
      * @return bool
      */
-    public function insert( array $sets )
+    public function insert(array $sets)
     {
-        $this->builderCache->store( 'sets', $sets );
+        $this->builderCache->store('sets', $sets);
 
-        return $this->platformInsertHandler( $this->builderCache );
+        return $this->platformInsertHandler($this->builderCache);
     }
 
     //--------------------------------------------------------------------
@@ -740,7 +741,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    abstract protected function platformInsertHandler( QueryBuilderCache $queryBuilderCache );
+    abstract protected function platformInsertHandler(QueryBuilderCache $queryBuilderCache);
 
     //--------------------------------------------------------------------
 
@@ -751,11 +752,11 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    public function insertBatch( array $sets )
+    public function insertBatch(array $sets)
     {
-        $this->builderCache->store( 'sets', $sets );
+        $this->builderCache->store('sets', $sets);
 
-        return $this->platformInsertBatchHandler( $this->builderCache );
+        return $this->platformInsertBatchHandler($this->builderCache);
     }
 
     //--------------------------------------------------------------------
@@ -767,7 +768,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    abstract protected function platformInsertBatchHandler( QueryBuilderCache $queryBuilderCache );
+    abstract protected function platformInsertBatchHandler(QueryBuilderCache $queryBuilderCache);
 
     //--------------------------------------------------------------------
 
@@ -779,12 +780,12 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    public function update( array $sets, array $where = [] )
+    public function update(array $sets, array $where = [])
     {
-        $this->where( $where );
-        $this->builderCache->store( 'sets', $sets );
+        $this->where($where);
+        $this->builderCache->store('sets', $sets);
 
-        return $this->platformUpdateHandler( $this->builderCache );
+        return $this->platformUpdateHandler($this->builderCache);
     }
 
     //--------------------------------------------------------------------
@@ -796,7 +797,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    abstract protected function platformUpdateHandler( QueryBuilderCache $queryBuilderCache );
+    abstract protected function platformUpdateHandler(QueryBuilderCache $queryBuilderCache);
 
     //--------------------------------------------------------------------
 
@@ -808,12 +809,12 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    public function updateBatch( array $sets, array $where = [] )
+    public function updateBatch(array $sets, array $where = [])
     {
-        $this->where( $where );
-        $this->builderCache->store( 'sets', $sets );
+        $this->where($where);
+        $this->builderCache->store('sets', $sets);
 
-        return $this->platformUpdateBatchHandler( $this->builderCache );
+        return $this->platformUpdateBatchHandler($this->builderCache);
     }
 
     //--------------------------------------------------------------------
@@ -825,7 +826,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    abstract protected function platformUpdateBatchHandler( QueryBuilderCache $queryBuilderCache );
+    abstract protected function platformUpdateBatchHandler(QueryBuilderCache $queryBuilderCache);
 
     //--------------------------------------------------------------------
 
@@ -837,12 +838,12 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    public function replace( array $sets, array $where = [] )
+    public function replace(array $sets, array $where = [])
     {
-        $this->where( $where );
-        $this->builderCache->store( 'sets', $sets );
+        $this->where($where);
+        $this->builderCache->store('sets', $sets);
 
-        return $this->platformReplaceHandler( $this->builderCache );
+        return $this->platformReplaceHandler($this->builderCache);
     }
 
     //--------------------------------------------------------------------
@@ -854,7 +855,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    abstract protected function platformReplaceHandler( QueryBuilderCache $queryBuilderCache );
+    abstract protected function platformReplaceHandler(QueryBuilderCache $queryBuilderCache);
 
     //--------------------------------------------------------------------
 
@@ -866,12 +867,12 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    public function replaceBatch( array $sets, array $where = [] )
+    public function replaceBatch(array $sets, array $where = [])
     {
-        $this->where( $where );
-        $this->builderCache->store( 'sets', $sets );
+        $this->where($where);
+        $this->builderCache->store('sets', $sets);
 
-        return $this->platformReplaceBatchHandler( $this->builderCache );
+        return $this->platformReplaceBatchHandler($this->builderCache);
     }
 
     //--------------------------------------------------------------------
@@ -883,7 +884,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    abstract protected function platformReplaceBatchHandler( QueryBuilderCache $queryBuilderCache );
+    abstract protected function platformReplaceBatchHandler(QueryBuilderCache $queryBuilderCache);
 
     //--------------------------------------------------------------------
 
@@ -895,15 +896,15 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    public function delete( $where = [], $limit = null )
+    public function delete($where = [], $limit = null)
     {
-        $this->where( $where );
+        $this->where($where);
 
-        if ( isset( $limit ) ) {
-            $this->limit( $limit );
+        if (isset($limit)) {
+            $this->limit($limit);
         }
 
-        return $this->platformDeleteHandler( $this->builderCache );
+        return $this->platformDeleteHandler($this->builderCache);
     }
 
     //--------------------------------------------------------------------
@@ -915,7 +916,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    abstract protected function platformDeleteHandler( QueryBuilderCache $queryBuilderCache );
+    abstract protected function platformDeleteHandler(QueryBuilderCache $queryBuilderCache);
 
     //--------------------------------------------------------------------
 
@@ -927,15 +928,15 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    public function deleteBatch( $where = [], $limit = null )
+    public function deleteBatch($where = [], $limit = null)
     {
-        $this->where( $where );
+        $this->where($where);
 
-        if ( isset( $limit ) ) {
-            $this->limit( $limit );
+        if (isset($limit)) {
+            $this->limit($limit);
         }
 
-        return $this->platformDeleteBatchHandler( $this->builderCache );
+        return $this->platformDeleteBatchHandler($this->builderCache);
     }
 
     //--------------------------------------------------------------------
@@ -947,5 +948,5 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      */
-    abstract protected function platformDeleteBatchHandler( QueryBuilderCache $queryBuilderCache );
+    abstract protected function platformDeleteBatchHandler(QueryBuilderCache $queryBuilderCache);
 }
