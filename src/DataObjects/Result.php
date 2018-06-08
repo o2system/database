@@ -111,7 +111,11 @@ class Result implements
     {
         $this->seek(0);
 
-        return $this->rows[ $this->position ];
+        if($this->count()) {
+            return $this->rows[ $this->position ];
+        }
+
+        return new Row();
     }
 
     // ------------------------------------------------------------------------
@@ -175,7 +179,11 @@ class Result implements
     {
         $this->seek($this->count() - 1);
 
-        return $this->rows[ $this->position ];
+        if($this->count()) {
+            return $this->rows[ $this->position ];
+        }
+
+        return new Row();
     }
 
     // ------------------------------------------------------------------------
@@ -193,7 +201,11 @@ class Result implements
     {
         $this->seek($this->position);
 
-        return $this->rows[ $this->position ];
+        if($this->count()) {
+            return $this->rows[ $this->position ];
+        }
+
+        return new Row();
     }
 
     // ------------------------------------------------------------------------
@@ -259,7 +271,11 @@ class Result implements
      */
     public function valid()
     {
-        return isset($this->rows[ $this->position ]);
+        if($this->count()) {
+            return isset($this->rows[ $this->position ]);
+        }
+
+        return false;
     }
 
     // ------------------------------------------------------------------------

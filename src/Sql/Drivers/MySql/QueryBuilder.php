@@ -242,4 +242,27 @@ class QueryBuilder extends AbstractQueryBuilder
     }
 
     //--------------------------------------------------------------------
+
+    /**
+     * AbstractQueryBuilder::compileSelectStatement
+     *
+     * Compile the SELECT statement
+     *
+     * Generates a query string based on which functions were used.
+     * Should not be called directly.
+     *
+     * @param    bool $selectOverride
+     *
+     * @return    string
+     */
+    protected function compileSelectStatement($selectOverride = false)
+    {
+        $sqlStatement = parent::compileSelectStatement($selectOverride);
+
+        if($this->isSubQuery) {
+            return $sqlStatement;
+        }
+
+        return str_replace('SELECT', 'SELECT SQL_CALC_FOUND_ROWS', $sqlStatement);
+    }
 }
