@@ -23,9 +23,9 @@ use O2System\Spl\Datastructures\SplArrayObject;
  */
 class Info
 {
-    protected $entries = 5;
-    protected $total;
-    protected $numbering;
+    public $limit = 5;
+    public $total;
+    public $numbering;
 
     // ------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ class Info
             'pages'  => 0,
         ], $total));
 
-        $this->setEntries($this->entries);
+        $this->setLimit($this->limit);
     }
 
     // ------------------------------------------------------------------------
@@ -52,9 +52,9 @@ class Info
      *
      * @return \O2System\Spl\Datastructures\SplArrayObject
      */
-    public function getEntries()
+    public function getLimit()
     {
-        return $this->entries;
+        return $this->limit;
     }
 
     // ------------------------------------------------------------------------
@@ -62,20 +62,20 @@ class Info
     /**
      * Info::setEntries
      *
-     * @param int $entries
+     * @param int $limit
      *
      * @return static
      */
-    public function setEntries($entries)
+    public function setLimit($limit)
     {
-        $this->entries = (int)$entries;
+        $this->limit = (int)$limit;
 
-        $this->total->pages = @ceil($this->total->rows / $this->entries);
+        $this->total->pages = @ceil($this->total->rows / $this->limit);
 
         $activePage = $this->getActivePage();
 
         $this->numbering = new SplArrayObject([
-            'start' => $start = ($activePage == 1 ? 1 : ($activePage - 1) * $this->entries + 1),
+            'start' => $start = ($activePage == 1 ? 1 : ($activePage - 1) * $this->limit + 1),
             'end'   => ($start + $this->total->founds) - 1,
         ]);
 

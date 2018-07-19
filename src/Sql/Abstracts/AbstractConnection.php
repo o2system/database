@@ -680,7 +680,30 @@ abstract class AbstractConnection
         $queryStatement->setAffectedRows($this->getAffectedRows());
         $queryStatement->setLastInsertId($this->getLastInsertId());
 
-        $this->queriesCache[] = $queryStatement;
+        if ( ! array_key_exists($queryStatement->getKey(), $this->queriesCache)) {
+            $this->queriesCache[ $queryStatement->getKey() ] = $queryStatement;
+        }
+
+        if ($queryStatement->hasError()) {
+            if ($this->transactionInProgress) {
+                $this->transactionStatus = false;
+                $this->transactionRollBack();
+                $this->transactionInProgress = false;
+            }
+
+            if ($this->debugEnable) {
+                $message = $queryStatement->getErrorMessage() .
+                    ' on sql statement: <br><pre>' . $sqlStatement . '</pre><br><br>';
+
+                throw new RuntimeException($message, $queryStatement->getErrorCode());
+            }
+
+            return false;
+        }
+
+        if ($this->transactionInProgress) {
+            $this->transactionStatus = true;
+        }
 
         return (bool)$result;
     }
@@ -788,10 +811,6 @@ abstract class AbstractConnection
                 }
 
                 $result = new Result($rows);
-
-                if ($this->transactionInProgress) {
-                    $this->transactionStatus = ($queryStatement->hasError() ? false : true);
-                }
             }
         }
 
@@ -804,7 +823,10 @@ abstract class AbstractConnection
 
         if ($queryStatement->hasError()) {
             if ($this->debugEnable) {
-                throw new RuntimeException($queryStatement->getErrorMessage(), $queryStatement->getErrorCode());
+                $message = $queryStatement->getErrorMessage() .
+                    ' on sql statement: <br><pre>' . $sqlStatement . '</pre><br><br>';
+
+                throw new RuntimeException($message, $queryStatement->getErrorCode());
             }
 
             if ($this->transactionInProgress) {
@@ -814,6 +836,10 @@ abstract class AbstractConnection
             }
 
             return false;
+        }
+
+        if ($this->transactionInProgress) {
+            $this->transactionStatus = true;
         }
 
         return $result;

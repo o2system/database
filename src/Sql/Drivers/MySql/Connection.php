@@ -564,10 +564,19 @@ class Connection extends AbstractConnection
      */
     protected function platformTransactionBeginHandler()
     {
-        $this->handle->autocommit(false);
-        $this->transactionInProgress = true;
+        if($this->transactionInProgress === false) {
+            // Begin transaction using autocommit function set to false
+            $this->handle->autocommit(false);
 
-        return $this->handle->begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
+            // Flag for there is a transaction progress
+            $this->transactionInProgress = true;
+
+            // Flag for error checking
+            $this->transactionStatus = true;
+        }
+
+
+        return $this->transactionInProgress;
     }
 
     // ------------------------------------------------------------------------
@@ -581,8 +590,10 @@ class Connection extends AbstractConnection
      */
     protected function platformTransactionCommitHandler()
     {
-        if ($this->handle->commit()) {
-            $this->handle->autocommit(($this->transactionInProgress ? false : true));
+        if ($this->transactionStatus === true) {
+            $this->handle->commit();
+            $this->handle->autocommit(true);
+            $this->transactionInProgress = false;
 
             return true;
         }
@@ -597,18 +608,13 @@ class Connection extends AbstractConnection
      *
      * Platform rolling back a transaction handler.
      *
-     * @return bool
+     * @return void
      */
     protected function platformTransactionRollBackHandler()
     {
-        if ($this->handle->rollback()) {
-            $this->transactionInProgress = false;
-            $this->handle->autocommit(true);
-
-            return true;
-        }
-
-        return false;
+        $this->handle->rollback();
+        $this->transactionInProgress = false;
+        $this->handle->autocommit(true);
     }
 
     // ------------------------------------------------------------------------

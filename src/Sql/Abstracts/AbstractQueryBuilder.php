@@ -1914,26 +1914,26 @@ abstract class AbstractQueryBuilder
      *
      * Add Set LIMIT, OFFSET Sql statement by page number and entries.
      *
-     * @param int  $page    Page number
-     * @param null $entries Num entries of each page
+     * @param int  $page  Page number
+     * @param null $limit Num entries of each page
      *
      * @return static
      */
-    public function page($page = 1, $entries = null)
+    public function page($page = 1, $limit = null)
     {
         $page = (int)intval($page);
 
-        $entries = (int)(isset($entries)
-            ? $entries
+        $limit = (int)(isset($limit)
+            ? $limit
             : ($this->builderCache->limit === false
                 ? 5
                 : $this->builderCache->limit
             )
         );
 
-        $offset = ($page - 1) * $entries;
+        $offset = ($page - 1) * $limit;
 
-        $this->limit($entries, $offset);
+        $this->limit($limit, $offset);
 
         return $this;
     }
@@ -2345,8 +2345,13 @@ abstract class AbstractQueryBuilder
             : $this->conn->isProtectIdentifiers;
 
         foreach ($field as $key => $value) {
-
-            if (is_array($value) || is_object($value)) {
+            if($key === 'birthday' || $key === 'date') {
+                if (is_array($value)) {
+                    $value = $value['year'] . '-' . $value['month'] . '-' . $value['date'];
+                } elseif(is_object($value)) {
+                    $value = $value->year . '-' . $value->month . '-' . $value->date;
+                }
+            } elseif (is_array($value) || is_object($value)) {
                 $value = call_user_func_array($this->arrayObjectConversionMethod, [$value]);
             }
 

@@ -201,7 +201,7 @@ class QueryBuilderCache extends \ArrayObject
                 'where'         => [],
                 'having'        => [],
                 'between'       => [],
-                'not_between'   => [],
+                'notBetween'    => [],
                 'keys'          => [],
                 'limit'         => false,
                 'aliasedTables' => [],
