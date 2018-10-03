@@ -42,6 +42,10 @@ class Info
             'pages'  => 0,
         ], $total));
 
+        if(isset($total['limit'])) {
+            $this->limit = $total['limit'];
+        }
+
         $this->setLimit($this->limit);
     }
 
@@ -69,8 +73,11 @@ class Info
     public function setLimit($limit)
     {
         $this->limit = (int)$limit;
+        $this->total->pages = 1;
 
-        $this->total->pages = @ceil($this->total->rows / $this->limit);
+        if($this->limit > 0) {
+            $this->total->pages = @ceil($this->total->rows / $this->limit);
+        }
 
         $activePage = $this->getActivePage();
 

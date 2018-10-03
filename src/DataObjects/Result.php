@@ -73,6 +73,8 @@ class Result implements
      */
     private $totalRows = 0;
 
+    public $limit = null;
+
     // ------------------------------------------------------------------------
 
     /**
@@ -484,6 +486,7 @@ class Result implements
     public function getInfo()
     {
         return new Info([
+            'limit' => $this->limit,
             'rows'   => $this->countAll(),
             'founds' => $this->count(),
         ]);

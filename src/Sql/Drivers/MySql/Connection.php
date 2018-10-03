@@ -544,7 +544,7 @@ class Connection extends AbstractConnection
     {
         $rows = [];
 
-        if (false !== ($result = $this->handle->query($queryStatement->getSqlFinalStatement()))) {
+        if ( $result = $this->handle->query($queryStatement->getSqlFinalStatement()) ) {
             $rows = $result->fetch_all(MYSQLI_ASSOC);
         } else {
             $queryStatement->setError($this->handle->errno, $this->handle->error);

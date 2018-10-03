@@ -2009,6 +2009,7 @@ abstract class AbstractQueryBuilder
             : $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
 
         if ($result) {
+            $result->limit = $this->builderCache->limit;
             $result->setTotalRows($this->countAllResults());
         }
 
@@ -2101,6 +2102,7 @@ abstract class AbstractQueryBuilder
             : $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
 
         if ($result) {
+            $result->limit = $this->builderCache->limit;
             $result->setTotalRows($this->countAllResults());
         }
 
