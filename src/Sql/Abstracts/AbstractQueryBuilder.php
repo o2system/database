@@ -2691,7 +2691,7 @@ abstract class AbstractQueryBuilder
          * @issued_by: Triyana Suryapraja Sukmana <https://github.com/tss182>
          * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
          */
-        if (count($this->builderCache->sets)) {
+        if (count($this->builderCache->sets) && count($this->builderCache->from)) {
             $sqlStatement = $this->platformUpdateStatement(
                 $this->conn->protectIdentifiers(
                     $this->builderCache->from[ 0 ],
