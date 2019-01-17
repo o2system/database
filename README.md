@@ -1,3 +1,19 @@
+<div align="center" markdown="1">
+
+[![O2System Framework](http://o2system.id/assets/img/logo/logo-white-200px.png?logo)](http://o2system.id)
+</div>
+
+<div align="center" markdown="1">
+
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/o2system/database/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/o2system/database/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/o2system/database/badges/build.png?b=master)](https://scrutinizer-ci.com/g/o2system/database/build-status/master)
+[![Latest Stable Version](https://poser.pugx.org/o2system/database/v/stable)](https://packagist.org/packages/o2system/database)
+[![Total Downloads](https://poser.pugx.org/o2system/database/downloads)](https://packagist.org/packages/o2system/database)
+[![License](https://poser.pugx.org/o2system/database/license)](https://packagist.org/packages/o2system/database)
+
+</div>
+
+
 # O2System Database
 O2System Database is an Open Source PHP Database Drivers Library. The database drivers in the O2System Database are grouped into two main categories: SQL and NoSQL. O2System Database is built for working more powerfully within <the> O2System Framework, but it can also be used within other frameworks as standalone version with limited features.
 
