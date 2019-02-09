@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -192,5 +192,26 @@ class QueryBuilder extends AbstractQueryBuilder
     protected function platformTruncateStatement($table)
     {
         return 'TRUNCATE ' . $table;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryBuilder::platformInsertBatchStatement
+     *
+     * @param string $table
+     * @param array  $keys
+     * @param array  $values
+     *
+     * @return mixed
+     */
+    protected function platformInsertBatchStatement($table, array $keys, array $values)
+    {
+        return 'INSERT INTO '
+            . $table
+            . ' ('
+            . implode(', ', $keys)
+            . ') VALUES '
+            . implode(', ', $values);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@ namespace O2System\Database\NoSql\Abstracts;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\NoSql\Datastructures\QueryBuilderCache;
+use O2System\Database\NoSql\DataStructures\QueryBuilderCache;
 
 /**
  * Class AbstractQueryBuilder
@@ -48,7 +48,7 @@ abstract class AbstractQueryBuilder
      *
      * Query builder cache instance.
      *
-     * @var \O2System\Database\NoSql\Datastructures\QueryBuilderCache
+     * @var \O2System\Database\NoSql\DataStructures\QueryBuilderCache
      */
     protected $builderCache;
 
@@ -194,9 +194,8 @@ abstract class AbstractQueryBuilder
      *
      * Add WHERE IN Sql statement portions into Query Builder
      *
-     * @param string    $field  Input name
-     * @param array     $values Array of values criteria
-     * @param null|bool $escape Whether not to try to escape identifiers
+     * @param string $field  Input name
+     * @param array  $values Array of values criteria
      *
      * @return static
      */
@@ -212,9 +211,9 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::prepareWhereIn
      *
-     * @param       $field
-     * @param array $values
-     * @param       $cacheKey
+     * @param string $field
+     * @param array  $values
+     * @param string $cacheKey
      */
     protected function prepareWhereIn($field, array $values = [], $cacheKey)
     {
@@ -234,9 +233,8 @@ abstract class AbstractQueryBuilder
      *
      * Add OR WHERE IN Sql statement portions into Query Builder
      *
-     * @param string    $field  Input name
-     * @param array     $values Array of values criteria
-     * @param null|bool $escape Whether not to try to escape identifiers
+     * @param string $field  Input name
+     * @param array  $values Array of values criteria
      *
      * @return static
      */
@@ -310,10 +308,10 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::prepareWhereBetween
      *
-     * @param $field
-     * @param $start
-     * @param $end
-     * @param $cacheKey
+     * @param string $field
+     * @param int    $start
+     * @param int    $end
+     * @param string $cacheKey
      */
     protected function prepareWhereBetween($field, $start, $end, $cacheKey)
     {
@@ -412,11 +410,11 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::prepareLike
      *
-     * @param $field
-     * @param $match
-     * @param $wildcard
-     * @param $caseSensitive
-     * @param $cacheKey
+     * @param string $field
+     * @param string $match
+     * @param string $wildcard
+     * @param bool   $caseSensitive
+     * @param string $cacheKey
      */
     protected function prepareLike($field, $match, $wildcard, $caseSensitive, $cacheKey)
     {
@@ -737,7 +735,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformInsertHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -764,7 +762,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformInsertBatchHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -793,7 +791,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformUpdateHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -822,7 +820,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformUpdateBatchHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -851,7 +849,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformReplaceHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -880,7 +878,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformReplaceBatchHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -912,7 +910,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformDeleteHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -944,7 +942,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformDeleteBatchHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */

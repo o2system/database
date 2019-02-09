@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,8 +17,8 @@ namespace O2System\Database\Sql\Abstracts;
 
 use O2System\Cache\Item;
 use O2System\Database\DataObjects\Result;
-use O2System\Database\Datastructures\Config;
-use O2System\Database\Sql\Datastructures\QueryStatement;
+use O2System\Database\DataStructures\Config;
+use O2System\Database\Sql\DataStructures\QueryStatement;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Spl\Traits\Collectors\ConfigCollectorTrait;
 
@@ -193,7 +193,7 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::__construct
      *
-     * @param \O2System\Database\Datastructures\Config $config
+     * @param \O2System\Database\DataStructures\Config $config
      *
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
@@ -334,7 +334,7 @@ abstract class AbstractConnection
      *
      * Get the version of the database platform of this connection.
      *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
+     * @return \O2System\Spl\DataStructures\SplArrayObject
      */
     public function getPlatformInfo()
     {
@@ -352,7 +352,7 @@ abstract class AbstractConnection
      *
      * Platform getting version handler.
      *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
+     * @return \O2System\Spl\DataStructures\SplArrayObject
      */
     abstract protected function platformGetPlatformInfoHandler();
 
@@ -524,6 +524,7 @@ abstract class AbstractConnection
      * @param string $databaseName The database name.
      *
      * @return bool Returns false if database doesn't exists.
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     final public function hasDatabase($databaseName)
     {
@@ -570,6 +571,7 @@ abstract class AbstractConnection
      * @param $table
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function hasTable($table)
     {
@@ -627,6 +629,7 @@ abstract class AbstractConnection
      * @param string $table  Database table name.
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function hasColumn($column, $table)
     {
@@ -684,7 +687,7 @@ abstract class AbstractConnection
             $this->queriesCache[ $queryStatement->getKey() ] = $queryStatement;
         }
 
-        if ($queryStatement->hasError()) {
+        if ($queryStatement->hasErrors()) {
             if ($this->transactionInProgress) {
                 $this->transactionStatus = false;
                 $this->transactionRollBack();
@@ -692,10 +695,10 @@ abstract class AbstractConnection
             }
 
             if ($this->debugEnable) {
-                $message = $queryStatement->getErrorMessage() .
+                $message = $queryStatement->getLatestErrorMessage() .
                     ' on sql statement: <br><pre>' . $sqlStatement . '</pre><br><br>';
 
-                throw new RuntimeException($message, $queryStatement->getErrorCode());
+                throw new RuntimeException($message, $queryStatement->getLatestErrorCode());
             }
 
             return false;
@@ -746,6 +749,35 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
+     * AbstractConnection::transactionRollBack
+     *
+     * RollBack a transaction.
+     *
+     * @return bool
+     */
+    public function transactionRollBack()
+    {
+        if ($this->transactionInProgress) {
+            return $this->platformTransactionRollBackHandler();
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::platformTransactionRollBackHandler
+     *
+     * Platform rolling back a transaction handler.
+     *
+     * @return bool
+     */
+    abstract protected function platformTransactionRollBackHandler();
+
+    // ------------------------------------------------------------------------
+
+    /**
      * AbstractConnection::query
      *
      * @param string $sqlStatement
@@ -753,6 +785,7 @@ abstract class AbstractConnection
      *
      * @return bool|\O2System\Database\DataObjects\Result Returns boolean if the query is contains writing syntax
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
      */
     public function query($sqlStatement, array $binds = [])
     {
@@ -821,12 +854,12 @@ abstract class AbstractConnection
             $this->queriesCache[ $queryStatement->getKey() ] = $queryStatement;
         }
 
-        if ($queryStatement->hasError()) {
+        if ($queryStatement->hasErrors()) {
             if ($this->debugEnable) {
-                $message = $queryStatement->getErrorMessage() .
+                $message = $queryStatement->getLatestErrorMessage() .
                     ' on sql statement: <br><pre>' . $sqlStatement . '</pre><br><br>';
 
-                throw new RuntimeException($message, $queryStatement->getErrorCode());
+                throw new RuntimeException($message, $queryStatement->getLatestErrorCode());
             }
 
             if ($this->transactionInProgress) {
@@ -891,7 +924,7 @@ abstract class AbstractConnection
         return $sqlStatement . ';';
     }
 
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * QueryStatement::replaceNamedBinds
@@ -933,7 +966,7 @@ abstract class AbstractConnection
         return $sqlStatement;
     }
 
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * AbstractConnection::escape
@@ -1012,7 +1045,7 @@ abstract class AbstractConnection
         return $string;
     }
 
-    //--------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::platformEscapeStringHandler
@@ -1027,6 +1060,8 @@ abstract class AbstractConnection
     {
         return str_replace("'", "''", remove_invisible_characters($string));
     }
+
+    // ------------------------------------------------------------------------
 
     /**
      * QueryStatement::replaceSimpleBinds
@@ -1085,7 +1120,7 @@ abstract class AbstractConnection
         return $sqlStatement;
     }
 
-    // ------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     /**
      * AbstractConnection::platformQueryHandler
@@ -1113,35 +1148,6 @@ abstract class AbstractConnection
 
         return $this;
     }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::transactionRollBack
-     *
-     * RollBack a transaction.
-     *
-     * @return bool
-     */
-    public function transactionRollBack()
-    {
-        if ($this->transactionInProgress) {
-            return $this->platformTransactionRollBackHandler();
-        }
-
-        return false;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractConnection::platformTransactionRollBackHandler
-     *
-     * Platform rolling back a transaction handler.
-     *
-     * @return bool
-     */
-    abstract protected function platformTransactionRollBackHandler();
 
     //--------------------------------------------------------------------
 

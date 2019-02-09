@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -11,17 +11,21 @@
 
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\Sql\Datastructures;
+namespace O2System\Database\Sql\DataStructures;
 
 // ------------------------------------------------------------------------
+
+use O2System\Spl\Traits\Collectors\ErrorCollectorTrait;
 
 /**
  * Class QueryStatement
  *
- * @package O2System\Database\Sql\Datastructures
+ * @package O2System\Database\Sql\DataStructures
  */
 class QueryStatement
 {
+    use ErrorCollectorTrait;
+
     /**
      * QueryStatement::$sqlStatement
      *
@@ -211,56 +215,6 @@ class QueryStatement
     //--------------------------------------------------------------------
 
     /**
-     * QueryStatement::getErrorCode
-     *
-     * Get the query error information.
-     *
-     * @return bool|int Returns FALSE when there is no error.
-     */
-    public function getErrorCode()
-    {
-        if ($this->hasError()) {
-            return key($this->error);
-        }
-
-        return false;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * QueryStatement::hasError
-     *
-     * Check if the latest query execution has an error.
-     *
-     * @return bool
-     */
-    public function hasError()
-    {
-        return ! empty($this->error);
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * QueryStatement::getErrorMessage
-     *
-     * Get the query error information.
-     *
-     * @return bool|string Returns FALSE when there is no error.
-     */
-    public function getErrorMessage()
-    {
-        if ($this->hasError()) {
-            return (string)reset($this->error);
-        }
-
-        return false;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
      * QueryStatement::getAffectedRows
      *
      * Gets numbers of affected rows.
@@ -279,7 +233,9 @@ class QueryStatement
      *
      * Sets numbers of affected rows.
      *
-     * @param int $affectedRows Numbers of affected rows,
+     * @param int $affectedRows Numbers of affected rows.
+     *
+     * @return static
      */
     public function setAffectedRows($affectedRows)
     {
@@ -309,7 +265,9 @@ class QueryStatement
      *
      * Sets numbers of affected rows.
      *
-     * @param int $affectedRows Numbers of affected rows,
+     * @param int $affectedRows Numbers of affected rows.
+     *
+     * @return static
      */
     public function setLastInsertId($affectedRows)
     {
@@ -414,6 +372,13 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
+    /**
+     * QueryStatement::setSqlFinalStatement
+     *
+     * @param string $finalStatement
+     *
+     * @return static
+     */
     public function setSqlFinalStatement($finalStatement)
     {
         $this->sqlFinalStatement = $finalStatement;
@@ -423,17 +388,35 @@ class QueryStatement
 
     //--------------------------------------------------------------------
 
+    /**
+     * QueryStatement::getHits
+     *
+     * Gets num of hits.
+     *
+     * @return int
+     */
     public function getHits()
     {
         return $this->hits;
     }
 
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryStatement::addHit
+     *
+     * @param int $hit
+     *
+     * @return $this
+     */
     public function addHit($hit = 1)
     {
         $this->hits = $this->hits + (int)$hit;
 
         return $this;
     }
+
+    //--------------------------------------------------------------------
 
     /**
      * QueryStatement::__toString

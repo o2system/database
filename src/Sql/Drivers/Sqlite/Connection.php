@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,11 +15,10 @@ namespace O2System\Database\Sql\Drivers\Sqlite;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\Datastructures\Config;
+use O2System\Database\DataStructures\Config;
 use O2System\Database\Sql\Abstracts\AbstractConnection;
-use O2System\Database\Sql\Datastructures\QueryStatement;
-use O2System\Spl\Datastructures\SplArrayObject;
-use O2System\Spl\Exceptions\RuntimeException;
+use O2System\Database\Sql\DataStructures\QueryStatement;
+use O2System\Spl\DataStructures\SplArrayObject;
 
 /**
  * Class Connection
@@ -190,6 +189,7 @@ class Connection extends AbstractConnection
      *
      * @return array
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
      */
     public function getColumns($table)
     {
@@ -267,7 +267,6 @@ class Connection extends AbstractConnection
      * @param Config $config
      *
      * @return void
-     * @throws RuntimeException
      */
     protected function platformConnectHandler(Config $config)
     {
@@ -308,7 +307,7 @@ class Connection extends AbstractConnection
         }
 
         // Set query error information
-        $queryStatement->setError($this->handle->lastErrorCode(), $this->handle->lastErrorMsg());
+        $queryStatement->addError($this->handle->lastErrorCode(), $this->handle->lastErrorMsg());
 
         return false;
 
@@ -336,7 +335,7 @@ class Connection extends AbstractConnection
                 $i++;
             }
         } else {
-            $queryStatement->setError($this->handle->lastErrorCode(), $this->handle->lastErrorMsg());
+            $queryStatement->addError($this->handle->lastErrorCode(), $this->handle->lastErrorMsg());
         }
 
         return $rows;

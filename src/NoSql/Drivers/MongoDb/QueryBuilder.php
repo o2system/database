@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,7 +16,7 @@ namespace O2System\Database\NoSql\Drivers\MongoDb;
 // ------------------------------------------------------------------------
 
 use O2System\Database\NoSql\Abstracts\AbstractQueryBuilder;
-use O2System\Database\NoSql\Datastructures\QueryBuilderCache;
+use O2System\Database\NoSql\DataStructures\QueryBuilderCache;
 
 /**
  * Class QueryBuilder
@@ -133,7 +133,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformInsertHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -151,7 +151,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformInsertBatchHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -169,7 +169,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformUpdateHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -202,7 +202,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformUpdateBatchHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -244,7 +244,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformReplaceHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -263,7 +263,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformReplaceBatchHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -282,7 +282,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformDeleteHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */
@@ -300,7 +300,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformDeleteBatchHandler
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      *
      * @return bool
      */

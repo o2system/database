@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@ namespace O2System\Database\DataObjects\Result;
 
 // ------------------------------------------------------------------------
 
-use O2System\Spl\Datastructures\SplArrayObject;
+use O2System\Spl\DataStructures\SplArrayObject;
 
 /**
  * Class Info
@@ -42,8 +42,8 @@ class Info
             'pages'  => 0,
         ], $total));
 
-        if(isset($total['limit'])) {
-            $this->limit = $total['limit'];
+        if (isset($total[ 'limit' ])) {
+            $this->limit = $total[ 'limit' ];
         }
 
         $this->setLimit($this->limit);
@@ -54,7 +54,7 @@ class Info
     /**
      * Info::getEntries
      *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
+     * @return \O2System\Spl\DataStructures\SplArrayObject
      */
     public function getLimit()
     {
@@ -75,7 +75,7 @@ class Info
         $this->limit = (int)$limit;
         $this->total->pages = 1;
 
-        if($this->limit > 0) {
+        if ($this->limit > 0) {
             $this->total->pages = @ceil($this->total->rows / $this->limit);
         }
 
@@ -94,7 +94,7 @@ class Info
     /**
      * Info::getTotal
      *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
+     * @return \O2System\Spl\DataStructures\SplArrayObject
      */
     public function getTotal($offset = null)
     {
@@ -110,7 +110,7 @@ class Info
     /**
      * Info::getNumbering
      *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
+     * @return \O2System\Spl\DataStructures\SplArrayObject
      */
     public function getNumbering()
     {

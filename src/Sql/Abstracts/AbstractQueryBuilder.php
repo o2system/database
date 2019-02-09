@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,8 +16,8 @@ namespace O2System\Database\Sql\Abstracts;
 // ------------------------------------------------------------------------
 
 use O2System\Database\DataObjects\Result;
-use O2System\Database\Sql\Datastructures\QueryBuilderCache;
-use O2System\Database\Sql\Datastructures\QueryStatement;
+use O2System\Database\Sql\DataStructures\QueryBuilderCache;
+use O2System\Database\Sql\DataStructures\QueryStatement;
 use O2System\Spl\Exceptions\RuntimeException;
 
 /**
@@ -1993,6 +1993,7 @@ abstract class AbstractQueryBuilder
      *
      * @return Result
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
      */
     public function get($limit = null, $offset = null)
     {
@@ -2028,7 +2029,7 @@ abstract class AbstractQueryBuilder
      *
      * @return int
      * @throws \O2System\Spl\Exceptions\RuntimeException
-     * @access   public
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
      */
     public function countAllResults()
     {
@@ -2084,6 +2085,7 @@ abstract class AbstractQueryBuilder
      *
      * @return Result
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
      */
     public function getWhere(array $where = [], $limit = null, $offset = null)
     {
@@ -2139,6 +2141,7 @@ abstract class AbstractQueryBuilder
      * @access  public
      * @return int
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
      */
     public function countAll()
     {
@@ -2187,6 +2190,8 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::orBracketOpen
+     *
      * Starts a query group, but ORs the group
      *
      * @return    static
@@ -2199,6 +2204,8 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::bracketOpen
+     *
      * Starts a query group.
      *
      * @param    string $not  (Internal use only)
@@ -2227,6 +2234,8 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::notBracketOpen
+     *
      * Starts a query group, but NOTs the group
      *
      * @return    static
@@ -2239,6 +2248,8 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::orNotBracketOpen
+     *
      * Starts a query group, but OR NOTs the group
      *
      * @return    static
@@ -2251,6 +2262,8 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::bracketClose
+     *
      * Ends a query group
      *
      * @return    static
@@ -2282,6 +2295,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
      */
     public function insert(array $sets, $escape = null)
     {
@@ -2347,10 +2361,10 @@ abstract class AbstractQueryBuilder
             : $this->conn->isProtectIdentifiers;
 
         foreach ($field as $key => $value) {
-            if($key === 'birthday' || $key === 'date') {
+            if ($key === 'birthday' || $key === 'date') {
                 if (is_array($value)) {
-                    $value = $value['year'] . '-' . $value['month'] . '-' . $value['date'];
-                } elseif(is_object($value)) {
+                    $value = $value[ 'year' ] . '-' . $value[ 'month' ] . '-' . $value[ 'date' ];
+                } elseif (is_object($value)) {
                     $value = $value->year . '-' . $value->month . '-' . $value->date;
                 }
             } elseif (is_array($value) || is_object($value)) {
@@ -2368,7 +2382,7 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
-     * Object to Array
+     * AbstractQueryBuilder::objectToArray
      *
      * Takes an object as input and converts the class variables to array key/vals
      *
@@ -2421,6 +2435,8 @@ abstract class AbstractQueryBuilder
      * @param   bool  $escape    Whether to escape values and identifiers
      *
      * @return bool
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function insertBatch(array $sets, $batchSize = 1000, $escape = null)
     {
@@ -2567,6 +2583,8 @@ abstract class AbstractQueryBuilder
      * @param   bool  $escape Whether to escape values and identifiers
      *
      * @return bool
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function replace(array $sets, $escape = null)
     {
@@ -2633,6 +2651,8 @@ abstract class AbstractQueryBuilder
      * @param   bool  $escape    Whether to escape values and identifiers
      *
      * @return bool
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function replaceBatch(array $sets, $batchSize = 1000, $escape = null)
     {
@@ -2677,6 +2697,8 @@ abstract class AbstractQueryBuilder
      * @param   bool  $escape  Whether to escape values and identifiers
      *
      * @return bool
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function update(array $sets, array $where = [], $escape = null)
     {
@@ -2743,6 +2765,8 @@ abstract class AbstractQueryBuilder
      * @param bool   $escape    Whether to escape values and identifiers
      *
      * @return bool
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function updateBatch(array $sets, $index = null, $batchSize = 1000, $escape = null)
     {
@@ -2848,6 +2872,7 @@ abstract class AbstractQueryBuilder
      *
      * @return string
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
      */
     public function delete($where = [], $limit = null)
     {
@@ -2902,6 +2927,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool TRUE on success, FALSE on failure
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
      */
     public function flush($table, $escape = null)
     {
@@ -2935,6 +2961,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool TRUE on success, FALSE on failure
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \O2System\Psr\Cache\InvalidArgumentException
      */
     public function truncate($table, $escape = null)
     {
