@@ -969,16 +969,26 @@ abstract class AbstractQueryBuilder
 
         if (is_string($table)) {
             $table = explode(',', $table);
-        }
 
-        foreach ($table as $name) {
-            $name = trim($name);
+            foreach ($table as $name) {
+                $name = trim($name);
 
-            // Extract any aliases that might exist. We use this information
-            // in the protectIdentifiers to know whether to add a table prefix
-            $this->trackAliases($name);
+                // Extract any aliases that might exist. We use this information
+                // in the protectIdentifiers to know whether to add a table prefix
+                $this->trackAliases($name);
 
-            $this->builderCache->from[] = $this->conn->protectIdentifiers($name, true, null, false);
+                $this->builderCache->from[] = $this->conn->protectIdentifiers($name, true, null, false);
+            }
+        } elseif(is_array($table)) {
+            foreach ($table as $alias => $name) {
+                $name = trim($name) . ' AS ' . trim($alias);
+
+                // Extract any aliases that might exist. We use this information
+                // in the protectIdentifiers to know whether to add a table prefix
+                $this->trackAliases($name);
+                
+                $this->builderCache->from[] = $this->conn->protectIdentifiers($name, true, null, false);
+            }
         }
 
         return $this;
@@ -1016,10 +1026,11 @@ abstract class AbstractQueryBuilder
         // if a table alias is used we can recognize it by a space
         if (strpos($table, ' ') !== false) {
             // if the alias is written with the AS keyword, remove it
-            $table = preg_replace('/\s+AS\s+/i', ' ', $table);
+            //$table = preg_replace('/\s+AS\s+/i', ' ', $table);
 
             // Grab the alias
-            $table = trim(strrchr($table, ' '));
+            //$table = trim(strrchr($table, ' '));
+            $table = str_replace([' AS ', ' as '], '.', $table);
 
             // Store the alias, if it doesn't already exist
             if ( ! in_array($table, $this->builderCache->aliasedTables)) {
@@ -2776,7 +2787,7 @@ abstract class AbstractQueryBuilder
 
         $affectedRows = 0;
         for ($i = 0, $total = count($this->builderCache->sets); $i < $total; $i += $batchSize) {
-            $Sql = $this->platformUpdateBatchStatement(
+            $sql = $this->platformUpdateBatchStatement(
                 $this->builderCache->from[ 0 ],
                 array_slice($this->builderCache->sets, $i, $batchSize),
                 $this->conn->protectIdentifiers($index, false, $escape, false)
@@ -2785,7 +2796,7 @@ abstract class AbstractQueryBuilder
             if ($this->testMode) {
                 ++$affectedRows;
             } else {
-                $this->conn->query($Sql, $this->builderCache->binds);
+                $this->conn->query($sql, $this->builderCache->binds);
                 $affectedRows += $this->conn->getAffectedRows();
             }
 
@@ -2825,7 +2836,7 @@ abstract class AbstractQueryBuilder
 
         foreach ($sets as $set) {
             $indexSet = false;
-            $cleanSets = [];
+            $row = [];
             foreach ($set as $key => $value) {
                 if ($key === $index) {
                     $indexSet = true;
@@ -2833,7 +2844,7 @@ abstract class AbstractQueryBuilder
 
                 $bind = $this->bind($key, $value);
 
-                $cleanSets[ $this->conn->protectIdentifiers($key, false, $escape) ] = ':' . $bind;
+                $row[ $this->conn->protectIdentifiers($key, false, $escape) ] = ':' . $bind;
             }
 
             if ($indexSet === false) {
@@ -2841,7 +2852,7 @@ abstract class AbstractQueryBuilder
                 throw new RuntimeException('E_DATABASE_BATCH_UPDATE_MISSING_INDEX');
             }
 
-            $this->builderCache->sets = $cleanSets;
+            $this->builderCache->sets[] = $row;
         }
 
         return $this;
