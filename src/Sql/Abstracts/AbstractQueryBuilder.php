@@ -681,7 +681,7 @@ abstract class AbstractQueryBuilder
      *
      * @see http://www.w3schools.com/Sql/func_extract.asp
      *
-     * @param string $field Input name
+     * @param string|array $field Input name
      * @param string $unit  UPPERCASE unit value
      * @param string $alias Alias field name.
      *
