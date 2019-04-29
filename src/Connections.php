@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,8 +15,8 @@ namespace O2System\Database;
 
 // ------------------------------------------------------------------------
 
-use O2System\Psr\Patterns\Structural\Provider\AbstractProvider;
-use O2System\Psr\Patterns\Structural\Provider\ValidationInterface;
+use O2System\Spl\Patterns\Structural\Provider\AbstractProvider;
+use O2System\Spl\Patterns\Structural\Provider\ValidationInterface;
 
 /**
  * Class Connections
@@ -28,18 +28,18 @@ class Connections extends AbstractProvider implements ValidationInterface
     /**
      * Connections::$config
      *
-     * @var Datastructures\Config
+     * @var DataStructures\Config
      */
     private $config;
 
     /**
      * Connections::__construct
      *
-     * @param Datastructures\Config $config
+     * @param DataStructures\Config $config
      *
      * @return Connections
      */
-    public function __construct(Datastructures\Config $config)
+    public function __construct(DataStructures\Config $config)
     {
         $this->config = $config;
     }
@@ -55,7 +55,7 @@ class Connections extends AbstractProvider implements ValidationInterface
             $connectionConfig = $this->config->offsetGet($connectionOffset);
 
             if (is_array($connectionConfig)) {
-                new Datastructures\Config($this->config[ $connectionOffset ]);
+                new DataStructures\Config($this->config[ $connectionOffset ]);
             }
 
             $this->createConnection($connectionOffset, $connectionConfig);
@@ -77,11 +77,11 @@ class Connections extends AbstractProvider implements ValidationInterface
      * Create Item Pool
      *
      * @param string                $connectionOffset
-     * @param Datastructures\Config $connectionConfig
+     * @param DataStructures\Config $connectionConfig
      *
      * @return bool|\O2System\Database\Sql\Abstracts\AbstractConnection|\O2System\Database\NoSql\Abstracts\AbstractConnection
      */
-    public function &createConnection($connectionOffset, Datastructures\Config $connectionConfig)
+    public function &createConnection($connectionOffset, DataStructures\Config $connectionConfig)
     {
         $driverMaps = [
             'mongodb' => '\O2System\Database\NoSql\Drivers\MongoDb\Connection',

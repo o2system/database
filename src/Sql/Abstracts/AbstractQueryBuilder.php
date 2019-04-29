@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,8 +16,8 @@ namespace O2System\Database\Sql\Abstracts;
 // ------------------------------------------------------------------------
 
 use O2System\Database\DataObjects\Result;
-use O2System\Database\Sql\Datastructures\QueryBuilderCache;
-use O2System\Database\Sql\Datastructures\QueryStatement;
+use O2System\Database\Sql\DataStructures\QueryBuilderCache;
+use O2System\Database\Sql\DataStructures\QueryStatement;
 use O2System\Spl\Exceptions\RuntimeException;
 
 /**
@@ -969,16 +969,26 @@ abstract class AbstractQueryBuilder
 
         if (is_string($table)) {
             $table = explode(',', $table);
-        }
 
-        foreach ($table as $name) {
-            $name = trim($name);
+            foreach ($table as $name) {
+                $name = trim($name);
 
-            // Extract any aliases that might exist. We use this information
-            // in the protectIdentifiers to know whether to add a table prefix
-            $this->trackAliases($name);
+                // Extract any aliases that might exist. We use this information
+                // in the protectIdentifiers to know whether to add a table prefix
+                $this->trackAliases($name);
 
-            $this->builderCache->from[] = $this->conn->protectIdentifiers($name, true, null, false);
+                $this->builderCache->from[] = $this->conn->protectIdentifiers($name, true, null, false);
+            }
+        } elseif(is_array($table)) {
+            foreach ($table as $alias => $name) {
+                $name = trim($name) . ' AS ' . trim($alias);
+
+                // Extract any aliases that might exist. We use this information
+                // in the protectIdentifiers to know whether to add a table prefix
+                $this->trackAliases($name);
+                
+                $this->builderCache->from[] = $this->conn->protectIdentifiers($name, true, null, false);
+            }
         }
 
         return $this;
@@ -1016,10 +1026,11 @@ abstract class AbstractQueryBuilder
         // if a table alias is used we can recognize it by a space
         if (strpos($table, ' ') !== false) {
             // if the alias is written with the AS keyword, remove it
-            $table = preg_replace('/\s+AS\s+/i', ' ', $table);
+            //$table = preg_replace('/\s+AS\s+/i', ' ', $table);
 
             // Grab the alias
-            $table = trim(strrchr($table, ' '));
+            //$table = trim(strrchr($table, ' '));
+            $table = str_replace([' AS ', ' as '], '.', $table);
 
             // Store the alias, if it doesn't already exist
             if ( ! in_array($table, $this->builderCache->aliasedTables)) {
@@ -1914,26 +1925,26 @@ abstract class AbstractQueryBuilder
      *
      * Add Set LIMIT, OFFSET Sql statement by page number and entries.
      *
-     * @param int  $page    Page number
-     * @param null $entries Num entries of each page
+     * @param int  $page  Page number
+     * @param null $limit Num entries of each page
      *
      * @return static
      */
-    public function page($page = 1, $entries = null)
+    public function page($page = 1, $limit = null)
     {
         $page = (int)intval($page);
 
-        $entries = (int)(isset($entries)
-            ? $entries
+        $limit = (int)(isset($limit)
+            ? $limit
             : ($this->builderCache->limit === false
                 ? 5
                 : $this->builderCache->limit
             )
         );
 
-        $offset = ($page - 1) * $entries;
+        $offset = ($page - 1) * $limit;
 
-        $this->limit($entries, $offset);
+        $this->limit($limit, $offset);
 
         return $this;
     }
@@ -1993,6 +2004,7 @@ abstract class AbstractQueryBuilder
      *
      * @return Result
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function get($limit = null, $offset = null)
     {
@@ -2009,6 +2021,7 @@ abstract class AbstractQueryBuilder
             : $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
 
         if ($result) {
+            $result->limit = $this->builderCache->limit;
             $result->setTotalRows($this->countAllResults());
         }
 
@@ -2027,7 +2040,7 @@ abstract class AbstractQueryBuilder
      *
      * @return int
      * @throws \O2System\Spl\Exceptions\RuntimeException
-     * @access   public
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function countAllResults()
     {
@@ -2083,6 +2096,7 @@ abstract class AbstractQueryBuilder
      *
      * @return Result
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function getWhere(array $where = [], $limit = null, $offset = null)
     {
@@ -2101,6 +2115,7 @@ abstract class AbstractQueryBuilder
             : $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
 
         if ($result) {
+            $result->limit = $this->builderCache->limit;
             $result->setTotalRows($this->countAllResults());
         }
 
@@ -2137,6 +2152,7 @@ abstract class AbstractQueryBuilder
      * @access  public
      * @return int
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function countAll()
     {
@@ -2185,6 +2201,8 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::orBracketOpen
+     *
      * Starts a query group, but ORs the group
      *
      * @return    static
@@ -2197,6 +2215,8 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::bracketOpen
+     *
      * Starts a query group.
      *
      * @param    string $not  (Internal use only)
@@ -2225,6 +2245,8 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::notBracketOpen
+     *
      * Starts a query group, but NOTs the group
      *
      * @return    static
@@ -2237,6 +2259,8 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::orNotBracketOpen
+     *
      * Starts a query group, but OR NOTs the group
      *
      * @return    static
@@ -2249,6 +2273,8 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::bracketClose
+     *
      * Ends a query group
      *
      * @return    static
@@ -2280,6 +2306,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function insert(array $sets, $escape = null)
     {
@@ -2345,8 +2372,13 @@ abstract class AbstractQueryBuilder
             : $this->conn->isProtectIdentifiers;
 
         foreach ($field as $key => $value) {
-
-            if (is_array($value) || is_object($value)) {
+            if ($key === 'birthday' || $key === 'date') {
+                if (is_array($value)) {
+                    $value = $value[ 'year' ] . '-' . $value[ 'month' ] . '-' . $value[ 'date' ];
+                } elseif (is_object($value)) {
+                    $value = $value->year . '-' . $value->month . '-' . $value->date;
+                }
+            } elseif (is_array($value) || is_object($value)) {
                 $value = call_user_func_array($this->arrayObjectConversionMethod, [$value]);
             }
 
@@ -2361,7 +2393,7 @@ abstract class AbstractQueryBuilder
     //--------------------------------------------------------------------
 
     /**
-     * Object to Array
+     * AbstractQueryBuilder::objectToArray
      *
      * Takes an object as input and converts the class variables to array key/vals
      *
@@ -2414,6 +2446,8 @@ abstract class AbstractQueryBuilder
      * @param   bool  $escape    Whether to escape values and identifiers
      *
      * @return bool
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function insertBatch(array $sets, $batchSize = 1000, $escape = null)
     {
@@ -2560,6 +2594,8 @@ abstract class AbstractQueryBuilder
      * @param   bool  $escape Whether to escape values and identifiers
      *
      * @return bool
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function replace(array $sets, $escape = null)
     {
@@ -2626,6 +2662,8 @@ abstract class AbstractQueryBuilder
      * @param   bool  $escape    Whether to escape values and identifiers
      *
      * @return bool
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function replaceBatch(array $sets, $batchSize = 1000, $escape = null)
     {
@@ -2670,6 +2708,8 @@ abstract class AbstractQueryBuilder
      * @param   bool  $escape  Whether to escape values and identifiers
      *
      * @return bool
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function update(array $sets, array $where = [], $escape = null)
     {
@@ -2684,7 +2724,7 @@ abstract class AbstractQueryBuilder
          * @issued_by: Triyana Suryapraja Sukmana <https://github.com/tss182>
          * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
          */
-        if (count($this->builderCache->sets)) {
+        if (count($this->builderCache->sets) && count($this->builderCache->from)) {
             $sqlStatement = $this->platformUpdateStatement(
                 $this->conn->protectIdentifiers(
                     $this->builderCache->from[ 0 ],
@@ -2736,6 +2776,8 @@ abstract class AbstractQueryBuilder
      * @param bool   $escape    Whether to escape values and identifiers
      *
      * @return bool
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function updateBatch(array $sets, $index = null, $batchSize = 1000, $escape = null)
     {
@@ -2745,7 +2787,7 @@ abstract class AbstractQueryBuilder
 
         $affectedRows = 0;
         for ($i = 0, $total = count($this->builderCache->sets); $i < $total; $i += $batchSize) {
-            $Sql = $this->platformUpdateBatchStatement(
+            $sql = $this->platformUpdateBatchStatement(
                 $this->builderCache->from[ 0 ],
                 array_slice($this->builderCache->sets, $i, $batchSize),
                 $this->conn->protectIdentifiers($index, false, $escape, false)
@@ -2754,7 +2796,7 @@ abstract class AbstractQueryBuilder
             if ($this->testMode) {
                 ++$affectedRows;
             } else {
-                $this->conn->query($Sql, $this->builderCache->binds);
+                $this->conn->query($sql, $this->builderCache->binds);
                 $affectedRows += $this->conn->getAffectedRows();
             }
 
@@ -2794,7 +2836,7 @@ abstract class AbstractQueryBuilder
 
         foreach ($sets as $set) {
             $indexSet = false;
-            $cleanSets = [];
+            $row = [];
             foreach ($set as $key => $value) {
                 if ($key === $index) {
                     $indexSet = true;
@@ -2802,7 +2844,7 @@ abstract class AbstractQueryBuilder
 
                 $bind = $this->bind($key, $value);
 
-                $cleanSets[ $this->conn->protectIdentifiers($key, false, $escape) ] = ':' . $bind;
+                $row[ $this->conn->protectIdentifiers($key, false, $escape) ] = ':' . $bind;
             }
 
             if ($indexSet === false) {
@@ -2810,7 +2852,7 @@ abstract class AbstractQueryBuilder
                 throw new RuntimeException('E_DATABASE_BATCH_UPDATE_MISSING_INDEX');
             }
 
-            $this->builderCache->sets = $cleanSets;
+            $this->builderCache->sets[] = $row;
         }
 
         return $this;
@@ -2841,6 +2883,7 @@ abstract class AbstractQueryBuilder
      *
      * @return string
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function delete($where = [], $limit = null)
     {
@@ -2895,6 +2938,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool TRUE on success, FALSE on failure
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function flush($table, $escape = null)
     {
@@ -2928,6 +2972,7 @@ abstract class AbstractQueryBuilder
      *
      * @return bool TRUE on success, FALSE on failure
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function truncate($table, $escape = null)
     {
@@ -3044,8 +3089,6 @@ abstract class AbstractQueryBuilder
 
             $sqlStatement = sprintf($sqlStatement, $SqlSelectStatement);
         }
-
-        $sqlStatement = str_replace('SELECT', 'SELECT SQL_CALC_FOUND_ROWS', $sqlStatement);
 
         return trim($sqlStatement);
     }

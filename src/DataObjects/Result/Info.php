@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@ namespace O2System\Database\DataObjects\Result;
 
 // ------------------------------------------------------------------------
 
-use O2System\Spl\Datastructures\SplArrayObject;
+use O2System\Spl\DataStructures\SplArrayObject;
 
 /**
  * Class Info
@@ -23,9 +23,9 @@ use O2System\Spl\Datastructures\SplArrayObject;
  */
 class Info
 {
-    protected $entries = 5;
-    protected $total;
-    protected $numbering;
+    public $limit = 5;
+    public $total;
+    public $numbering;
 
     // ------------------------------------------------------------------------
 
@@ -42,7 +42,11 @@ class Info
             'pages'  => 0,
         ], $total));
 
-        $this->setEntries($this->entries);
+        if (isset($total[ 'limit' ])) {
+            $this->limit = $total[ 'limit' ];
+        }
+
+        $this->setLimit($this->limit);
     }
 
     // ------------------------------------------------------------------------
@@ -50,11 +54,11 @@ class Info
     /**
      * Info::getEntries
      *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
+     * @return \O2System\Spl\DataStructures\SplArrayObject
      */
-    public function getEntries()
+    public function getLimit()
     {
-        return $this->entries;
+        return $this->limit;
     }
 
     // ------------------------------------------------------------------------
@@ -62,20 +66,23 @@ class Info
     /**
      * Info::setEntries
      *
-     * @param int $entries
+     * @param int $limit
      *
      * @return static
      */
-    public function setEntries($entries)
+    public function setLimit($limit)
     {
-        $this->entries = (int)$entries;
+        $this->limit = (int)$limit;
+        $this->total->pages = 1;
 
-        $this->total->pages = @ceil($this->total->rows / $this->entries);
+        if ($this->limit > 0) {
+            $this->total->pages = @ceil($this->total->rows / $this->limit);
+        }
 
         $activePage = $this->getActivePage();
 
         $this->numbering = new SplArrayObject([
-            'start' => $start = ($activePage == 1 ? 1 : ($activePage - 1) * $this->entries + 1),
+            'start' => $start = ($activePage == 1 ? 1 : ($activePage - 1) * $this->limit + 1),
             'end'   => ($start + $this->total->founds) - 1,
         ]);
 
@@ -87,7 +94,7 @@ class Info
     /**
      * Info::getTotal
      *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
+     * @return \O2System\Spl\DataStructures\SplArrayObject
      */
     public function getTotal($offset = null)
     {
@@ -103,7 +110,7 @@ class Info
     /**
      * Info::getNumbering
      *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
+     * @return \O2System\Spl\DataStructures\SplArrayObject
      */
     public function getNumbering()
     {

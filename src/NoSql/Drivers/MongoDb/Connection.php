@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,10 +15,10 @@ namespace O2System\Database\NoSql\Drivers\MongoDb;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\Datastructures\Config;
+use O2System\Database\DataStructures\Config;
 use O2System\Database\NoSql\Abstracts\AbstractConnection;
-use O2System\Database\NoSql\Datastructures\QueryStatement;
-use O2System\Spl\Datastructures\SplArrayObject;
+use O2System\Database\NoSql\DataStructures\QueryStatement;
+use O2System\Spl\DataStructures\SplArrayObject;
 use O2System\Spl\Exceptions\RuntimeException;
 
 /**
@@ -359,7 +359,7 @@ class Connection extends AbstractConnection
 
                 return true;
             } catch (\MongoDb\Driver\Exception\BulkWriteException $e) {
-                $queryStatement->setError($e->getCode(), $e->getMessage());
+                $queryStatement->addError($e->getCode(), $e->getMessage());
             }
         }
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -11,14 +11,14 @@
 
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\NoSql\Datastructures;
+namespace O2System\Database\NoSql\DataStructures;
 
 // ------------------------------------------------------------------------
 
 /**
  * Class QueryBuilderCache
  *
- * @package O2System\Database\Sql\Datastructures
+ * @package O2System\Database\Sql\DataStructures
  */
 class QueryBuilderCache
 {
@@ -29,7 +29,7 @@ class QueryBuilderCache
      *
      * @var array
      */
-    protected $storage
+    protected $vars
         = [
             'select'       => [],
             'from'         => null,
@@ -59,6 +59,15 @@ class QueryBuilderCache
             'sets'         => [],
         ];
 
+    /**
+     * QueryBuilderCache::$statement
+     *
+     * Query builder cache statement.
+     *
+     * @var string
+     */
+    protected $statement;
+
     // ------------------------------------------------------------------------
 
     /**
@@ -67,11 +76,11 @@ class QueryBuilderCache
      *
      * @param  string $property
      *
-     * @return array
+     * @return mixed
      */
     public function &__get($property)
     {
-        return $this->storage[ $property ];
+        return $this->vars[ $property ];
     }
 
     // ------------------------------------------------------------------------
@@ -82,25 +91,39 @@ class QueryBuilderCache
      * @param  string|bool $index
      * @param  array|bool  $value
      *
-     * @return array
+     * @return static
      */
     public function store($index, $value)
     {
-        if (array_key_exists($index, $this->storage)) {
-            if (is_array($this->storage[ $index ])) {
+        if (array_key_exists($index, $this->vars)) {
+            if (is_array($this->vars[ $index ])) {
                 if (is_array($value)) {
-                    $this->storage[ $index ] = array_merge($this->storage[ $index ], $value);
+                    $this->vars[ $index ] = array_merge($this->vars[ $index ], $value);
                 } else {
-                    array_push($this->storage[ $index ], $value);
+                    array_push($this->vars[ $index ], $value);
                 }
-            } elseif (is_bool($this->storage[ $index ])) {
-                $this->storage[ $index ] = (bool)$value;
+            } elseif (is_bool($this->vars[ $index ])) {
+                $this->vars[ $index ] = (bool)$value;
             } else {
-                $this->storage[ $index ] = $value;
+                $this->vars[ $index ] = $value;
             }
         }
 
         return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * QueryBuilderCache::getStatement
+     *
+     * Get Statement Query Builder cache
+     *
+     * @return string
+     */
+    public function getStatement()
+    {
+        return $this->statement;
     }
 
     // ------------------------------------------------------------------------
@@ -115,19 +138,6 @@ class QueryBuilderCache
     public function setStatement($statement)
     {
         $this->statement = trim($statement);
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * QueryBuilderCache::getStatement
-     *
-     * Get Statement Query Builder cache
-     * @return string
-     */
-    public function getStatement()
-    {
-        return $this->statement;
     }
 
     // ------------------------------------------------------------------------
@@ -203,7 +213,7 @@ class QueryBuilderCache
     protected function resetRun(array $cacheKeys)
     {
         foreach ($cacheKeys as $cacheKey => $cacheDefaultValue) {
-            $this->storage[ $cacheKey ] = $cacheDefaultValue;
+            $this->vars[ $cacheKey ] = $cacheDefaultValue;
         }
     }
 

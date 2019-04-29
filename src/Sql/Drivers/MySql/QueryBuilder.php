@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -112,6 +112,17 @@ class QueryBuilder extends AbstractQueryBuilder
             . ')';
     }
 
+    //--------------------------------------------------------------------
+
+    /**
+     * QueryBuilder::platformInsertBatchStatement
+     *
+     * @param string $table
+     * @param array  $keys
+     * @param array  $values
+     *
+     * @return mixed
+     */
     protected function platformInsertBatchStatement($table, array $keys, array $values)
     {
         return 'INSERT INTO '
@@ -242,4 +253,27 @@ class QueryBuilder extends AbstractQueryBuilder
     }
 
     //--------------------------------------------------------------------
+
+    /**
+     * QueryBuilder::compileSelectStatement
+     *
+     * Compile the SELECT statement
+     *
+     * Generates a query string based on which functions were used.
+     * Should not be called directly.
+     *
+     * @param    bool $selectOverride
+     *
+     * @return    string
+     */
+    protected function compileSelectStatement($selectOverride = false)
+    {
+        $sqlStatement = parent::compileSelectStatement($selectOverride);
+
+        if ($this->isSubQuery) {
+            return $sqlStatement;
+        }
+
+        return str_replace('SELECT', 'SELECT SQL_CALC_FOUND_ROWS', $sqlStatement);
+    }
 }

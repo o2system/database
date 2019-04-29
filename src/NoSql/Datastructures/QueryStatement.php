@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -11,21 +11,25 @@
 
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\NoSql\Datastructures;
+namespace O2System\Database\NoSql\DataStructures;
 
 // ------------------------------------------------------------------------
+
+use O2System\Spl\Traits\Collectors\ErrorCollectorTrait;
 
 /**
  * Class QueryStatement
  *
- * @package O2System\Database\Sql\Datastructures
+ * @package O2System\Database\Sql\DataStructures
  */
 class QueryStatement
 {
+    use ErrorCollectorTrait;
+
     /**
      * QueryStatement::$builderCache
      *
-     * @var \O2System\Database\NoSql\Datastructures\QueryBuilderCache
+     * @var \O2System\Database\NoSql\DataStructures\QueryBuilderCache
      */
     private $builderCache;
 
@@ -103,21 +107,12 @@ class QueryStatement
      */
     private $lastInsertId;
 
-    /**
-     * QueryStatement::$error
-     *
-     * The query execution error info.
-     *
-     * @var array
-     */
-    private $error;
-
     //--------------------------------------------------------------------
 
     /**
      * QueryStatement::__construct
      *
-     * @param \O2System\Database\NoSql\Datastructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
      */
     public function __construct(QueryBuilderCache $queryBuilderCache)
     {
@@ -134,12 +129,14 @@ class QueryStatement
     /**
      * QueryStatement::getBuilderCache
      *
-     * @return void
+     * @return \O2System\Database\NoSql\DataStructures\QueryBuilderCache
      */
     public function getBuilderCache()
     {
         return $this->builderCache;
     }
+
+    //--------------------------------------------------------------------
 
     /**
      * QueryStatement::getCollection
@@ -162,6 +159,7 @@ class QueryStatement
      *
      * @param   string $collection
      *
+     * @return static
      */
     public function setCollection($collection)
     {
@@ -179,6 +177,8 @@ class QueryStatement
      *
      * @param string $field
      * @param int    $value
+     *
+     * @return static
      */
     public function addFilter($field, $value)
     {
@@ -209,6 +209,8 @@ class QueryStatement
      * Set Query Filter Array
      *
      * @param array $filter
+     *
+     * @return static
      */
     public function setFilter(array $filter)
     {
@@ -350,75 +352,6 @@ class QueryStatement
     //--------------------------------------------------------------------
 
     /**
-     * QueryStatement::setErrorInfo
-     *
-     * Stores the occurred error information when the query was executed.
-     *
-     * @param int    $errorCode
-     * @param string $errorMessage
-     *
-     * @return static
-     */
-    public function setError($errorCode, $errorMessage)
-    {
-        $this->error[ $errorCode ] = $errorMessage;
-
-        return $this;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * QueryStatement::getErrorCode
-     *
-     * Get the query error information.
-     *
-     * @return bool|int Returns FALSE when there is no error.
-     */
-    public function getErrorCode()
-    {
-        if ($this->hasError()) {
-            return key($this->error);
-        }
-
-        return false;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * QueryStatement::hasError
-     *
-     * Check if the latest query execution has an error.
-     *
-     * @return bool
-     */
-    public function hasError()
-    {
-        return ! empty($this->error);
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
-     * QueryStatement::getErrorMessage
-     *
-     * Get the query error information.
-     *
-     * @return bool|string Returns FALSE when there is no error.
-     */
-    public function getErrorMessage()
-    {
-        if ($this->hasError()) {
-            return (string)reset($this->error);
-        }
-
-        return false;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
      * QueryStatement::getAffectedRows
      *
      * Gets numbers of affected rows.
@@ -438,6 +371,8 @@ class QueryStatement
      * Sets numbers of affected rows.
      *
      * @param int $affectedDocuments Numbers of affected rows,
+     *
+     * @return static
      */
     public function setAffectedDocuments($affectedDocuments)
     {
@@ -468,6 +403,8 @@ class QueryStatement
      * Sets query last insert id.
      *
      * @param string|int
+     *
+     * @return static
      */
     public function setLastInsertId($lastInsertId)
     {

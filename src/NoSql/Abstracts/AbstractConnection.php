@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,9 +16,9 @@ namespace O2System\Database\NoSql\Abstracts;
 // ------------------------------------------------------------------------
 
 use O2System\Database\DataObjects\Result;
-use O2System\Database\Datastructures\Config;
-use O2System\Database\NoSql\Datastructures\QueryBuilderCache;
-use O2System\Database\NoSql\Datastructures\QueryStatement;
+use O2System\Database\DataStructures\Config;
+use O2System\Database\NoSql\DataStructures\QueryBuilderCache;
+use O2System\Database\NoSql\DataStructures\QueryStatement;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Spl\Traits\Collectors\ConfigCollectorTrait;
 
@@ -165,7 +165,7 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::__construct
      *
-     * @param \O2System\Database\Datastructures\Config $config
+     * @param \O2System\Database\DataStructures\Config $config
      *
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
@@ -297,7 +297,7 @@ abstract class AbstractConnection
      *
      * Get the version of the database platform of this connection.
      *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
+     * @return \O2System\Spl\DataStructures\SplArrayObject
      */
     public function getPlatformInfo()
     {
@@ -315,7 +315,7 @@ abstract class AbstractConnection
      *
      * Platform getting version handler.
      *
-     * @return \O2System\Spl\Datastructures\SplArrayObject
+     * @return \O2System\Spl\DataStructures\SplArrayObject
      */
     abstract protected function platformGetPlatformInfoHandler();
 
@@ -470,6 +470,7 @@ abstract class AbstractConnection
      * @param string $databaseName The database name.
      *
      * @return bool Returns false if database doesn't exists.
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     final public function hasDatabase($databaseName)
     {
@@ -502,6 +503,7 @@ abstract class AbstractConnection
      * @param $collection
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function hasCollection($collection)
     {
@@ -534,6 +536,7 @@ abstract class AbstractConnection
      * @param $collection
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function hasKey($key, $collection)
     {
@@ -569,6 +572,7 @@ abstract class AbstractConnection
      * @param string $collection Database table name.
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function hasIndex($index, $collection)
     {
@@ -620,9 +624,10 @@ abstract class AbstractConnection
 
             $this->queriesCache[] = $queryStatement;
 
-            if ($queryStatement->hasError()) {
+            if ($queryStatement->hasErrors()) {
                 if ($this->debugEnabled) {
-                    throw new RuntimeException($queryStatement->getErrorMessage(), $queryStatement->getErrorCode());
+                    throw new RuntimeException($queryStatement->getLatestErrorMessage(),
+                        $queryStatement->getLatestErrorCode());
                 }
             }
 
@@ -710,7 +715,7 @@ abstract class AbstractConnection
             $result = new Result($rows);
 
             if ($this->transactionInProgress) {
-                $this->transactionStatus = ($queryStatement->hasError() ? false : true);
+                $this->transactionStatus = ($queryStatement->hasErrors() ? false : true);
             }
         }
 
@@ -718,9 +723,10 @@ abstract class AbstractConnection
 
         $this->queriesCache[] = $queryStatement;
 
-        if ($queryStatement->hasError()) {
+        if ($queryStatement->hasErrors()) {
             if ($this->debugEnabled) {
-                throw new RuntimeException($queryStatement->getErrorMessage(), $queryStatement->getErrorCode());
+                throw new RuntimeException($queryStatement->getLatestErrorMessage(),
+                    $queryStatement->getLatestErrorCode());
             }
 
             if ($this->transactionInProgress) {

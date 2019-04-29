@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,10 +15,10 @@ namespace O2System\Database\Sql\Drivers\MySql;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\Datastructures\Config;
+use O2System\Database\DataStructures\Config;
 use O2System\Database\Sql\Abstracts\AbstractConnection;
-use O2System\Database\Sql\Datastructures\QueryStatement;
-use O2System\Spl\Datastructures\SplArrayObject;
+use O2System\Database\Sql\DataStructures\QueryStatement;
+use O2System\Spl\DataStructures\SplArrayObject;
 use O2System\Spl\Exceptions\RuntimeException;
 
 /**
@@ -121,6 +121,7 @@ class Connection extends AbstractConnection
      *
      * @return array Returns an array.
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function getDatabases()
     {
@@ -167,6 +168,7 @@ class Connection extends AbstractConnection
      *
      * @return array Returns an array
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function getTables($prefixLimit = false)
     {
@@ -216,6 +218,7 @@ class Connection extends AbstractConnection
      *
      * @return array
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function getColumns($table)
     {
@@ -333,7 +336,7 @@ class Connection extends AbstractConnection
 
         $client[ 'version' ][ 'string' ] = $this->handle->client_info;
         $client[ 'version' ][ 'number' ] = $this->handle->client_version;
-        $client[ 'stats' ] = mySqli_get_client_stats();
+        $client[ 'stats' ] = mysqli_get_client_stats();
 
         return new SplArrayObject([
             'name'     => $this->getPlatform(),
@@ -523,7 +526,7 @@ class Connection extends AbstractConnection
         }
 
         // Set query error information
-        $queryStatement->setError($this->handle->errno, $this->handle->error);
+        $queryStatement->addError($this->handle->errno, $this->handle->error);
 
         return false;
 
@@ -544,10 +547,10 @@ class Connection extends AbstractConnection
     {
         $rows = [];
 
-        if (false !== ($result = $this->handle->query($queryStatement->getSqlFinalStatement()))) {
+        if ($result = $this->handle->query($queryStatement->getSqlFinalStatement())) {
             $rows = $result->fetch_all(MYSQLI_ASSOC);
         } else {
-            $queryStatement->setError($this->handle->errno, $this->handle->error);
+            $queryStatement->addError($this->handle->errno, $this->handle->error);
         }
 
         return $rows;
@@ -564,10 +567,19 @@ class Connection extends AbstractConnection
      */
     protected function platformTransactionBeginHandler()
     {
-        $this->handle->autocommit(false);
-        $this->transactionInProgress = true;
+        if ($this->transactionInProgress === false) {
+            // Begin transaction using autocommit function set to false
+            $this->handle->autocommit(false);
 
-        return $this->handle->begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
+            // Flag for there is a transaction progress
+            $this->transactionInProgress = true;
+
+            // Flag for error checking
+            $this->transactionStatus = true;
+        }
+
+
+        return $this->transactionInProgress;
     }
 
     // ------------------------------------------------------------------------
@@ -581,8 +593,10 @@ class Connection extends AbstractConnection
      */
     protected function platformTransactionCommitHandler()
     {
-        if ($this->handle->commit()) {
-            $this->handle->autocommit(($this->transactionInProgress ? false : true));
+        if ($this->transactionStatus === true) {
+            $this->handle->commit();
+            $this->handle->autocommit(true);
+            $this->transactionInProgress = false;
 
             return true;
         }
@@ -597,18 +611,13 @@ class Connection extends AbstractConnection
      *
      * Platform rolling back a transaction handler.
      *
-     * @return bool
+     * @return void
      */
     protected function platformTransactionRollBackHandler()
     {
-        if ($this->handle->rollback()) {
-            $this->transactionInProgress = false;
-            $this->handle->autocommit(true);
-
-            return true;
-        }
-
-        return false;
+        $this->handle->rollback();
+        $this->transactionInProgress = false;
+        $this->handle->autocommit(true);
     }
 
     // ------------------------------------------------------------------------

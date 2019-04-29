@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@ namespace O2System\Database\DataObjects\Result;
 
 // ------------------------------------------------------------------------
 
-use O2System\Spl\Datastructures\Traits\ArrayConversionTrait;
+use O2System\Spl\DataStructures\Traits\ArrayConversionTrait;
 use O2System\Spl\Exceptions\Logic\InvalidArgumentException;
 use O2System\Spl\Iterators\ArrayIterator;
 use Traversable;
@@ -94,6 +94,7 @@ class Row implements
      *
      * @return object
      * @throws \O2System\Spl\Exceptions\Logic\InvalidArgumentException
+     * @throws \ReflectionException
      */
     public function fetchFieldsInto($className, array $classArgs = [])
     {

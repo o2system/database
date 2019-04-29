@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,7 +17,7 @@ namespace O2System\Database\DataObjects;
 
 use O2System\Database\DataObjects\Result\Info;
 use O2System\Database\DataObjects\Result\Row;
-use O2System\Spl\Datastructures\Traits\ArrayConversionTrait;
+use O2System\Spl\DataStructures\Traits\ArrayConversionTrait;
 
 /**
  * Class Result
@@ -33,6 +33,7 @@ class Result implements
 {
     use ArrayConversionTrait;
 
+    public $limit = null;
     /**
      * Result::$position
      *
@@ -42,7 +43,6 @@ class Result implements
      * @type    int
      */
     private $position = 0;
-
     /**
      * Result::$rows
      *
@@ -52,7 +52,6 @@ class Result implements
      * @type    array
      */
     private $rows = [];
-
     /**
      * Result::$numRows
      *
@@ -62,7 +61,6 @@ class Result implements
      * @var int
      */
     private $numRows = 0;
-
     /**
      * Result::$totalRows
      *
@@ -111,7 +109,11 @@ class Result implements
     {
         $this->seek(0);
 
-        return $this->rows[ $this->position ];
+        if ($this->count()) {
+            return $this->rows[ $this->position ];
+        }
+
+        return new Row();
     }
 
     // ------------------------------------------------------------------------
@@ -175,7 +177,11 @@ class Result implements
     {
         $this->seek($this->count() - 1);
 
-        return $this->rows[ $this->position ];
+        if ($this->count()) {
+            return $this->rows[ $this->position ];
+        }
+
+        return new Row();
     }
 
     // ------------------------------------------------------------------------
@@ -193,7 +199,11 @@ class Result implements
     {
         $this->seek($this->position);
 
-        return $this->rows[ $this->position ];
+        if ($this->count()) {
+            return $this->rows[ $this->position ];
+        }
+
+        return new Row();
     }
 
     // ------------------------------------------------------------------------
@@ -259,7 +269,11 @@ class Result implements
      */
     public function valid()
     {
-        return isset($this->rows[ $this->position ]);
+        if ($this->count()) {
+            return isset($this->rows[ $this->position ]);
+        }
+
+        return false;
     }
 
     // ------------------------------------------------------------------------
@@ -468,6 +482,7 @@ class Result implements
     public function getInfo()
     {
         return new Info([
+            'limit'  => $this->limit,
             'rows'   => $this->countAll(),
             'founds' => $this->count(),
         ]);
@@ -476,7 +491,7 @@ class Result implements
     // ------------------------------------------------------------------------
 
     /**
-     * $result::countAll
+     * Result::countAll
      *
      * Count all elements
      *
