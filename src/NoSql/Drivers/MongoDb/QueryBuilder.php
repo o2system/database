@@ -8,7 +8,6 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
-
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\NoSql\Drivers\MongoDb;
@@ -16,7 +15,7 @@ namespace O2System\Database\NoSql\Drivers\MongoDb;
 // ------------------------------------------------------------------------
 
 use O2System\Database\NoSql\Abstracts\AbstractQueryBuilder;
-use O2System\Database\NoSql\DataStructures\QueryBuilderCache;
+use O2System\Database\NoSql\DataStructures\Query\BuilderCache;
 
 /**
  * Class QueryBuilder
@@ -57,7 +56,6 @@ class QueryBuilder extends AbstractQueryBuilder
      * @param bool $reset Whether perform reset Query Builder or not
      *
      * @return int
-     * @throws \O2System\Spl\Exceptions\RuntimeException
      * @access   public
      */
     public function countAllResults($reset = true)
@@ -133,14 +131,15 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformInsertHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    protected function platformInsertHandler(QueryBuilderCache $queryBuilderCache)
+    protected function platformInsertHandler(BuilderCache $builderCache)
     {
-        if ($queryBuilderCache->from) {
-            return $this->conn->execute($queryBuilderCache, ['method' => 'insert']);
+        if ($builderCache->from) {
+            return $this->conn->execute($builderCache, ['method' => 'insert']);
         }
 
         return false;
@@ -151,14 +150,15 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformInsertBatchHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    protected function platformInsertBatchHandler(QueryBuilderCache $queryBuilderCache)
+    protected function platformInsertBatchHandler(BuilderCache $builderCache)
     {
-        if ($queryBuilderCache->from) {
-            return $this->conn->execute($queryBuilderCache, ['method' => 'insert']);
+        if ($builderCache->from) {
+            return $this->conn->execute($builderCache, ['method' => 'insert']);
         }
 
         return false;
@@ -169,29 +169,30 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformUpdateHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    protected function platformUpdateHandler(QueryBuilderCache $queryBuilderCache)
+    protected function platformUpdateHandler(BuilderCache $builderCache)
     {
-        if ($queryBuilderCache->from) {
+        if ($builderCache->from) {
 
             // New sets document
-            $collection = $queryBuilderCache->from;
-            $sets = $queryBuilderCache->sets;
+            $collection = $builderCache->from;
+            $sets = $builderCache->sets;
 
             // Get old document
             $document = $this->get()->first();
-            $newQueryBuilderCache = new QueryBuilderCache();
-            $newQueryBuilderCache->store('from', $collection);
-            $newQueryBuilderCache->store('where', ['_id' => $document->_id]);
+            $builderCache = new BuilderCache();
+            $builderCache->store('from', $collection);
+            $builderCache->store('where', ['_id' => $document->_id]);
             $document = $document->getArrayCopy();
             unset($document[ '_id' ]);
 
-            $newQueryBuilderCache->store('sets', array_merge($document, $sets));
+            $builderCache->store('sets', array_merge($document, $sets));
 
-            return $this->conn->execute($newQueryBuilderCache, ['method' => 'update']);
+            return $this->conn->execute($builderCache, ['method' => 'update']);
         }
 
         return false;
@@ -202,25 +203,28 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformUpdateBatchHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    protected function platformUpdateBatchHandler(QueryBuilderCache $queryBuilderCache)
+    protected function platformUpdateBatchHandler(BuilderCache $builderCache)
     {
-        if ($queryBuilderCache->from) {
+        if ($builderCache->from) {
 
             // New sets document
-            $collection = $queryBuilderCache->from;
-            $sets = $queryBuilderCache->sets;
+            $collection = $builderCache->from;
+            $sets = $builderCache->sets;
 
             // Get all old documents
             $result = $this->get();
 
-            $newQueryBuilderCache = new QueryBuilderCache();
-            $newQueryBuilderCache->store('from', $collection);
+            $builderCache = new BuilderCache();
+            $builderCache->store('from', $collection);
 
             $documentIds = [];
+            $documents = [];
+
             foreach ($result as $document) {
                 $document = $this->get()->first();
                 $documentIds[] = $document->_id;
@@ -230,10 +234,10 @@ class QueryBuilder extends AbstractQueryBuilder
                 $documents[] = array_merge($document, $sets);
             }
 
-            $newQueryBuilderCache->store('whereIn', ['_id' => $documentIds]);
-            $newQueryBuilderCache->store('sets', $documents);
+            $builderCache->store('whereIn', ['_id' => $documentIds]);
+            $builderCache->store('sets', $documents);
 
-            return $this->conn->execute($newQueryBuilderCache, ['method' => 'update']);
+            return $this->conn->execute($builderCache, ['method' => 'update']);
         }
 
         return false;
@@ -244,15 +248,16 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformReplaceHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    protected function platformReplaceHandler(QueryBuilderCache $queryBuilderCache)
+    protected function platformReplaceHandler(BuilderCache $builderCache)
     {
-        if ($queryBuilderCache->from) {
+        if ($builderCache->from) {
 
-            return $this->conn->execute($queryBuilderCache, ['method' => 'update']);
+            return $this->conn->execute($builderCache, ['method' => 'update']);
         }
 
         return false;
@@ -263,15 +268,16 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformReplaceBatchHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    protected function platformReplaceBatchHandler(QueryBuilderCache $queryBuilderCache)
+    protected function platformReplaceBatchHandler(BuilderCache $builderCache)
     {
-        if ($queryBuilderCache->from) {
+        if ($builderCache->from) {
 
-            return $this->conn->execute($queryBuilderCache, ['method' => 'update']);
+            return $this->conn->execute($builderCache, ['method' => 'update']);
         }
 
         return false;
@@ -282,14 +288,15 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * QueryBuilder::platformDeleteHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    protected function platformDeleteHandler(QueryBuilderCache $queryBuilderCache)
+    protected function platformDeleteHandler(BuilderCache $builderCache)
     {
-        if ($queryBuilderCache->from) {
-            return $this->conn->execute($queryBuilderCache, ['method' => 'delete']);
+        if ($builderCache->from) {
+            return $this->conn->execute($builderCache, ['method' => 'delete']);
         }
 
         return false;
@@ -300,14 +307,15 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformDeleteBatchHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    protected function platformDeleteBatchHandler(QueryBuilderCache $queryBuilderCache)
+    protected function platformDeleteBatchHandler(BuilderCache $builderCache)
     {
-        if ($queryBuilderCache->from) {
-            return $this->conn->execute($queryBuilderCache, ['method' => 'delete']);
+        if ($builderCache->from) {
+            return $this->conn->execute($builderCache, ['method' => 'delete']);
         }
 
         return false;

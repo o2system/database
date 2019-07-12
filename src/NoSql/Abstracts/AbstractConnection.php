@@ -8,7 +8,6 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
-
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\NoSql\Abstracts;
@@ -17,8 +16,7 @@ namespace O2System\Database\NoSql\Abstracts;
 
 use O2System\Database\DataObjects\Result;
 use O2System\Database\DataStructures\Config;
-use O2System\Database\NoSql\DataStructures\QueryBuilderCache;
-use O2System\Database\NoSql\DataStructures\QueryStatement;
+use O2System\Database\NoSql\DataStructures\Query;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Spl\Traits\Collectors\ConfigCollectorTrait;
 
@@ -56,7 +54,7 @@ abstract class AbstractConnection
      *
      * @var bool
      */
-    public $isProtectIdentifiers = true;
+    public $protectIdentifiers = true;
 
     /**
      * AbstractConnection::$disableQueryExecution
@@ -435,7 +433,7 @@ abstract class AbstractConnection
      *
      * Returns the last query's statement object.
      *
-     * @return QueryStatement
+     * @return \O2System\Database\Sql\DataStructures\Query\Statement
      */
     final public function getLatestQuery()
     {
@@ -602,32 +600,32 @@ abstract class AbstractConnection
      *
      * Execute Sql statement against database.
      *
-     * @param QueryBuilderCache $queryBuilderCache
+     * @param Query\BuilderCache $builderCache
      *
      * @return mixed
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function execute(QueryBuilderCache $queryBuilderCache, array $options = [])
+    public function execute(Query\BuilderCache $builderCache, array $options = [])
     {
         // Reconnect the connection in case isn't connected yet.
         $this->reconnect();
 
-        $queryStatement = new QueryStatement($queryBuilderCache);
+        $statement = new Query\Statement($builderCache);
 
-        if ($queryStatement->getCollection()) {
+        if ($statement->getCollection()) {
             $startTime = microtime(true);
-            $result = $this->platformExecuteHandler($queryStatement, $options);
+            $result = $this->platformExecuteHandler($statement, $options);
 
-            $queryStatement->setDuration($startTime);
-            $queryStatement->setAffectedDocuments($this->getAffectedDocuments());
-            $queryStatement->setLastInsertId($this->getLastInsertId());
+            $statement->setDuration($startTime);
+            $statement->setAffectedDocuments($this->getAffectedDocuments());
+            $statement->setLastInsertId($this->getLastInsertId());
 
-            $this->queriesCache[] = $queryStatement;
+            $this->queriesCache[] = $statement;
 
-            if ($queryStatement->hasErrors()) {
+            if ($statement->hasErrors()) {
                 if ($this->debugEnabled) {
-                    throw new RuntimeException($queryStatement->getLatestErrorMessage(),
-                        $queryStatement->getLatestErrorCode());
+                    throw new RuntimeException($statement->getLatestErrorMessage(),
+                        $statement->getLatestErrorCode());
                 }
             }
 
@@ -661,11 +659,11 @@ abstract class AbstractConnection
      *
      * Driver dependent way method for execute the Sql statement.
      *
-     * @param QueryStatement $queryStatement Query object.
+     * @param Query\Statement $statement Query statement object.
      *
      * @return bool
      */
-    abstract protected function platformExecuteHandler(QueryStatement &$queryStatement, array $options = []);
+    abstract protected function platformExecuteHandler(Query\Statement &$statement, array $options = []);
 
     // ------------------------------------------------------------------------
 
@@ -694,39 +692,39 @@ abstract class AbstractConnection
     /**
      * AbstractConnection::query
      *
-     * @param QueryBuilderCache $queryBuilderCache
+     * @param Query\BuilderCache $builderCache
      *
      * @return bool|\O2System\Database\DataObjects\Result Returns boolean if the query is contains writing syntax
      * @throws \O2System\Spl\Exceptions\RuntimeException
      */
-    public function query(QueryBuilderCache $queryBuilderCache)
+    public function query(Query\BuilderCache $builderCache)
     {
         // Reconnect the connection in case isn't connected yet.
         $this->reconnect();
 
         $result = false;
-        $queryStatement = new QueryStatement($queryBuilderCache);
+        $statement = new Query\Statement($builderCache);
 
         $startTime = microtime(true);
 
         // Run the query for real
         if ($this->disableQueryExecution === false) {
-            $rows = $this->platformQueryHandler($queryStatement);
+            $rows = $this->platformQueryHandler($statement);
             $result = new Result($rows);
 
             if ($this->transactionInProgress) {
-                $this->transactionStatus = ($queryStatement->hasErrors() ? false : true);
+                $this->transactionStatus = ($statement->hasErrors() ? false : true);
             }
         }
 
-        $queryStatement->setDuration($startTime);
+        $statement->setDuration($startTime);
 
-        $this->queriesCache[] = $queryStatement;
+        $this->queriesCache[] = $statement;
 
-        if ($queryStatement->hasErrors()) {
+        if ($statement->hasErrors()) {
             if ($this->debugEnabled) {
-                throw new RuntimeException($queryStatement->getLatestErrorMessage(),
-                    $queryStatement->getLatestErrorCode());
+                throw new RuntimeException($statement->getLatestErrorMessage(),
+                    $statement->getLatestErrorCode());
             }
 
             if ($this->transactionInProgress) {
@@ -747,18 +745,18 @@ abstract class AbstractConnection
      *
      * Driver dependent way method for execute the Sql statement.
      *
-     * @param QueryStatement $queryStatement Query object.
+     * @param Query\Statement $statement Query statement object.
      *
      * @return array
      */
-    abstract protected function platformQueryHandler(QueryStatement &$queryStatement);
+    abstract protected function platformQueryHandler(Query\Statement &$statement);
 
     // ------------------------------------------------------------------------
 
     /**
      * AbstractConnection::collection
      *
-     * Get connection query builder.
+     * @param string $collectionName
      *
      * @return AbstractQueryBuilder
      */

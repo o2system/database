@@ -8,14 +8,13 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
-
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\NoSql\Abstracts;
 
 // ------------------------------------------------------------------------
 
-use O2System\Database\NoSql\DataStructures\QueryBuilderCache;
+use O2System\Database\NoSql\DataStructures\Query\BuilderCache;
 
 /**
  * Class AbstractQueryBuilder
@@ -48,7 +47,7 @@ abstract class AbstractQueryBuilder
      *
      * Query builder cache instance.
      *
-     * @var \O2System\Database\NoSql\DataStructures\QueryBuilderCache
+     * @var \O2System\Database\NoSql\DataStructures\Query\BuilderCache
      */
     protected $builderCache;
 
@@ -62,7 +61,7 @@ abstract class AbstractQueryBuilder
     public function __construct(AbstractConnection $conn)
     {
         $this->conn = $conn;
-        $this->builderCache = new QueryBuilderCache();
+        $this->builderCache = new BuilderCache();
     }
 
     // ------------------------------------------------------------------------
@@ -75,7 +74,6 @@ abstract class AbstractQueryBuilder
      * @param string|array $field        String of field name
      *                                   Array list of string field names
      *                                   Array list of static
-     * @param null|bool    $escape       Whether not to try to escape identifiers
      *
      * @return static
      */
@@ -735,11 +733,11 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformInsertHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param \O2System\Database\NoSql\DataStructures\Query\BuilderCache $builderCache
      *
      * @return bool
      */
-    abstract protected function platformInsertHandler(QueryBuilderCache $queryBuilderCache);
+    abstract protected function platformInsertHandler(BuilderCache $builderCache);
 
     //--------------------------------------------------------------------
 
@@ -762,11 +760,11 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformInsertBatchHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
      */
-    abstract protected function platformInsertBatchHandler(QueryBuilderCache $queryBuilderCache);
+    abstract protected function platformInsertBatchHandler(BuilderCache $builderCache);
 
     //--------------------------------------------------------------------
 
@@ -791,11 +789,11 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformUpdateHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
      */
-    abstract protected function platformUpdateHandler(QueryBuilderCache $queryBuilderCache);
+    abstract protected function platformUpdateHandler(BuilderCache $builderCache);
 
     //--------------------------------------------------------------------
 
@@ -820,11 +818,11 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformUpdateBatchHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
      */
-    abstract protected function platformUpdateBatchHandler(QueryBuilderCache $queryBuilderCache);
+    abstract protected function platformUpdateBatchHandler(BuilderCache $builderCache);
 
     //--------------------------------------------------------------------
 
@@ -849,11 +847,11 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformReplaceHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
      */
-    abstract protected function platformReplaceHandler(QueryBuilderCache $queryBuilderCache);
+    abstract protected function platformReplaceHandler(BuilderCache $builderCache);
 
     //--------------------------------------------------------------------
 
@@ -878,11 +876,11 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformReplaceBatchHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
      */
-    abstract protected function platformReplaceBatchHandler(QueryBuilderCache $queryBuilderCache);
+    abstract protected function platformReplaceBatchHandler(BuilderCache $builderCache);
 
     //--------------------------------------------------------------------
 
@@ -910,11 +908,11 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformDeleteHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
      */
-    abstract protected function platformDeleteHandler(QueryBuilderCache $queryBuilderCache);
+    abstract protected function platformDeleteHandler(BuilderCache $builderCache);
 
     //--------------------------------------------------------------------
 
@@ -942,9 +940,9 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::platformDeleteBatchHandler
      *
-     * @param \O2System\Database\NoSql\DataStructures\QueryBuilderCache $queryBuilderCache
+     * @param BuilderCache $builderCache
      *
      * @return bool
      */
-    abstract protected function platformDeleteBatchHandler(QueryBuilderCache $queryBuilderCache);
+    abstract protected function platformDeleteBatchHandler(BuilderCache $builderCache);
 }

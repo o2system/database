@@ -100,8 +100,8 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * Generates a platform-specific update string from the supplied data.
      *
-     * @param   string $table  Table name.
-     * @param   array  $sets   An associative array of set values.
+     * @param string $table    Table name.
+     * @param array  $sets     An associative array of set values.
      *                         sets[][field => value]
      *
      * @return string
@@ -127,9 +127,9 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * Generates a platform-specific batch update string from the supplied data.
      *
-     * @param    string $table  Table name
-     * @param    array  $values Update data
-     * @param    string $index  WHERE key
+     * @param string $table  Table name
+     * @param array  $values Update data
+     * @param string $index  WHERE key
      *
      * @return    string
      */
@@ -167,7 +167,7 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * Generates a platform-specific delete string from the supplied data
      *
-     * @param   string $table The table name.
+     * @param string $table The table name.
      *
      * @return  string
      */
@@ -185,7 +185,7 @@ class QueryBuilder extends AbstractQueryBuilder
      *
      * Generates a platform-specific truncate statement.
      *
-     * @param   string $table The table name.
+     * @param string $table The table name.
      *
      * @return  string
      */

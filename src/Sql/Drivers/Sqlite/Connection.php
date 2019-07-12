@@ -17,7 +17,7 @@ namespace O2System\Database\Sql\Drivers\Sqlite;
 
 use O2System\Database\DataStructures\Config;
 use O2System\Database\Sql\Abstracts\AbstractConnection;
-use O2System\Database\Sql\DataStructures\QueryStatement;
+use O2System\Database\Sql\DataStructures\Query\Statement;
 use O2System\Spl\DataStructures\SplArrayObject;
 
 /**
@@ -120,7 +120,6 @@ class Connection extends AbstractConnection
      * Get list of current connection databases.
      *
      * @return array Returns an array.
-     * @throws \O2System\Spl\Exceptions\RuntimeException
      */
     public function getDatabases()
     {
@@ -140,6 +139,7 @@ class Connection extends AbstractConnection
      *
      * @return array Returns an array
      * @throws \O2System\Spl\Exceptions\RuntimeException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function getTables($prefixLimit = false)
     {
@@ -296,18 +296,18 @@ class Connection extends AbstractConnection
      *
      * Driver dependent way method for execute the Sql statement.
      *
-     * @param QueryStatement $queryStatement Query object.
+     * @param Statement $statement Query object.
      *
      * @return bool
      */
-    protected function platformExecuteHandler(QueryStatement &$queryStatement)
+    protected function platformExecuteHandler(Statement &$statement)
     {
-        if (false !== $this->handle->exec($queryStatement->getSqlFinalStatement())) {
+        if (false !== $this->handle->exec($statement->getSqlFinalStatement())) {
             return true;
         }
 
         // Set query error information
-        $queryStatement->addError($this->handle->lastErrorCode(), $this->handle->lastErrorMsg());
+        $statement->addError($this->handle->lastErrorCode(), $this->handle->lastErrorMsg());
 
         return false;
 
@@ -320,22 +320,22 @@ class Connection extends AbstractConnection
      *
      * Driver dependent way method for execute the Sql statement.
      *
-     * @param QueryStatement $queryStatement Query object.
+     * @param Statement $statement Query object.
      *
      * @return array
      */
-    protected function platformQueryHandler(QueryStatement &$queryStatement)
+    protected function platformQueryHandler(Statement &$statement)
     {
         $rows = [];
 
-        if (false !== ($result = $this->handle->query($queryStatement->getSqlFinalStatement()))) {
+        if (false !== ($result = $this->handle->query($statement->getSqlFinalStatement()))) {
             $i = 0;
             while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                 $rows[ $i ] = $row;
                 $i++;
             }
         } else {
-            $queryStatement->addError($this->handle->lastErrorCode(), $this->handle->lastErrorMsg());
+            $statement->addError($this->handle->lastErrorCode(), $this->handle->lastErrorMsg());
         }
 
         return $rows;

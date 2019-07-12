@@ -17,7 +17,7 @@ namespace O2System\Database\Sql\Drivers\MySql;
 
 use O2System\Database\DataStructures\Config;
 use O2System\Database\Sql\Abstracts\AbstractConnection;
-use O2System\Database\Sql\DataStructures\QueryStatement;
+use O2System\Database\Sql\DataStructures\Query;
 use O2System\Spl\DataStructures\SplArrayObject;
 use O2System\Spl\Exceptions\RuntimeException;
 
@@ -70,7 +70,7 @@ class Connection extends AbstractConnection
      *
      * MySqli Connection Instance.
      *
-     * @var \mySqli
+     * @var \mysqli
      */
     protected $handle;
 
@@ -306,7 +306,7 @@ class Connection extends AbstractConnection
      *
      * Returns the last query's statement object.
      *
-     * @return QueryStatement
+     * @return string
      */
     public function getLastQuery()
     {
@@ -515,18 +515,18 @@ class Connection extends AbstractConnection
      *
      * Driver dependent way method for execute the Sql statement.
      *
-     * @param QueryStatement $queryStatement Query object.
+     * @param Query\Statement $statement Query object.
      *
      * @return bool
      */
-    protected function platformExecuteHandler(QueryStatement &$queryStatement)
+    protected function platformExecuteHandler(Query\Statement &$statement)
     {
-        if (false !== $this->handle->query($queryStatement->getSqlFinalStatement())) {
+        if (false !== $this->handle->query($statement->getSqlFinalStatement())) {
             return true;
         }
 
         // Set query error information
-        $queryStatement->addError($this->handle->errno, $this->handle->error);
+        $statement->addError($this->handle->errno, $this->handle->error);
 
         return false;
 
@@ -539,18 +539,18 @@ class Connection extends AbstractConnection
      *
      * Driver dependent way method for execute the Sql statement.
      *
-     * @param QueryStatement $queryStatement Query object.
+     * @param Query\Statement $statement Query object.
      *
      * @return array
      */
-    protected function platformQueryHandler(QueryStatement &$queryStatement)
+    protected function platformQueryHandler(Query\Statement &$statement)
     {
         $rows = [];
 
-        if ($result = $this->handle->query($queryStatement->getSqlFinalStatement())) {
+        if ($result = $this->handle->query($statement->getSqlFinalStatement())) {
             $rows = $result->fetch_all(MYSQLI_ASSOC);
         } else {
-            $queryStatement->addError($this->handle->errno, $this->handle->error);
+            $statement->addError($this->handle->errno, $this->handle->error);
         }
 
         return $rows;
@@ -634,7 +634,7 @@ class Connection extends AbstractConnection
      */
     protected function platformPrepareSqlStatement($sqlStatement, array $options = [])
     {
-        // mySqli_affected_rows() returns 0 for "DELETE FROM TABLE" queries. This hack
+        // mysqli_affected_rows() returns 0 for "DELETE FROM TABLE" queries. This hack
         // modifies the query so that it a proper number of affected rows is returned.
         if ($this->isDeleteHack === true && preg_match('/^\s*DELETE\s+FROM\s+(\S+)\s*$/i', $sqlStatement)) {
             return trim($sqlStatement) . ' WHERE 1=1';

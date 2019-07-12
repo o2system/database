@@ -16,8 +16,7 @@ namespace O2System\Database\Sql\Abstracts;
 // ------------------------------------------------------------------------
 
 use O2System\Database\DataObjects\Result;
-use O2System\Database\Sql\DataStructures\QueryBuilderCache;
-use O2System\Database\Sql\DataStructures\QueryStatement;
+use O2System\Database\Sql\DataStructures\Query;
 use O2System\Spl\Exceptions\RuntimeException;
 
 /**
@@ -102,7 +101,7 @@ abstract class AbstractQueryBuilder
     public function __construct(AbstractConnection &$conn)
     {
         $this->conn =& $conn;
-        $this->builderCache = new QueryBuilderCache();
+        $this->builderCache = new Query\BuilderCache();
         $this->cacheMode = $this->conn->getConfig('cacheEnable');
     }
 
@@ -111,7 +110,7 @@ abstract class AbstractQueryBuilder
     /**
      * AbstractQueryBuilder::cache
      *
-     * @param  boolean $mode
+     * @param boolean $mode
      *
      * @return static
      */
@@ -130,7 +129,7 @@ abstract class AbstractQueryBuilder
      * Sets a flag which tells the query string compiler to add DISTINCT
      * keyword on SELECT statement
      *
-     * @param    bool $distinct
+     * @param bool $distinct
      *
      * @return    static
      */
@@ -275,7 +274,7 @@ abstract class AbstractQueryBuilder
             'SUM'   => 'SUM(%s)' // Returns the sum
         ];
 
-        if ($field !== '*' && $this->conn->isProtectIdentifiers) {
+        if ($field !== '*' && $this->conn->protectIdentifiers) {
             $field = $this->conn->protectIdentifiers($field);
         }
 
@@ -308,7 +307,7 @@ abstract class AbstractQueryBuilder
     public function select($field = '*', $escape = null)
     {
         // If the escape value was not set, we will base it on the global setting
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         if (is_string($field)) {
             $field = str_replace(' as ', ' AS ', $field);
@@ -487,7 +486,7 @@ abstract class AbstractQueryBuilder
             ? strtolower($type) . '_' . $field
             : $alias;
 
-        if ($field !== '*' && $this->conn->isProtectIdentifiers) {
+        if ($field !== '*' && $this->conn->protectIdentifiers) {
             $field = $this->conn->protectIdentifiers($field, true);
         }
 
@@ -540,7 +539,7 @@ abstract class AbstractQueryBuilder
      */
     public function mid($field, $start = 1, $length = null, $alias = '')
     {
-        if ($this->conn->isProtectIdentifiers) {
+        if ($this->conn->protectIdentifiers) {
             $field = $this->conn->protectIdentifiers($field, true);
         }
 
@@ -909,13 +908,13 @@ abstract class AbstractQueryBuilder
 
         if (preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $dateTimeStart)) {
             $dateTimeStart = $this->conn->escape($dateTimeStart);
-        } elseif ($this->conn->isProtectIdentifiers) {
+        } elseif ($this->conn->protectIdentifiers) {
             $dateTimeStart = $this->conn->protectIdentifiers($dateTimeStart);
         }
 
         if (preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $dateTimeEnd)) {
             $dateTimeEnd = $this->conn->escape($dateTimeEnd);
-        } elseif ($this->conn->isProtectIdentifiers) {
+        } elseif ($this->conn->protectIdentifiers) {
             $dateTimeEnd = $this->conn->protectIdentifiers($dateTimeEnd);
         }
 
@@ -979,14 +978,14 @@ abstract class AbstractQueryBuilder
 
                 $this->builderCache->from[] = $this->conn->protectIdentifiers($name, true, null, false);
             }
-        } elseif(is_array($table)) {
+        } elseif (is_array($table)) {
             foreach ($table as $alias => $name) {
                 $name = trim($name) . ' AS ' . trim($alias);
 
                 // Extract any aliases that might exist. We use this information
                 // in the protectIdentifiers to know whether to add a table prefix
                 $this->trackAliases($name);
-                
+
                 $this->builderCache->from[] = $this->conn->protectIdentifiers($name, true, null, false);
             }
         }
@@ -1001,7 +1000,7 @@ abstract class AbstractQueryBuilder
      *
      * Used to track Sql statements written with aliased tables.
      *
-     * @param   string|array $table Inspected table name.
+     * @param string|array $table Inspected table name.
      *
      * @return  void
      */
@@ -1087,7 +1086,7 @@ abstract class AbstractQueryBuilder
         // in the protectIdentifiers to know whether to add a table prefix
         $this->trackAliases($table);
 
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         if ( ! $this->hasOperator($condition)) {
             $condition = ' USING (' . ($escape
@@ -1147,7 +1146,7 @@ abstract class AbstractQueryBuilder
      *
      * Tests whether the string has an Sql operator
      *
-     * @param    string
+     * @param string
      *
      * @return    bool
      */
@@ -1166,7 +1165,7 @@ abstract class AbstractQueryBuilder
      *
      * Returns the Sql string operator
      *
-     * @param    string
+     * @param string
      *
      * @return    string
      */
@@ -1239,10 +1238,10 @@ abstract class AbstractQueryBuilder
      * @used-by    having()
      * @used-by    orHaving()
      *
-     * @param    string $cacheKey 'QBWhere' or 'QBHaving'
-     * @param    mixed  $field
-     * @param    mixed  $value
-     * @param    string $type
+     * @param string    $cacheKey 'QBWhere' or 'QBHaving'
+     * @param mixed     $field
+     * @param mixed     $value
+     * @param string    $type
      * @param null|bool $escape   Whether not to try to escape identifiers
      *
      * @return    static
@@ -1254,7 +1253,7 @@ abstract class AbstractQueryBuilder
         }
 
         // If the escape value was not set will base it on the global setting
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         foreach ($field as $fieldName => $fieldValue) {
             if ($fieldValue !== null) {
@@ -1358,7 +1357,7 @@ abstract class AbstractQueryBuilder
      * @used-by    whereHaving()
      * @used-by    prepareWhereInStatement()
      *
-     * @param   string $type
+     * @param string $type
      *
      * @return  string
      */
@@ -1379,8 +1378,8 @@ abstract class AbstractQueryBuilder
      *
      * Separates multiple calls with 'AND'.
      *
-     * @param    string $field
-     * @param    string $value
+     * @param string    $field
+     * @param string    $value
      * @param null|bool $escape Whether not to try to escape identifiers
      *
      * @return    static
@@ -1397,8 +1396,8 @@ abstract class AbstractQueryBuilder
      *
      * Separates multiple calls with 'OR'.
      *
-     * @param    string $field
-     * @param    string $value
+     * @param string    $field
+     * @param string    $value
      * @param null|bool $escape Whether not to try to escape identifiers
      *
      * @return    static
@@ -1508,7 +1507,7 @@ abstract class AbstractQueryBuilder
             return $this;
         }
 
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         $fieldKey = $field;
 
@@ -1670,12 +1669,12 @@ abstract class AbstractQueryBuilder
      * @used-by    notLike()
      * @used-by    orNotLike()
      *
-     * @param    mixed  $field
-     * @param    string $match
-     * @param    string $type
-     * @param    string $side
-     * @param    string $not
-     * @param    bool   $caseSensitive IF true, will force a case-insensitive search
+     * @param mixed     $field
+     * @param string    $match
+     * @param string    $type
+     * @param string    $side
+     * @param string    $not
+     * @param bool      $caseSensitive IF true, will force a case-insensitive search
      * @param null|bool $escape        Whether not to try to escape identifiers
      *
      * @return    static
@@ -1695,7 +1694,7 @@ abstract class AbstractQueryBuilder
 
         $escape = is_bool($escape)
             ? $escape
-            : $this->conn->isProtectIdentifiers;
+            : $this->conn->protectIdentifiers;
 
         // lowercase $side in case somebody writes e.g. 'BEFORE' instead of 'before' (doh)
         $side = strtolower($side);
@@ -1832,7 +1831,7 @@ abstract class AbstractQueryBuilder
      */
     public function groupBy($field, $escape = null)
     {
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         if (is_string($field)) {
             $field = ($escape === true)
@@ -1886,7 +1885,7 @@ abstract class AbstractQueryBuilder
                 : '';
         }
 
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         if ($escape === false) {
             $orderBy[] = ['field' => $fields, 'direction' => $direction, 'escape' => false];
@@ -1956,8 +1955,8 @@ abstract class AbstractQueryBuilder
      *
      * Add LIMIT,OFFSET Sql statement into Query Builder.
      *
-     * @param    int $limit  LIMIT value
-     * @param    int $offset OFFSET value
+     * @param int $limit  LIMIT value
+     * @param int $offset OFFSET value
      *
      * @return    static
      */
@@ -1979,7 +1978,7 @@ abstract class AbstractQueryBuilder
      *
      * Add OFFSET Sql statement into Query Builder.
      *
-     * @param    int $offset OFFSET value
+     * @param int $offset OFFSET value
      *
      * @return    static
      */
@@ -2063,12 +2062,12 @@ abstract class AbstractQueryBuilder
         if ($this->testMode) {
             return $this->getSqlStatement(false);
         } elseif ($this->isSubQuery) {
-            $queryStatement = new QueryStatement();
-            $queryStatement->setSqlStatement($sqlStatement = $this->getSqlStatement(), $this->builderCache->binds);
-            $queryStatement->setSqlFinalStatement($this->conn->compileSqlBinds($sqlStatement,
+            $statement = new Query\Statement();
+            $statement->setSqlStatement($sqlStatement = $this->getSqlStatement(), $this->builderCache->binds);
+            $statement->setSqlFinalStatement($this->conn->compileSqlBinds($sqlStatement,
                 $this->builderCache->binds));
 
-            $sqlStatement = $queryStatement->getSqlFinalStatement();
+            $sqlStatement = $statement->getSqlFinalStatement();
 
             return '( ' . $sqlStatement . ' )';
         }
@@ -2161,12 +2160,12 @@ abstract class AbstractQueryBuilder
         if ($this->testMode) {
             return $this->getSqlStatement(false);
         } elseif ($this->isSubQuery) {
-            $queryStatement = new QueryStatement();
-            $queryStatement->setSqlStatement($sqlStatement = $this->getSqlStatement(), $this->builderCache->binds);
-            $queryStatement->setSqlFinalStatement($this->conn->compileSqlBinds($sqlStatement,
+            $statement = new Query\Statement();
+            $statement->setSqlStatement($sqlStatement = $this->getSqlStatement(), $this->builderCache->binds);
+            $statement->setSqlFinalStatement($this->conn->compileSqlBinds($sqlStatement,
                 $this->builderCache->binds));
 
-            $sqlStatement = $queryStatement->getSqlFinalStatement();
+            $sqlStatement = $statement->getSqlFinalStatement();
 
             return '( ' . $sqlStatement . ' )';
         }
@@ -2219,8 +2218,8 @@ abstract class AbstractQueryBuilder
      *
      * Starts a query group.
      *
-     * @param    string $not  (Internal use only)
-     * @param    string $type (Internal use only)
+     * @param string $not  (Internal use only)
+     * @param string $type (Internal use only)
      *
      * @return    static
      */
@@ -2300,9 +2299,9 @@ abstract class AbstractQueryBuilder
      *
      * Execute INSERT Sql Query
      *
-     * @param   array $sets   An associative array of set values.
+     * @param array $sets     An associative array of set values.
      *                        sets[][field => value]
-     * @param   bool  $escape Whether to escape values and identifiers
+     * @param bool  $escape   Whether to escape values and identifiers
      *
      * @return bool
      * @throws \O2System\Spl\Exceptions\RuntimeException
@@ -2310,7 +2309,7 @@ abstract class AbstractQueryBuilder
      */
     public function insert(array $sets, $escape = null)
     {
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         $this->set($sets, null, $escape);
 
@@ -2369,7 +2368,7 @@ abstract class AbstractQueryBuilder
 
         $escape = is_bool($escape)
             ? $escape
-            : $this->conn->isProtectIdentifiers;
+            : $this->conn->protectIdentifiers;
 
         foreach ($field as $key => $value) {
             if ($key === 'birthday' || $key === 'date') {
@@ -2397,7 +2396,7 @@ abstract class AbstractQueryBuilder
      *
      * Takes an object as input and converts the class variables to array key/vals
      *
-     * @param   mixed $object
+     * @param mixed $object
      *
      * @return  array
      */
@@ -2440,10 +2439,10 @@ abstract class AbstractQueryBuilder
      *
      * Execute INSERT batch Sql Query
      *
-     * @param   array $sets      An associative array of set values.
+     * @param array $sets        An associative array of set values.
      *                           sets[][field => value]
-     * @param   int   $batchSize Maximum batch size
-     * @param   bool  $escape    Whether to escape values and identifiers
+     * @param int   $batchSize   Maximum batch size
+     * @param bool  $escape      Whether to escape values and identifiers
      *
      * @return bool
      * @throws \Psr\Cache\InvalidArgumentException
@@ -2451,7 +2450,7 @@ abstract class AbstractQueryBuilder
      */
     public function insertBatch(array $sets, $batchSize = 1000, $escape = null)
     {
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         $this->setInsertReplaceBatch($sets);
 
@@ -2486,9 +2485,9 @@ abstract class AbstractQueryBuilder
      *
      * The "setInsertBatch" function.  Allows key/value pairs to be set for batch inserts
      *
-     * @param   mixed  $field
-     * @param   string $value
-     * @param   bool   $escape Whether to escape values and identifiers
+     * @param mixed  $field
+     * @param string $value
+     * @param bool   $escape Whether to escape values and identifiers
      *
      * @return  void
      */
@@ -2500,7 +2499,7 @@ abstract class AbstractQueryBuilder
             $field = [$field => $value];
         }
 
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         $rowKeys = array_keys($this->objectToArray(current($field)));
         sort($rowKeys);
@@ -2542,7 +2541,7 @@ abstract class AbstractQueryBuilder
      *
      * Takes an object as input and converts the class variables to array key/vals
      *
-     * @param    object
+     * @param object
      *
      * @return    array
      */
@@ -2589,9 +2588,9 @@ abstract class AbstractQueryBuilder
      *
      * Compiles an replace into string and runs the query
      *
-     * @param   array $sets   An associative array of set values.
+     * @param array $sets     An associative array of set values.
      *                        sets[][field => value]
-     * @param   bool  $escape Whether to escape values and identifiers
+     * @param bool  $escape   Whether to escape values and identifiers
      *
      * @return bool
      * @throws \Psr\Cache\InvalidArgumentException
@@ -2599,7 +2598,7 @@ abstract class AbstractQueryBuilder
      */
     public function replace(array $sets, $escape = null)
     {
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         $this->set($sets, null, $escape);
 
@@ -2656,10 +2655,10 @@ abstract class AbstractQueryBuilder
      *
      * Execute REPLACE batch Sql Query
      *
-     * @param   array $sets      An associative array of set values.
+     * @param array $sets        An associative array of set values.
      *                           sets[][field => value]
-     * @param   int   $batchSize Maximum batch size
-     * @param   bool  $escape    Whether to escape values and identifiers
+     * @param int   $batchSize   Maximum batch size
+     * @param bool  $escape      Whether to escape values and identifiers
      *
      * @return bool
      * @throws \Psr\Cache\InvalidArgumentException
@@ -2667,7 +2666,7 @@ abstract class AbstractQueryBuilder
      */
     public function replaceBatch(array $sets, $batchSize = 1000, $escape = null)
     {
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         $this->setInsertReplaceBatch($sets);
 
@@ -2702,10 +2701,10 @@ abstract class AbstractQueryBuilder
      *
      * Compiles an update string and runs the query.
      *
-     * @param   array $sets    An associative array of set values.
+     * @param array $sets      An associative array of set values.
      *                         sets[][field => value]
-     * @param   array $where   WHERE [field => match]
-     * @param   bool  $escape  Whether to escape values and identifiers
+     * @param array $where     WHERE [field => match]
+     * @param bool  $escape    Whether to escape values and identifiers
      *
      * @return bool
      * @throws \Psr\Cache\InvalidArgumentException
@@ -2713,7 +2712,7 @@ abstract class AbstractQueryBuilder
      */
     public function update(array $sets, array $where = [], $escape = null)
     {
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         $this->set($sets, null, $escape);
         $this->where($where);
@@ -2755,8 +2754,8 @@ abstract class AbstractQueryBuilder
      *
      * Generates a platform-specific update string from the supplied data.
      *
-     * @param   string $table  Table name.
-     * @param   array  $sets   An associative array of set values.
+     * @param string $table    Table name.
+     * @param array  $sets     An associative array of set values.
      *                         sets[][field => value]
      *
      * @return string
@@ -2781,7 +2780,7 @@ abstract class AbstractQueryBuilder
      */
     public function updateBatch(array $sets, $index = null, $batchSize = 1000, $escape = null)
     {
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         $this->setUpdateBatch($sets, $index);
 
@@ -2832,7 +2831,7 @@ abstract class AbstractQueryBuilder
             // @todo error
         }
 
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         foreach ($sets as $set) {
             $indexSet = false;
@@ -2863,9 +2862,9 @@ abstract class AbstractQueryBuilder
      *
      * Generates a platform-specific batch update string from the supplied data.
      *
-     * @param    string $table  Table name
-     * @param    array  $values Update data
-     * @param    string $index  WHERE key
+     * @param string $table  Table name
+     * @param array  $values Update data
+     * @param string $index  WHERE key
      *
      * @return    string
      */
@@ -2897,7 +2896,7 @@ abstract class AbstractQueryBuilder
             $this->conn->protectIdentifiers(
                 $this->builderCache->from[ 0 ],
                 true,
-                $this->conn->isProtectIdentifiers,
+                $this->conn->protectIdentifiers,
                 false
             )
         );
@@ -2919,7 +2918,7 @@ abstract class AbstractQueryBuilder
      *
      * Generates a platform-specific delete string from the supplied data
      *
-     * @param   string $table The table name.
+     * @param string $table The table name.
      *
      * @return  string
      */
@@ -2942,7 +2941,7 @@ abstract class AbstractQueryBuilder
      */
     public function flush($table, $escape = null)
     {
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         if ($escape) {
             $table = $this->conn->protectIdentifiers($table, true, true);
@@ -2976,7 +2975,7 @@ abstract class AbstractQueryBuilder
      */
     public function truncate($table, $escape = null)
     {
-        is_bool($escape) || $escape = $this->conn->isProtectIdentifiers;
+        is_bool($escape) || $escape = $this->conn->protectIdentifiers;
 
         if ($escape) {
             $table = $this->conn->protectIdentifiers($table, true, true);
@@ -3000,7 +2999,7 @@ abstract class AbstractQueryBuilder
      *
      * Generates a platform-specific truncate statement.
      *
-     * @param    string    the table name
+     * @param string    the table name
      *
      * @return    string
      */
@@ -3036,7 +3035,7 @@ abstract class AbstractQueryBuilder
     public function subQuery()
     {
         $subQuery = clone $this;
-        $subQuery->builderCache = new QueryBuilderCache();
+        $subQuery->builderCache = new Query\BuilderCache();
 
         $subQuery->isSubQuery = true;
 
@@ -3053,7 +3052,7 @@ abstract class AbstractQueryBuilder
      * Generates a query string based on which functions were used.
      * Should not be called directly.
      *
-     * @param    bool $selectOverride
+     * @param bool $selectOverride
      *
      * @return    string
      */
@@ -3187,7 +3186,7 @@ abstract class AbstractQueryBuilder
      * where(), orWhere(), having(), orHaving are called prior to from(),
      * join() and prefixTable is added only if needed.
      *
-     * @param    string $cacheKey 'QBWhere' or 'QBHaving'
+     * @param string $cacheKey 'QBWhere' or 'QBHaving'
      *
      * @return    string    Sql statement
      */
@@ -3310,7 +3309,7 @@ abstract class AbstractQueryBuilder
      *
      * Determines if a string represents a literal value or a field name
      *
-     * @param    string $string
+     * @param string $string
      *
      * @return    bool
      */

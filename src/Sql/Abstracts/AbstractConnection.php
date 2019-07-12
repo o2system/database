@@ -8,7 +8,6 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
-
 // ------------------------------------------------------------------------
 
 namespace O2System\Database\Sql\Abstracts;
@@ -18,7 +17,7 @@ namespace O2System\Database\Sql\Abstracts;
 use O2System\Cache\Item;
 use O2System\Database\DataObjects\Result;
 use O2System\Database\DataStructures\Config;
-use O2System\Database\Sql\DataStructures\QueryStatement;
+use O2System\Database\Sql\DataStructures\Query\Statement;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Spl\Traits\Collectors\ConfigCollectorTrait;
 
@@ -65,13 +64,13 @@ abstract class AbstractConnection
      */
     public $swapTablePrefix;
     /**
-     * AbstractConnection::$isProtectIdentifiers
+     * AbstractConnection::$protectIdentifiers
      *
      * Protect identifiers mode flag.
      *
      * @var bool
      */
-    public $isProtectIdentifiers = true;
+    public $protectIdentifiers = true;
     /**
      * AbstractConnection::$disableQueryExecution
      *
@@ -187,6 +186,15 @@ abstract class AbstractConnection
      * @var AbstractQueryBuilder
      */
     protected $queryBuilder;
+
+    /**
+     * AbstractConnection::$forge
+     *
+     * Forge instance.
+     *
+     * @var AbstractForge
+     */
+    protected $forge;
 
     // ------------------------------------------------------------------------
 
@@ -489,7 +497,7 @@ abstract class AbstractConnection
      *
      * Returns the last query's statement object.
      *
-     * @return QueryStatement
+     * @return Statement
      */
     public function getLastQuery()
     {
@@ -672,7 +680,7 @@ abstract class AbstractConnection
             $this->connect();
         }
 
-        $queryStatement = new QueryStatement();
+        $queryStatement = new Statement();
         $queryStatement->setSqlStatement($sqlStatement);
         $queryStatement->setSqlFinalStatement($sqlStatement);
 
@@ -718,11 +726,11 @@ abstract class AbstractConnection
      *
      * Driver dependent way method for execute the Sql statement.
      *
-     * @param QueryStatement $queryStatement Query object.
+     * @param Statement $statement Query object.
      *
      * @return bool
      */
-    abstract protected function platformExecuteHandler(QueryStatement &$queryStatement);
+    abstract protected function platformExecuteHandler(Statement &$statement);
 
     // ------------------------------------------------------------------------
 
@@ -794,7 +802,7 @@ abstract class AbstractConnection
         }
 
         $result = false;
-        $queryStatement = new QueryStatement();
+        $queryStatement = new Statement();
 
         $queryStatement->setSqlStatement($sqlStatement, $binds);
         $queryStatement->setSqlFinalStatement($this->compileSqlBinds($sqlStatement, $binds));
@@ -881,7 +889,7 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * QueryStatement::compileSqlBinds
+     * AbstractConnection::compileSqlBinds
      *
      * Escapes and inserts any binds into the final Sql statement object.
      *
@@ -927,7 +935,7 @@ abstract class AbstractConnection
     //--------------------------------------------------------------------
 
     /**
-     * QueryStatement::replaceNamedBinds
+     * AbstractConnection::replaceNamedBinds
      *
      * Match bindings.
      *
@@ -1064,7 +1072,7 @@ abstract class AbstractConnection
     // ------------------------------------------------------------------------
 
     /**
-     * QueryStatement::replaceSimpleBinds
+     * AbstractConnection::replaceSimpleBinds
      *
      * Match bindings
      *
@@ -1127,11 +1135,11 @@ abstract class AbstractConnection
      *
      * Driver dependent way method for execute the Sql statement.
      *
-     * @param QueryStatement $queryStatement Query object.
+     * @param Statement $statement Query object.
      *
      * @return array
      */
-    abstract protected function platformQueryHandler(QueryStatement &$queryStatement);
+    abstract protected function platformQueryHandler(Statement &$statement);
 
     // ------------------------------------------------------------------------
 
@@ -1169,8 +1177,6 @@ abstract class AbstractConnection
      * AbstractConnection::transactionBegin
      *
      * Starting a transaction.
-     *
-     * @param bool $testMode Testing mode flag.
      *
      * @return bool
      */
@@ -1292,7 +1298,7 @@ abstract class AbstractConnection
         $fieldExists = true
     ) {
         if ( ! is_bool($protectIdentifiers)) {
-            $protectIdentifiers = $this->isProtectIdentifiers;
+            $protectIdentifiers = $this->protectIdentifiers;
         }
 
         if (is_array($item)) {
@@ -1561,6 +1567,28 @@ abstract class AbstractConnection
         }
 
         return $this->queryBuilder;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractConnection::getForge
+     *
+     * Get connection forge.
+     *
+     * @return AbstractForge
+     */
+    public function getForge()
+    {
+        if ( ! $this->forge instanceof AbstractForge) {
+            $className = str_replace('Connection', 'Forge', get_called_class());
+
+            if (class_exists($className)) {
+                $this->forge = new $className($this);
+            }
+        }
+
+        return $this->forge;
     }
 
     // ------------------------------------------------------------------------
