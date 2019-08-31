@@ -15,6 +15,7 @@ namespace O2System\Database\DataObjects\Result;
 
 // ------------------------------------------------------------------------
 
+use O2System\Database\DataObjects\Result\Row\Record;
 use O2System\Spl\DataStructures\Traits\ArrayConversionTrait;
 use O2System\Spl\Exceptions\Logic\InvalidArgumentException;
 use O2System\Spl\Iterators\ArrayIterator;
@@ -44,6 +45,13 @@ class Row implements
      */
     protected $columns = [];
 
+    /**
+     * Row::$record
+     *
+     * @var Record
+     */
+    protected $record;
+
     // ------------------------------------------------------------------------
 
     /**
@@ -53,6 +61,30 @@ class Row implements
      */
     public function __construct(array $columns = [])
     {
+        $this->record = new Record();
+
+        foreach ($columns as $name => $value) {
+            if (strpos($name, 'record_create') !== false) {
+                $this->record->create->offsetSet(
+                    str_replace('record_create_', '', $name),
+                    $value
+                );
+                unset($columns[ $name ]);
+            } elseif (strpos($name, 'record_update') !== false) {
+                $this->record->create->offsetSet(
+                    str_replace('record_update_', '', $name),
+                    $value
+                );
+                unset($columns[ $name ]);
+            } elseif (strpos($name, 'record') !== false) {
+                $this->record->offsetSet(
+                    str_replace('record_', '', $name),
+                    $value
+                );
+                unset($columns[ $name ]);
+            }
+        }
+
         $this->columns = $columns;
     }
 
@@ -250,9 +282,9 @@ class Row implements
 
         foreach ($fields as $fieldName => $fieldValue) {
             if ($this->isJSON($fieldValue)) {
-                $fields[ $fieldName ] = new Columns\DataJSON(json_decode($fieldValue, true));
+                $fields[ $fieldName ] = new Row\Columns\DataJSON(json_decode($fieldValue, true));
             } elseif ($this->isSerialized($fieldValue)) {
-                $fields[ $fieldName ] = new Columns\DataSerialize(unserialize($fieldValue));
+                $fields[ $fieldName ] = new Row\Columns\DataSerialize(unserialize($fieldValue));
             } else {
                 $fields[ $fieldName ] = $fieldValue;
             }
@@ -329,15 +361,60 @@ class Row implements
             $data = $this->columns[ $offset ];
 
             if ($this->isJSON($data)) {
-                return new Columns\DataJSON(json_decode($data, true));
+                return new Row\Columns\DataJSON(json_decode($data, true));
             } elseif ($this->isSerialized($data)) {
-                return new Columns\DataSerialize(unserialize($data));
+                return new Row\Columns\DataSerialize(unserialize($data));
             } else {
                 return $data;
+            }
+        } elseif(strpos($offset, 'record') !== false) {
+            switch ($offset) {
+                case 'record':
+                    return $this->record;
+                    break;
+                case 'record_status':
+                    return $this->record->status;
+                    break;
+                case 'record_left':
+                    return $this->record->left;
+                    break;
+                case 'record_right':
+                    return $this->record->right;
+                    break;
+                case 'record_depth':
+                    return $this->record->depth;
+                    break;
+                case 'record_ordering':
+                    return $this->record->ordering;
+                    break;
+                case 'record_create_user':
+                    return $this->record->create->user;
+                    break;
+                case 'record_create_timestamp':
+                    return $this->record->create->timestamp;
+                    break;
+                case 'record_update_user':
+                    return $this->record->update->user;
+                    break;
+                case 'record_update_timestamp':
+                    return $this->record->update->timestamp;
+                    break;
             }
         }
 
         return null;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Row::getRecord
+     *
+     * @return \O2System\Database\DataObjects\Result\Row\Record
+     */
+    public function getRecord()
+    {
+        return $this->record;
     }
 
     // ------------------------------------------------------------------------

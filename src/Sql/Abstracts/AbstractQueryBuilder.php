@@ -2016,13 +2016,16 @@ abstract class AbstractQueryBuilder
         }
 
         $result = $this->testMode
-            ? $this->getSqlStatement()
+            ? $this->getSqlStatement(false)
             : $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
 
         if ($result) {
-            $result->limit = $this->builderCache->limit;
-            $result->setTotalRows($this->countAllResults());
+            $result->setNumPerPage($this->builderCache->limit);
+            $result->setNumFounds($this->countAllResults(false));
+            $result->setNumTotal($this->countAll(false));
         }
+
+        $this->builderCache->reset();
 
         $this->cacheMode = $this->conn->getConfig('cacheEnable');
 
@@ -2041,7 +2044,7 @@ abstract class AbstractQueryBuilder
      * @throws \O2System\Spl\Exceptions\RuntimeException
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function countAllResults()
+    public function countAllResults($reset = true)
     {
         // save previous
         $previousSelect = $this->builderCache->select;
@@ -2060,10 +2063,10 @@ abstract class AbstractQueryBuilder
         $this->builderCache->offset = $previousOffset;
 
         if ($this->testMode) {
-            return $this->getSqlStatement(false);
+            return $sqlStatement;
         } elseif ($this->isSubQuery) {
             $statement = new Query\Statement();
-            $statement->setSqlStatement($sqlStatement = $this->getSqlStatement(), $this->builderCache->binds);
+            $statement->setSqlStatement($sqlStatement, $this->builderCache->binds);
             $statement->setSqlFinalStatement($this->conn->compileSqlBinds($sqlStatement,
                 $this->builderCache->binds));
 
@@ -2072,8 +2075,11 @@ abstract class AbstractQueryBuilder
             return '( ' . $sqlStatement . ' )';
         }
 
-        $result = $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
-        $this->builderCache->reset();
+        $result = $this->conn->query($sqlStatement, $this->builderCache->binds);
+
+        if($reset) {
+            $this->builderCache->reset();
+        }
 
         if ($result->count() == 0) {
             return 0;
@@ -2114,9 +2120,12 @@ abstract class AbstractQueryBuilder
             : $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
 
         if ($result) {
-            $result->limit = $this->builderCache->limit;
-            $result->setTotalRows($this->countAllResults());
+            $result->setNumPerPage($this->builderCache->limit);
+            $result->setNumFounds($this->countAllResults(false));
+            $result->setNumTotal($this->countAll(false));
         }
+
+        $this->builderCache->reset();
 
         $this->cacheMode = $this->conn->getConfig('cacheEnable');
 
@@ -2153,15 +2162,30 @@ abstract class AbstractQueryBuilder
      * @throws \O2System\Spl\Exceptions\RuntimeException
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function countAll()
+    public function countAll($reset = true)
     {
+        // save previous cache
+        $previousQueryBuilderCache = clone $this->builderCache;
+
+        // reset cache
+        $this->builderCache->reset();
+
+        $this->builderCache->from = $previousQueryBuilderCache->from;
+
         $this->count('*', 'numrows');
 
+        // generate Sql statement
+        $sqlStatement = $this->getSqlStatement();
+
+        // restore previous cache
+        $this->builderCache = $previousQueryBuilderCache;
+        unset($previousQueryBuilderCache);
+
         if ($this->testMode) {
-            return $this->getSqlStatement(false);
+            return $sqlStatement;
         } elseif ($this->isSubQuery) {
             $statement = new Query\Statement();
-            $statement->setSqlStatement($sqlStatement = $this->getSqlStatement(), $this->builderCache->binds);
+            $statement->setSqlStatement($sqlStatement, $this->builderCache->binds);
             $statement->setSqlFinalStatement($this->conn->compileSqlBinds($sqlStatement,
                 $this->builderCache->binds));
 
@@ -2170,14 +2194,18 @@ abstract class AbstractQueryBuilder
             return '( ' . $sqlStatement . ' )';
         }
 
-        $result = $this->conn->query($this->getSqlStatement(false), $this->builderCache->binds);
-        $this->builderCache->reset();
-
-        if ($result->count() == 0) {
-            return 0;
+        $numrows = 0;
+        if($result = $this->conn->query($sqlStatement, $this->builderCache->binds)) {
+            if($result->count()) {
+                $numrows = $result->first()->numrows;
+            }
         }
 
-        return (int)$result->first()->numrows;
+        if($reset) {
+            $this->builderCache->reset();
+        }
+
+        return $numrows;
     }
 
     //--------------------------------------------------------------------

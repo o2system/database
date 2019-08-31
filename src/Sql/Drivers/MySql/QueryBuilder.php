@@ -273,6 +273,8 @@ class QueryBuilder extends AbstractQueryBuilder
 
         if ($this->isSubQuery) {
             return $sqlStatement;
+        } elseif(strpos($sqlStatement, 'COUNT') !== false) {
+            return $sqlStatement;
         }
 
         return str_replace('SELECT', 'SELECT SQL_CALC_FOUND_ROWS', $sqlStatement);

@@ -11,25 +11,23 @@
 
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\DataObjects\Result;
+namespace O2System\Database\DataObjects\Result\Row\Record;
 
 // ------------------------------------------------------------------------
 
-use O2System\Spl\DataStructures\SplArrayObject;
-
 /**
- * Class Info
- * @package O2System\Database\DataObjects\Result
+ * Class Timestamp
+ * @package O2System\Database\DataObjects\Result\Row\Record
  */
-class Info extends SplArrayObject
+class Timestamp extends \DateTime
 {
-    public function __construct()
+    /**
+     * Timestamp::__toString
+     *
+     * @return string
+     */
+    public function __toString()
     {
-        parent::__construct([
-            'num_per_page' => 0,
-            'num_rows' => 0,
-            'num_founds' => 0,
-            'num_total' => 0,
-        ]);
+        return date('Y-m-d H:i:s', $this->getTimestamp());
     }
 }

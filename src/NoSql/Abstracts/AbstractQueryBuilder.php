@@ -626,7 +626,7 @@ abstract class AbstractQueryBuilder
         }
 
         if (false !== ($result = $this->conn->query($this->builderCache))) {
-            $result->setTotalRows($this->countAllResults(true));
+            $result->setNumTotal($this->countAllResults(true));
         }
 
         $this->builderCache->reset();
@@ -672,7 +672,7 @@ abstract class AbstractQueryBuilder
         }
 
         if (false !== ($result = $this->conn->query($this->builderCache))) {
-            $result->setTotalRows($this->countAllResults(true));
+            $result->setNumTotal($this->countAllResults(true));
         }
 
         $this->builderCache->reset();

@@ -11,25 +11,29 @@
 
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\DataObjects\Result;
+namespace O2System\Database\DataObjects\Result\Row;
 
 // ------------------------------------------------------------------------
 
+use O2System\Database\DataObjects\Result\Row\Record\Create;
+use O2System\Database\DataObjects\Result\Row\Record\Update;
 use O2System\Spl\DataStructures\SplArrayObject;
 
 /**
- * Class Info
- * @package O2System\Database\DataObjects\Result
+ * Class Record
+ * @package O2System\Database\DataObjects\Result\Row
  */
-class Info extends SplArrayObject
+class Record extends SplArrayObject
 {
+    /**
+     * Records::__construct
+     */
     public function __construct()
     {
         parent::__construct([
-            'num_per_page' => 0,
-            'num_rows' => 0,
-            'num_founds' => 0,
-            'num_total' => 0,
+            'status' => null,
+            'create' => new Create(),
+            'update' => new Update()
         ]);
     }
 }

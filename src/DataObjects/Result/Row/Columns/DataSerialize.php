@@ -11,23 +11,23 @@
 
 // ------------------------------------------------------------------------
 
-namespace O2System\Database\DataObjects\Result\Columns;
+namespace O2System\Database\DataObjects\Result\Row\Columns;
 
 // ------------------------------------------------------------------------
 
 use O2System\Spl\DataStructures\SplArrayObject;
 
 /**
- * Class DataJSON
+ * Class DataSerialize
  *
- * @package O2System\DB\DataStructures\Columns
+ * @package O2System\DB\DataStructures\Row\Columns
  */
-class DataJSON extends SplArrayObject
+class DataSerialize extends SplArrayObject
 {
     /**
-     * DataJSON::__construct
+     * DataSerialize::__construct
      *
-     * SimpleJSONField constructor.
+     * SimpleSerializeField constructor.
      *
      * @param array $data
      */
@@ -45,29 +45,25 @@ class DataJSON extends SplArrayObject
     // ------------------------------------------------------------------------
 
     /**
-     * DataJSON::__set
+     * DataSerialize::__set
      *
      * Magic Method __set
      *
-     * @param string $index
+     * @param $index
      *
-     * @param int    $value
+     * @param $value
      */
     public function __set($index, $value)
     {
-        if (is_array($value)) {
-            $value = new self($value);
-        }
-
         $this->offsetSet($index, $value);
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * DataJSON__toArray
+     * DataSerialize::__toArray
      *
-     * Magic Method __toArray
+     * magic Method __toArray
      *
      * @return array
      */
