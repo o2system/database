@@ -32,10 +32,37 @@ abstract class AbstractForge
      */
     protected $conn;
 
+    /**
+     * AbstractForge::$unsignedSupportColumnTypes
+     *
+     * UNSIGNED support
+     *
+     * @var array
+     */
+    protected $unsignedSupportColumnTypes = [];
+
+    /**
+     * AbstractForge::$quotedTableOptions
+     *
+     * Table Options list which required to be quoted
+     *
+     * @var array
+     */
+    protected $quotedTableOptions = [];
+
+    /**
+     * AbstractForge::$nullStatement
+     *
+     * NULL value representation in CREATE/ALTER TABLE statements
+     *
+     * @var string
+     */
+    protected $nullStatement = 'NULL';
+
     //--------------------------------------------------------------------
 
     /**
-     * AbstractQueryBuilder::__construct.
+     * AbstractQueryBuilder::__construct
      *
      * @param \O2System\Database\Sql\Abstracts\AbstractConnection $conn
      */
@@ -163,6 +190,23 @@ abstract class AbstractForge
     //--------------------------------------------------------------------
 
     /**
+     * AbstractForge::prepareTableNameStatement
+     *
+     * @param string $table
+     *
+     * @return string
+     */
+    public function prepareTableNameStatement($table)
+    {
+        $prefix = $this->conn->getConfig('tablePrefix');
+        $table = str_replace($prefix, '', $table);
+
+        return $prefix . $table;
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
      * AbstractForge::runTableStatementQuery
      *
      * @param string $statement
@@ -190,23 +234,6 @@ abstract class AbstractForge
     //--------------------------------------------------------------------
 
     /**
-     * AbstractForge::prepareTableNameStatement
-     *
-     * @param string $table
-     *
-     * @return string
-     */
-    public function prepareTableNameStatement($table)
-    {
-        $prefix = $this->conn->getConfig('tablePrefix');
-        $table = str_replace($prefix, '', $table);
-
-        return $prefix . $table;
-    }
-
-    //--------------------------------------------------------------------
-
-    /**
      * AbstractForge::createTable
      *
      * @param string $table
@@ -218,14 +245,8 @@ abstract class AbstractForge
      * @throws \O2System\Spl\Exceptions\RuntimeException
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function createTable($table, array $columns, $force = false, array $attributes = [])
+    public function createTable($table, array $columns = [], $force = false, array $attributes = [])
     {
-        if (count($columns) == 0) {
-            if ($this->conn->debugEnable) {
-                throw new RuntimeException('Columns information is required');
-            }
-        }
-
         return $this->runTableStatementQuery(
             $this->platformCreateTableStatement(
                 $this->prepareTableNameStatement($table),
@@ -251,7 +272,7 @@ abstract class AbstractForge
      */
     abstract public function platformCreateTableStatement(
         $table,
-        array $columns,
+        array $columns = [],
         $force = false,
         array $attributes = []
     );
@@ -401,6 +422,13 @@ abstract class AbstractForge
      */
     public function dropTableColumn($table, $column)
     {
+        if (false === ($sqlStatement = $this->platformAlterTableDropColumnStatement($table, $column))) {
+            if ($this->conn->debugEnable) {
+                throw new RuntimeException('This feature is not available for the database you are using.');
+            }
+
+            return false;
+        }
         return $this->runTableStatementQuery(
             $this->platformAlterTableDropColumnStatement(
                 $this->prepareTableNameStatement($table),
@@ -425,7 +453,7 @@ abstract class AbstractForge
     //--------------------------------------------------------------------
 
     /**
-     * AbstractForge::addPrimaryKey
+     * AbstractForge::addTablePrimaryKey
      *
      * @param string $table
      * @param string $column
@@ -434,15 +462,15 @@ abstract class AbstractForge
      * @throws \O2System\Spl\Exceptions\RuntimeException
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function addPrimaryKey($table, $column)
+    public function addTablePrimaryKey($table, $column)
     {
-        return $this->addPrimaryKeys($table, [$column]);
+        return $this->addTablePrimaryKeys($table, [$column]);
     }
 
     //--------------------------------------------------------------------
 
     /**
-     * AbstractForge::addPrimaryKeys
+     * AbstractForge::addTablePrimaryKeys
      *
      * @param string $table
      * @param array  $columns
@@ -451,7 +479,7 @@ abstract class AbstractForge
      * @throws \O2System\Spl\Exceptions\RuntimeException
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function addPrimaryKeys($table, array $columns)
+    public function addTablePrimaryKeys($table, array $columns)
     {
         return $this->runTableStatementQuery(
             $this->platformAlterTablePrimaryKeysStatement(

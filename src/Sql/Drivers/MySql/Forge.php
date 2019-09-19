@@ -24,6 +24,56 @@ use O2System\Database\Sql\Abstracts\AbstractForge;
 class Forge extends AbstractForge
 {
     /**
+     * Forge::$unsignedSupportColumnTypes
+     *
+     * UNSIGNED support
+     *
+     * @var array
+     */
+    protected $unsignedSupportColumnTypes = [
+        'TINYINT',
+        'SMALLINT',
+        'MEDIUMINT',
+        'INT',
+        'INTEGER',
+        'BIGINT',
+        'REAL',
+        'DOUBLE',
+        'DOUBLE PRECISION',
+        'FLOAT',
+        'DECIMAL',
+        'NUMERIC',
+    ];
+
+    /**
+     * Forge::$quotedTableOptions
+     *
+     * Table Options list which required to be quoted
+     *
+     * @var array
+     */
+    protected $quotedTableOptions = [
+        'COMMENT',
+        'COMPRESSION',
+        'CONNECTION',
+        'DATA DIRECTORY',
+        'INDEX DIRECTORY',
+        'ENCRYPTION',
+        'PASSWORD',
+    ];
+
+    /**
+     * Forge::$nullStatement
+     *
+     * NULL value representation in CREATE/ALTER TABLE statements
+     *
+     * @var string
+     */
+    protected $nullStatement = 'NULL';
+
+    // ------------------------------------------------------------------------
+
+    /**
      * Forge::platformCreateDatabaseStatement
      *
      * @param string $database
@@ -46,7 +96,7 @@ class Forge extends AbstractForge
      */
     public function platformDropDatabaseStatement($database)
     {
-        return 'CREATE DATABASE ' . $this->conn->escapeIdentifiers($database);
+        return 'DROP DATABASE ' . $this->conn->escapeIdentifiers($database);
     }
 
     // ------------------------------------------------------------------------
@@ -76,12 +126,12 @@ class Forge extends AbstractForge
      *
      * @return mixed
      */
-    public function platformCreateTableStatement($table, array $columns, $force = false, array $attributes = [])
+    public function platformCreateTableStatement($table, array $columns = [], $force = false, array $attributes = [])
     {
         $primaryKeys = $foreignKeys = $uniqueKeys = $indexesKeys = [];
 
         // Open Statement
-        $statementLines[] = 'CREATE TABLE' . ($force === true ? ' IF NOT EXISTS ' : '') . $this->conn->escapeIdentifiers($table) . ' (';
+        $statementLines[] = 'CREATE TABLE ' . ($force === true ? ' IF NOT EXISTS ' : '') . $this->conn->escapeIdentifiers($table) . ' (';
 
         // Columns Statement
         $columnStatements = [];
@@ -132,8 +182,7 @@ class Forge extends AbstractForge
 
                 if (isset($columnAttributes[ 'unsigned' ])) {
                     if ($columnAttributes[ 'unsigned' ] === true) {
-                        if (in_array($columnAttributes[ 'type' ],
-                            ['INT', 'BIGINT', 'SMALLINT', 'TINYINT', 'FLOAT', 'DECIMAL', 'REAL'])) {
+                        if (in_array($columnAttributes[ 'type' ], $this->unsignedSupportColumnTypes)) {
                             $columnStatementLine[] = 'UNSIGNED';
                         }
                     }
@@ -241,19 +290,28 @@ class Forge extends AbstractForge
 
         if (empty($attributes)) {
             $attributes[ 'engine' ] = 'InnoDB';
-            $attributes[ 'default' ] = 'DEFAULT';
+        }
+
+        if( ! array_key_exists('charset', $attributes) ) {
             $attributes[ 'charset' ] = $this->conn->getConfig('charset');
+        }
+
+        if( ! array_key_exists('collate', $attributes) ) {
             $attributes[ 'collate' ] = $this->conn->getConfig('collate');
         }
 
         $attributeStatements = [];
         foreach ($attributes as $key => $value) {
-            $key = strtoupper(dash($key));
+            if(is_string($key)) {
+                $key = strtoupper(dash($key));
 
-            if ($key === 'DEFAULT') {
-                $attributeStatements[] = $key;
-            } else {
-                $attributeStatements[] = $key . '=' . $value;
+                if ($key === 'CHARSET') {
+                    $attributeStatements[] =  'DEFAULT CHARACTER SET = ' . $value;
+                } elseif(in_array($key, $this->quotedTableOptions)) {
+                    $attributeStatements[] = $this->conn->escape($key) . ' = ' . $value;
+                } else {
+                    $attributeStatements[] = $this->conn->escapeString($key) . ' = ' . $value;
+                }
             }
         }
 

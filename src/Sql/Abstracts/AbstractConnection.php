@@ -704,7 +704,7 @@ abstract class AbstractConnection
 
             if ($this->debugEnable) {
                 $message = $queryStatement->getLatestErrorMessage() .
-                    ' on sql statement: <br><pre>' . $sqlStatement . '</pre><br><br>';
+                    "on sql statement: \r\n" . $sqlStatement . "\r\n";
 
                 throw new RuntimeException($message, $queryStatement->getLatestErrorCode());
             }
@@ -812,6 +812,7 @@ abstract class AbstractConnection
         }
 
         $startTime = microtime(true);
+        $result = new Result([]);
 
         // Run the query for real
         if ($this->disableQueryExecution === false) {
@@ -865,7 +866,7 @@ abstract class AbstractConnection
         if ($queryStatement->hasErrors()) {
             if ($this->debugEnable) {
                 $message = $queryStatement->getLatestErrorMessage() .
-                    ' on sql statement: <br><pre>' . $sqlStatement . '</pre><br><br>';
+                    "on sql statement: \r\n" . $sqlStatement . "\r\n";
 
                 throw new RuntimeException($message, $queryStatement->getLatestErrorCode());
             }
@@ -876,7 +877,7 @@ abstract class AbstractConnection
                 $this->transactionInProgress = false;
             }
 
-            return false;
+            return $result;
         }
 
         if ($this->transactionInProgress) {

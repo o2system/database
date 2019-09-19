@@ -18,13 +18,12 @@ namespace O2System\Database\Sql\DataStructures\Query;
 /**
  * Class BuilderCache
  *
- * @package O2System\Database\Sql\DataStructures
+ * @package O2System\Database\Sql\DataStructures\Query
  */
 class BuilderCache extends \ArrayObject
 {
     /**
      * BuilderCache::__construct
-     *
      */
     public function __construct()
     {

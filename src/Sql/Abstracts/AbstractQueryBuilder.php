@@ -2075,17 +2075,18 @@ abstract class AbstractQueryBuilder
             return '( ' . $sqlStatement . ' )';
         }
 
-        $result = $this->conn->query($sqlStatement, $this->builderCache->binds);
+        $numrows = 0;
+        if($result = $this->conn->query($sqlStatement, $this->builderCache->binds)) {
+            if($result->count()) {
+                $numrows = $result->first()->numrows;
+            }
+        }
 
         if($reset) {
             $this->builderCache->reset();
         }
 
-        if ($result->count() == 0) {
-            return 0;
-        }
-
-        return (int)$result->first()->numrows;
+        return $numrows;
     }
 
     //--------------------------------------------------------------------
@@ -2343,12 +2344,6 @@ abstract class AbstractQueryBuilder
 
         $result = false;
 
-        /**
-         * @bugs
-         *
-         * @issued_by: Triyana Suryapraja Sukmana <https://github.com/tss182>
-         * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
-         */
         if (count($this->builderCache->sets)) {
             $sqlStatement = $this->platformInsertStatement(
                 $this->conn->protectIdentifiers(
@@ -2630,12 +2625,6 @@ abstract class AbstractQueryBuilder
 
         $this->set($sets, null, $escape);
 
-        /**
-         * @bugs
-         *
-         * @issued_by: Triyana Suryapraja Sukmana <https://github.com/tss182>
-         * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
-         */
         if (count($this->builderCache->sets)) {
             $sqlStatement = $this->platformReplaceStatement(
                 $this->conn->protectIdentifiers(
@@ -2745,12 +2734,6 @@ abstract class AbstractQueryBuilder
         $this->set($sets, null, $escape);
         $this->where($where);
 
-        /**
-         * @bugs
-         *
-         * @issued_by: Triyana Suryapraja Sukmana <https://github.com/tss182>
-         * @fixed_by : Mohamad Rafi Randoni <https://github.com/rafirandoni>
-         */
         if (count($this->builderCache->sets) && count($this->builderCache->from)) {
             $sqlStatement = $this->platformUpdateStatement(
                 $this->conn->protectIdentifiers(
