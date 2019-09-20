@@ -199,6 +199,16 @@ class Forge extends AbstractForge
                     if ($columnAttributes[ 'not_null' ] === true) {
                         $columnStatementLine[] = 'NOT NULL';
                     }
+                } elseif (isset($columnAttributes[ 'null' ])) {
+                    if ($columnAttributes[ 'null' ] === false) {
+                        $columnStatementLine[] = 'NOT NULL';
+                    }
+                }
+
+                if (isset($columnAttributes[ 'timestamp' ])) {
+                    if ($columnAttributes[ 'timestamp' ] === true) {
+                        $columnStatementLine[] = 'ON UPDATE CURRENT_TIMESTAMP';
+                    }
                 }
 
                 if (isset($columnAttributes[ 'default' ])) {
@@ -207,7 +217,7 @@ class Forge extends AbstractForge
 
                 if (isset($columnAttributes[ 'auto_increment' ])) {
                     if ($columnAttributes[ 'auto_increment' ] === true) {
-                        $columnStatementLine[] = 'AUTO_INCREMENT ';
+                        $columnStatementLine[] = 'AUTO_INCREMENT';
                     }
                 }
 
@@ -306,18 +316,18 @@ class Forge extends AbstractForge
                 $key = strtoupper(dash($key));
 
                 if ($key === 'CHARSET') {
-                    $attributeStatements[] =  'DEFAULT CHARACTER SET = ' . $value;
+                    $attributeStatements[] =  'DEFAULT CHARSET=' . $value;
                 } elseif(in_array($key, $this->quotedTableOptions)) {
-                    $attributeStatements[] = $this->conn->escape($key) . ' = ' . $value;
+                    $attributeStatements[] = $this->conn->escape($key) . '=' . $value;
                 } else {
-                    $attributeStatements[] = $this->conn->escapeString($key) . ' = ' . $value;
+                    $attributeStatements[] = $this->conn->escapeString($key) . '=' . $value;
                 }
             }
         }
 
         $statementLines[] = ') ' . implode(' ', $attributeStatements);
 
-        return implode(PHP_EOL, $statementLines);
+        return implode(PHP_EOL, $statementLines) . ';';
     }
 
     // ------------------------------------------------------------------------
