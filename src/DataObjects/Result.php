@@ -76,6 +76,7 @@ class Result extends \SplFixedArray
     public function setNumFounds($numFounds)
     {
         $this->info->num_founds = (int)$numFounds;
+        $this->info->num_pages = round($this->info->num_founds / $this->info->num_per_page);
     }
 
     // ------------------------------------------------------------------------

@@ -29,6 +29,7 @@ class Info extends SplArrayObject
             'num_per_page' => 0,
             'num_rows' => 0,
             'num_founds' => 0,
+            'num_pages' => 0,
             'num_total' => 0,
         ]);
     }
