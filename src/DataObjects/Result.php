@@ -101,13 +101,15 @@ class Result extends \SplFixedArray
      *
      * Gets first result row data.
      *
-     * @return \O2System\Database\DataObjects\Result\Row
+     * @return \O2System\Database\DataObjects\Result\Row|null
      */
     public function first()
     {
-        $this->rewind();
+        if($this->count()) {
+            $this->rewind();
 
-        return $this->current();
+            return $this->current();
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -121,10 +123,12 @@ class Result extends \SplFixedArray
      */
     public function last()
     {
-        $index = $this->count() - 1;
+        if($this->count()) {
+            $index = $this->count() - 1;
 
-        if ($this->offsetExists($index)) {
-            return $this->offsetGet($index);
+            if ($this->offsetExists($index)) {
+                return $this->offsetGet($index);
+            }
         }
     }
 
