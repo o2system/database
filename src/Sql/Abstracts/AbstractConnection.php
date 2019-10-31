@@ -857,10 +857,11 @@ abstract class AbstractConnection
         }
 
         $queryStatement->setDuration($startTime);
-        $queryStatement->addHit(1);
 
         if ( ! array_key_exists($queryStatement->getKey(), $this->queriesCache)) {
             $this->queriesCache[ $queryStatement->getKey() ] = $queryStatement;
+        } else {
+            $this->queriesCache[ $queryStatement->getKey() ]->addHit(1);
         }
 
         if ($queryStatement->hasErrors()) {
