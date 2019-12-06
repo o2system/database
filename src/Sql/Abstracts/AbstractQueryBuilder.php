@@ -235,6 +235,26 @@ abstract class AbstractQueryBuilder
     // ------------------------------------------------------------------------
 
     /**
+     * AbstractQueryBuilder::getFinalSqlStatement
+     * 
+     * @param bool $reset
+     *
+     * @return string
+     */
+    public function getFinalSqlStatement($reset = true)
+    {
+        $sqlStatement = $this->conn->compileSqlBinds($this->getSqlStatement(false), $this->builderCache->binds);
+
+        if ($reset) {
+            $this->builderCache->reset();
+        }
+
+        return $sqlStatement;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * AbstractQueryBuilder::first
      *
      * Add SELECT FIRST(field) AS alias statement
@@ -1257,6 +1277,11 @@ abstract class AbstractQueryBuilder
 
         foreach ($field as $fieldName => $fieldValue) {
             if ($fieldValue !== null) {
+                if ($fieldValue instanceof AbstractQueryBuilder) {
+                    $this->builderCache->binds = array_merge($this->builderCache->binds, $fieldValue->builderCache->binds);
+                    $fieldValue = $fieldValue->getSqlStatement();
+                }
+
                 $operator = $this->getOperator($fieldName);
                 $fieldName = trim(str_replace($operator, '', $fieldName));
 
