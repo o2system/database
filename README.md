@@ -1,4 +1,4 @@
-![alt text](https://www.o2system.id/assets/img/covers/cover-o2system-atom-database.png "O2System Database Atom")
+![alt text](https://repository-images.githubusercontent.com/68260497/a3bccd80-5c9a-11ea-9c86-1a12a79529be "O2System Database Atom")
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/o2system/database/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/o2system/database/?branch=master)
 [![Build Status](https://scrutinizer-ci.com/g/o2system/database/badges/build.png?b=master)](https://scrutinizer-ci.com/g/o2system/database/build-status/master)
