@@ -45,7 +45,7 @@ use O2System\Database;
 Documentation is available on this repository [wiki](https://github.com/o2system/database/wiki) or visit this repository [github page](https://o2system.github.io/database).
 
 ### Ideas and Suggestions
-Please kindly mail us at [contact@o2system.id](mailto:contact@o2system.id])
+Please kindly mail us at [hello@o2system.id](mailto:hello@o2system.id])
 
 ### Bugs and Issues
 Please kindly submit your [issues at Github](http://github.com/o2system/database/issues) so we can track all the issues along development and send a [pull request](http://github.com/o2system/database/pulls) to this repository.
