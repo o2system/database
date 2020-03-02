@@ -1176,6 +1176,20 @@ abstract class AbstractConnection
     //--------------------------------------------------------------------
 
     /**
+     * AbstractConnection::transactionSuccess
+     *
+     * Get transaction status.
+     *
+     * @return bool
+     */
+    public function transactionSuccess()
+    {
+        return $this->getTransactionStatus();
+    }
+
+    //--------------------------------------------------------------------
+
+    /**
      * AbstractConnection::transactionBegin
      *
      * Starting a transaction.

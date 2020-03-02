@@ -313,10 +313,14 @@ class Connection extends AbstractConnection
         $last = end($this->queriesCache);
 
         for($i = 0; $i < 2; $i++) {
-            if (
-                strpos($last->getSqlStatement(), 'SELECT FOUND_ROWS() AS numrows;') !== false or
-                strpos($last->getSqlStatement(), 'SELECT COUNT(*) AS `numrows`') !== false
-            ) {
+            if(method_exists($last, 'getSqlStatement')) {
+                if (
+                    strpos($last->getSqlStatement(), 'SELECT FOUND_ROWS() AS numrows;') !== false or
+                    strpos($last->getSqlStatement(), 'SELECT COUNT(*) AS `numrows`') !== false
+                ) {
+                    $last = prev($this->queriesCache);
+                }
+            } else {
                 $last = prev($this->queriesCache);
             }
         }

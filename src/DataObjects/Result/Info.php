@@ -31,6 +31,10 @@ class Info extends SplArrayObject
             'num_founds' => 0,
             'num_pages' => 0,
             'num_total' => 0,
+            'numbering' => new SplArrayObject([
+                'start' => 0,
+                'end' => 0
+            ])
         ]);
     }
 }

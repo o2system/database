@@ -46,7 +46,7 @@ class Result extends \SplFixedArray
     {
         $this->info = new Info();
         $this->info->num_total = $this->info->num_rows = count($rows);
-
+        
         parent::__construct($this->info->num_rows);
 
         foreach($rows as $offset => $row) {
@@ -79,6 +79,13 @@ class Result extends \SplFixedArray
 
         if($this->info->num_founds > 0 and $this->info->num_per_page > 0) {
             $this->info->num_pages = round($this->info->num_founds / $this->info->num_per_page);
+            $this->info->numbering->start = 1;
+            $this->info->numbering->end = $this->info->num_per_page;
+
+            if(isset($_GET['page']) and $_GET['page'] > 1) {
+                $this->info->numbering->start = ($_GET['page'] - 1) * $this->info->num_per_page;
+                $this->info->numbering->end = $this->info->numbering->start + $this->info->num_per_page;
+            }
         }
     }
 
