@@ -20,6 +20,7 @@ use O2System\Database\DataStructures\Config;
 use O2System\Database\Sql\DataStructures\Query\Statement;
 use O2System\Spl\Exceptions\RuntimeException;
 use O2System\Spl\Traits\Collectors\ConfigCollectorTrait;
+use O2System\Spl\Traits\Collectors\ErrorCollectorTrait;
 
 /**
  * Class AbstractConnection
@@ -29,6 +30,7 @@ use O2System\Spl\Traits\Collectors\ConfigCollectorTrait;
 abstract class AbstractConnection
 {
     use ConfigCollectorTrait;
+    use ErrorCollectorTrait;
 
     /**
      * AbstractConnection::$debugEnable
@@ -702,11 +704,13 @@ abstract class AbstractConnection
                 $this->transactionInProgress = false;
             }
 
-            if ($this->debugEnable) {
-                $message = $queryStatement->getLatestErrorMessage() .
-                    "on sql statement: \r\n" . $sqlStatement . "\r\n";
+            $errorMessage = $queryStatement->getLatestErrorMessage() .
+                "on sql statement: \r\n" . $sqlStatement . "\r\n";
 
-                throw new RuntimeException($message, $queryStatement->getLatestErrorCode());
+            if ($this->debugEnable) {
+                throw new RuntimeException($errorMessage, $queryStatement->getLatestErrorCode());
+            } else {
+                $this->addError($errorMessage, $queryStatement->getLatestErrorCode());
             }
 
             return false;
@@ -865,11 +869,13 @@ abstract class AbstractConnection
         }
 
         if ($queryStatement->hasErrors()) {
-            if ($this->debugEnable) {
-                $message = $queryStatement->getLatestErrorMessage() .
-                    "on sql statement: \r\n" . $sqlStatement . "\r\n";
+            $errorMessage = $queryStatement->getLatestErrorMessage() .
+                "on sql statement: \r\n" . $sqlStatement . "\r\n";
 
-                throw new RuntimeException($message, $queryStatement->getLatestErrorCode());
+            if ($this->debugEnable) {
+                throw new RuntimeException($errorMessage, $queryStatement->getLatestErrorCode());
+            } else {
+                $this->addError($errorMessage, $queryStatement->getLatestErrorCode());
             }
 
             if ($this->transactionInProgress) {

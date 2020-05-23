@@ -369,6 +369,9 @@ class Row implements
             }
         } elseif(strpos($offset, 'record') !== false) {
             switch ($offset) {
+                default:
+                    return $this->record->{str_replace('record_', '', $offset)};
+                    break;
                 case 'record':
                     return $this->record;
                     break;
