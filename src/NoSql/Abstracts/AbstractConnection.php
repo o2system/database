@@ -624,8 +624,8 @@ abstract class AbstractConnection
 
             if ($statement->hasErrors()) {
                 if ($this->debugEnabled) {
-                    throw new RuntimeException($statement->getLatestErrorMessage(),
-                        $statement->getLatestErrorCode());
+                    throw new RuntimeException($statement->getLastErrorMessage(),
+                        $statement->getLastErrorCode());
                 }
             }
 
@@ -723,8 +723,8 @@ abstract class AbstractConnection
 
         if ($statement->hasErrors()) {
             if ($this->debugEnabled) {
-                throw new RuntimeException($statement->getLatestErrorMessage(),
-                    $statement->getLatestErrorCode());
+                throw new RuntimeException($statement->getLastErrorMessage(),
+                    $statement->getLastErrorCode());
             }
 
             if ($this->transactionInProgress) {

@@ -86,6 +86,10 @@ class Result extends \SplFixedArray
                 $this->info->numbering->start = ($_GET['page'] - 1) * $this->info->num_per_page;
                 $this->info->numbering->end = $this->info->numbering->start + $this->info->num_per_page;
             }
+        } else {
+            $this->info->num_pages = 1;
+            $this->info->numbering->start = 1;
+            $this->info->numbering->end = $this->info->num_founds;
         }
     }
 

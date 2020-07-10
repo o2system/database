@@ -182,6 +182,8 @@ class Connection extends AbstractConnection
 
             $result = $this->query($sqlStatement);
 
+            $this->queriesResultCache[ 'tableNames' ] = [];
+
             if ($result->count()) {
                 foreach ($result as $row) {
                     // Do we know from which column to get the table name?
@@ -246,7 +248,7 @@ class Connection extends AbstractConnection
                         }
                     }
 
-                    $this->queriesResultCache[ 'tableColumns' ][ $table ][ $row->offsetGet($key) ] = $row;
+                    $this->queriesResultCache[ 'tableColumns' ][ $table ][ $row->offsetGet($key) ] = new SplArrayObject($row->getArrayCopy());
                 }
             }
         }
