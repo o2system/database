@@ -701,16 +701,15 @@ abstract class AbstractConnection
             if ($this->transactionInProgress) {
                 $this->transactionStatus = false;
                 $this->transactionRollBack();
-                $this->transactionInProgress = false;
             }
 
-            $errorMessage = $queryStatement->getLatestErrorMessage() .
+            $errorMessage = $queryStatement->getLastErrorMessage() .
                 "on sql statement: \r\n" . $sqlStatement . "\r\n";
 
             if ($this->debugEnable) {
-                throw new RuntimeException($errorMessage, $queryStatement->getLatestErrorCode());
+                throw new RuntimeException($errorMessage, $queryStatement->getLastErrorCode());
             } else {
-                $this->addError($errorMessage, $queryStatement->getLatestErrorCode());
+                $this->addError($errorMessage, $queryStatement->getLastErrorCode());
             }
 
             return false;
@@ -869,13 +868,13 @@ abstract class AbstractConnection
         }
 
         if ($queryStatement->hasErrors()) {
-            $errorMessage = $queryStatement->getLatestErrorMessage() .
+            $errorMessage = $queryStatement->getLastErrorMessage() .
                 "on sql statement: \r\n" . $sqlStatement . "\r\n";
 
             if ($this->debugEnable) {
-                throw new RuntimeException($errorMessage, $queryStatement->getLatestErrorCode());
+                throw new RuntimeException($errorMessage, $queryStatement->getLastErrorCode());
             } else {
-                $this->addError($errorMessage, $queryStatement->getLatestErrorCode());
+                $this->addError($errorMessage, $queryStatement->getLastErrorMessage());
             }
 
             if ($this->transactionInProgress) {
@@ -1204,11 +1203,14 @@ abstract class AbstractConnection
      */
     public function transactionBegin()
     {
+        $this->transactionInProgress = false;
+
         /**
          * checks if the transaction already started
          * then we only increment the transaction depth.
          */
         if ($this->transactionDepth > 0) {
+            $this->transactionInProgress = true;
             $this->transactionDepth++;
 
             return true;
@@ -1221,7 +1223,7 @@ abstract class AbstractConnection
             return true;
         }
 
-        return false;
+        return $this->transactionInProgress;
     }
 
     // ------------------------------------------------------------------------
