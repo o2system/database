@@ -2,6 +2,7 @@
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/o2system/database/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/o2system/database/?branch=master)
 [![Build Status](https://scrutinizer-ci.com/g/o2system/database/badges/build.png?b=master)](https://scrutinizer-ci.com/g/o2system/database/build-status/master)
+![PHP Composer](https://github.com/o2system/database/workflows/PHP%20Composer/badge.svg)
 [![Latest Stable Version](https://poser.pugx.org/o2system/database/v/stable)](https://packagist.org/packages/o2system/database)
 [![Total Downloads](https://poser.pugx.org/o2system/database/downloads)](https://packagist.org/packages/o2system/database)
 [![License](https://poser.pugx.org/o2system/database/license)](https://packagist.org/packages/o2system/database)
